@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState } from "react";
 import "./polices.css";
 
@@ -67,11 +68,12 @@ function PolicesHeader() {
 	);
 }
 
-export default function Polices() {
+export default function Polices({ onLoginClick, user }) {
+	// Truyền prop từ App.jsx
 	return (
 		<>
 			<PolicesHeader />
-			<PolicesPricingFAQ />
+			<PolicesPricingFAQ onLoginClick={onLoginClick} user={user} />
 		</>
 	);
 }
@@ -107,80 +109,86 @@ const Button = ({ size = 'md', variant = 'default', className = '', children, ..
 	);
 };
 
-// --- Pricing Data ---
-// Dữ liệu các gói cước không đổi
+// --- DỮ LIỆU GÓI CƯỚC ĐÃ ĐƯỢC CẬP NHẬT THEO SOC/SOH ---
 const pricingTiers = [
-		{
-				nameVi: "Gói Linh Hoạt Tiết Kiệm",
-				price: 0,
-				period: "VND/tháng",
-				description: "Đi ít trả ít",
-				features: [
-					"Phí thuê tháng: 0 VND",
-					"Phí hoán đổi: ~1.000 VND/km",
-					"Phí thiết lập: 4.500.000 VND",
-					"Miễn phí đổi pin tháng đầu",
-					"Phù hợp: <300km/tháng",
-					"Lý tưởng cho: Nhân viên VP, học sinh, người già",
-				],
-				cta: "Chọn gói này",
-				cardClass: "card--basic"
-			},
-			{
-				nameVi: "Gói Tiêu Chuẩn",
-				price: 350000,
-				period: "VND/tháng",
-				description: "Tháng ổn định, đổi pin không giới hạn giờ thấp điểm",
-				features: [
-					"Phí thuê: 350.000 VND/tháng",
-					"Miễn phí đổi: 10:00-16:00 & 22:00-06:00",
-					"Phí ngoài giờ: 2.000 VND/Ah",
-					"Phí thiết lập: 4.500.000 VND (hoặc 2.000.000 nếu ≥24 tháng)",
-					"Kiểm soát chi phí ổn định",
-					"Phù hợp: Nhân viên hành chính, giao hàng",
-				],
-				cta: "Chọn gói này",
-				highlighted: true,
-				cardClass: "card--standard"
-			},
-			{
-				nameVi: "Gói Đi Nhiều",
-				price: 570000,
-				period: "VND/tháng",
-				description: "Hoán đổi mọi lúc, phí cố định",
-				features: [
-					"Phí thuê: 570.000 VND/tháng",
-					"Miễn phí đổi pin: Không giới hạn thời gian",
-					"Phí thiết lập: 4.500.000 VND (trả góp 6 tháng)",
-					"Ưu đãi bảo dưỡng xe pin",
-					"Không lo chi phí phát sinh",
-					"Phù hợp: Giao nhận, chạy xe ≥800km/tháng",
-				],
-				cta: "Chọn gói này",
-				cardClass: "card--optimal"
-			},
-			{
-				nameVi: "Gói Ngắn Hạn",
-				price: "60.000 - 350.000",
-				period: "VND/ngày hoặc tuần",
-				description: "Khách du lịch, công tác, người mới trải nghiệm",
-				features: [
-					"Gói ngày: 60.000 VND (~650km)",
-					"Gói tuần: 350.000 VND/7 ngày",
-					"Miễn phí 3 lần đổi pin/ngày",
-					"Không cần hợp đồng dài hạn",
-					"Thanh toán linh hoạt qua app",
-					"Phù hợp: Du lịch, công tác ngắn ngày",
-				],
-				cta: "Chọn gói này",
-				cardClass: "card--advanced"
-			},
+    {
+        nameVi: "Gói Theo Năng Lượng",
+        price: 0,
+        period: "VND/tháng",
+        description: "Chỉ trả tiền cho năng lượng bạn thực sự sử dụng.",
+        features: [
+          "Phí thuê tháng: 0 VND",
+          "Phí đổi pin: 2.500 VND / %SOC sử dụng", // Thay đổi từ km sang %SOC
+          "Đảm bảo SOH (sức khỏe pin) > 85%", // Thêm chỉ số SOH
+          "Phí thiết lập ban đầu",
+          "Lý tưởng cho người đi ít, không cố định",
+        ],
+        cta: "Chọn gói này",
+        cardClass: "card--basic"
+    },
+    {
+        nameVi: "Gói Tối Ưu",
+        price: 399000,
+        period: "VND/tháng",
+        description: "Cân bằng chi phí và chất lượng pin cho nhu cầu hàng ngày.",
+        features: [
+          "Bao gồm 200% SOC/tháng (~2 lần đổi đầy)", // Thay đổi sang SOC
+          "Phí vượt mức: 2.000 VND / %SOC", // Thêm phí vượt mức
+          "Đảm bảo SOH (sức khỏe pin) > 90%", // SOH cao hơn
+          "Phí thiết lập ưu đãi",
+          "Phù hợp cho người đi làm, di chuyển đều đặn",
+        ],
+        cta: "Chọn gói này",
+        highlighted: true,
+        cardClass: "card--standard"
+    },
+    {
+        nameVi: "Gói Cao Cấp",
+        price: 650000,
+        period: "VND/tháng",
+        description: "Năng lượng không giới hạn và pin chất lượng tốt nhất.",
+        features: [
+          "Năng lượng đổi pin: Không giới hạn", // Thay đổi
+          "Đảm bảo SOH (sức khỏe pin) > 95%", // SOH cao nhất
+          "Ưu tiên tại trạm và các dịch vụ đặc biệt",
+          "Miễn phí thiết lập khi cam kết dài hạn",
+          "Dành cho tài xế công nghệ, người đi rất nhiều",
+        ],
+        cta: "Chọn gói này",
+        cardClass: "card--optimal"
+    },
+    {
+        nameVi: "Gói Trải Nghiệm",
+        price: "70.000",
+        period: "VND / lần đổi pin đầy",
+        description: "Lựa chọn hoàn hảo cho du khách hoặc dùng thử dịch vụ.",
+        features: [
+          "Thanh toán một lần cho một pin đầy (100% SOC)", // Thay đổi
+          "Không cần hợp đồng hay cam kết",
+          "Đảm bảo SOH (sức khỏe pin) > 85%",
+          "Trải nghiệm nhanh chóng và tiện lợi",
+          "Phù hợp cho khách du lịch, công tác ngắn ngày",
+        ],
+        cta: "Chọn gói này",
+        cardClass: "card--advanced"
+    },
 ];
 
 
 // --- Main Page Component ---
 // Component chính của trang
-export function PolicesPricingFAQ() {
+export function PolicesPricingFAQ({ onLoginClick, user }) {
+	// Kiểm tra đăng nhập qua user (truyền từ App.jsx)
+	const isLoggedIn = !!(user && user.fullName);
+	// Xử lý khi nhấn nút chọn gói
+	const handleChoosePlan = () => {
+		if (!isLoggedIn && onLoginClick) {
+			onLoginClick();
+		} else {
+			// TODO: Thực hiện logic chọn gói cho user đã đăng nhập
+			alert('Bạn đã đăng nhập, thực hiện chọn gói!');
+		}
+	};
 	return (
 		<div className="polices-container">
 			{/* Header */}
@@ -231,7 +239,7 @@ export function PolicesPricingFAQ() {
 							</div>
 
 							<div className="card-footer">
-								<Button size="lg" className="w-full">
+								<Button size="lg" className="w-full" onClick={handleChoosePlan}>
 									{tier.cta}
 								</Button>
 							</div>

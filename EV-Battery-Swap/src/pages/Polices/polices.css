@@ -1,0 +1,122 @@
+.container {
+  width: 99vw;
+  max-width: 1800px;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  background: transparent;
+  padding: 100px 0 0 0;
+  padding-left: 100px;
+  box-sizing: border-box;
+  text-align: left;
+}
+
+.leading-title {
+  font-family: 'Flama Book', 'PingFang TC', sans-serif;
+  font-size: 72px;
+  color: #7c8c8f;
+  margin-top: 0;
+  margin-bottom: 0.15em;
+  line-height: 90px;
+  font-weight: 400;
+  text-align: left;
+}
+
+.word-slide.sliding {
+  display: block;
+  height: 90px;
+  overflow: hidden;
+  position: relative;
+  margin: 0.15em 0 0.15em 0;
+}
+
+.words.word-slide-track {
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.6s cubic-bezier(.23,1,.32,1);
+}
+
+.word {
+  display: flex;
+  align-items: center;
+  font-size: 72px;
+  line-height: 90px;
+  height: 90px;
+  color: #02d306;
+  font-family: 'Flama Book', 'PingFang TC', sans-serif;
+  font-weight: 400;
+  text-align: left;
+  transition: color 0.4s;
+}
+
+.word.highlight {
+  background: none;
+  color: #2af06f;
+  font-weight: 400;
+  font-size: 72px;
+  line-height: 90px;
+  text-align: left;
+  font-family: 'Flama Book', 'PingFang TC', sans-serif;
+}
+
+.leading-description {
+  font-size: 32px;
+  color: #8ca0a8;
+  font-family: 'Flama Book', 'PingFang TC', sans-serif;
+  margin-top: 32px;
+  margin-bottom: 0;
+  text-align: left;
+}
+
+.leading-subtitle {
+  font-family: 'Flama Book', 'PingFang TC', sans-serif;
+  font-size: 72px;
+  line-height: 90px;
+  color: #7c8c8f;
+  font-weight: 400;
+  text-align: left;
+  margin-top: 0.15em;
+  margin-bottom: 0.1em;
+}
+
+.slidewords-row {
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+  margin-top: 0.05em;
+  margin-bottom: 0.05em;
+  width: 100%;
+  position: relative;
+  z-index: 1;
+  font-size: 72px;
+  line-height: 90px;
+  font-family: 'Flama Book', 'PingFang TC', sans-serif;
+  font-weight: 400;
+  height: 90px;
+}
+
+@media (max-width: 1200px) {
+  .section-leading {
+    padding: 40px 0 24px 12px;
+  }
+  .leading-title, .word {
+    font-size: 36px;
+    line-height: 44px;
+    height: 44px;
+  }
+  .word-slide.sliding {
+    height: 44px;
+  }
+  .leading-description {
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 900px) {
+  .container {
+    padding-left: 16px;
+
+  }
+}

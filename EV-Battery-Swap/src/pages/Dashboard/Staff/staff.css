@@ -1,0 +1,43 @@
+.staff-container {
+  padding: 40px 20px;
+  color: #000;
+  width: 100%;
+  align-self: stretch;
+  max-width: none;
+}
+
+.station-title {
+  margin-top: 12px;
+  margin-bottom: 20px;
+}
+
+.slots-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.slot-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  border-radius: 6px;
+}
+
+.slot-row--charging {
+  background: #f6e58d;
+}
+.slot-row--available {
+  background: #d4edda;
+}
+.slot-row--empty {
+  background: #ffffff;
+}
+
+.slot-index { width: 80px; font-weight: 700; }
+.slot-status { width: 120px; }
+.slot-soc { width: 100px; }
+.slot-soh { width: 100px; }
+.slot-actions { margin-left: auto; display:flex; gap:8px; }
+.slot-action-btn { padding: 6px 8px; }

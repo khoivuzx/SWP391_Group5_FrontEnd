@@ -1,0 +1,229 @@
+html, body {
+  overflow-x: hidden !important;
+  width: 100vw;
+}
+/* Reset và Base Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.battery-pin-page {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  width: 100vw;
+  padding: 80px 0 0;
+  margin: 0;
+  overflow-x: hidden;
+}
+
+/* Main Container */
+.gogoro-container {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 60px;
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Background Video */
+.background-video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 1;
+}
+
+/* Video Overlay */
+.gogoro-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+}
+
+.gogoro-container > *:not(.background-video) {
+  position: relative;
+  z-index: 3;
+}
+
+/* Centered Text Content */
+.text-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  max-width: 800px;
+  width: 100%;
+}
+
+/* Hide Station Container for centered layout */
+.station-container {
+  display: none;
+}
+
+.text-content h1 {
+  font-size: clamp(48px, 5vw, 80px);
+  font-weight: 800;
+  line-height: 1.1;
+  color: hsl(0, 0%, 100%);
+  margin-bottom: 24px;
+}
+
+.text-content p {
+  font-size: 18px;
+  line-height: 1.6;
+  color: hsl(0, 0%, 100%);
+  max-width: 500px;
+  margin:  auto;
+}
+
+.statsSection {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 48px 0 0 0;
+  text-align: center;
+}
+
+.title {
+  font-weight: 800;
+  font-size: 28px;
+  margin: 24px 0 18px 0;
+  color: #222;
+}
+
+.subtitle {
+  font-size: 20px;
+  color: #444;
+  margin-bottom: 32px;
+}
+
+.statsRow {
+  display: flex;
+  justify-content: center;
+  gap: 48px;
+  margin-top: 24px;
+  flex-wrap: wrap;
+}
+
+.statBlock {
+  min-width: 120px;
+}
+
+.statNumber {
+  font-size: 38px;
+  font-weight: 900;
+}
+
+.blue {
+  color: #0056d2;
+}
+
+.green {
+  color: #10b981;
+}
+
+.statLabel {
+  font-size: 18px;
+  color: #444;
+}
+
+.statsImage {
+  width: 100%;
+  max-width: 1500px;
+  margin: 40px auto 0 auto;
+  display: block;
+}
+.battery-pin-highlight {
+  max-width: 520px;
+  margin: 48px auto 0 auto;
+  padding: 32px 0 48px 0;
+  text-align: center;
+  background: #fff;
+  border-radius: 18px;
+}
+
+.bph-title {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: #222;
+  margin-bottom: 18px;
+}
+
+.bph-desc {
+  font-size: 1.25rem;
+  color: #888;
+  margin-bottom: 32px;
+  line-height: 1.4;
+}
+
+.bph-image-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 320px;
+  position: relative;
+}
+
+.bph-image {
+  max-width: 220px;
+  width: 100%;
+  filter: drop-shadow(0 0 60px #aefcff);
+  z-index: 2;
+}
+/* src/pages/Battery Electric/BatteryPin.css */
+/* DÁN ĐOẠN MÃ NÀY VÀO CUỐI FILE CỦA BẠN */
+
+.battery-pin-highlight {
+  min-height: 100vh;
+  width: 100%;
+  background-color: #fff;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: 60px;
+}
+
+/* Canvas chứa chuỗi ảnh animation */
+.bph-canvas {
+  position: static;
+  margin: 32px auto 0 auto;
+  max-width: 100vw;
+  width: 100%;
+  height: 600px;
+  object-fit: contain;
+  z-index: 1;
+  display: block;
+}
+
+/* Khối văn bản nằm trên canvas */
+.bph-text-content {
+  position: static;
+  z-index: 10;
+  text-align: center;
+  width: 100%;
+  margin-bottom: 0;
+}
+
+.bph-title {
+  font-family: "Graphik", sans-serif; /* Font chữ tương tự Gogoro */
+  font-size: 3.5rem;
+  font-weight: 500;
+  color: #323237;
+  margin: 0 0 16px 0;
+}
+
+

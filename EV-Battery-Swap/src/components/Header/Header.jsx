@@ -181,6 +181,15 @@ export default function Header({ onLoginClick, user }) {
           showBatteryDropdown={showBatteryDropdown}
           setShowBatteryDropdown={setShowBatteryDropdown}
         />
+        {role === 'driver' && (
+          <Link
+            to="/dashboard/driver"
+            className={`nav-link driver-nav-btn${isActive('/dashboard/driver') ? ' active' : ''}`}
+            style={{ marginLeft: 12 }}
+          >
+            Driver
+          </Link>
+        )}
 
         <div className="actions">
           {user && user.fullName && (

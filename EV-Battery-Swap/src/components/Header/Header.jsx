@@ -1,6 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import { FaUserCircle } from 'react-icons/fa';
 import logo from "../../assets/react.svg";
 import "./Header.css";
+import { useNavigate } from "react-router-dom";
 import { Link, useLocation } from 'react-router-dom';
 
 // Component Brand
@@ -146,6 +148,23 @@ export default function Header({ onLoginClick, user }) {
     window.location.href = '/';
   };
 
+  // State cho menu user
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const navigate = useNavigate();
+  const userMenuRef = useRef();
+
+  // Đóng menu khi click ra ngoài
+  useEffect(() => {
+    if (!showUserMenu) return;
+    const handleClick = (e) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target)) {
+        setShowUserMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [showUserMenu]);
+
   return (
     <header
       className={`site-header ${scrolled ? "scrolled" : hovered ? "hovered" : ""}`}
@@ -154,30 +173,74 @@ export default function Header({ onLoginClick, user }) {
     >
       <div className="header-inner">
         <Brand />
-        {!(isDriverDashboard || isStaffDashboard || isAdminDashboard) && (
-          <Navigation
-            isActive={isActive}
-            isBatteryActive={isBatteryActive}
-            showBatteryDropdown={showBatteryDropdown}
-            setShowBatteryDropdown={setShowBatteryDropdown}
-          />
-        )}
+
+        {/* Nav cho driver dashboard */}
+        <Navigation
+          isActive={isActive}
+          isBatteryActive={isBatteryActive}
+          showBatteryDropdown={showBatteryDropdown}
+          setShowBatteryDropdown={setShowBatteryDropdown}
+        />
 
         <div className="actions">
           {user && user.fullName && (
-            <span className="user-welcome" style={{marginRight: 16, fontWeight: 500, color: '#1976d2'}}>
-              Welcome, {user.fullName}
-            </span>
+            <>
+              <div className="user-menu-wrap" ref={userMenuRef}>
+                <button
+                  className="user-menu-trigger"
+                  onClick={() => setShowUserMenu((v) => !v)}
+                  aria-label="User menu"
+                >
+                  <FaUserCircle className="user-menu-icon" />
+                </button>
+                <span className="user-menu-name">{user.fullName}</span>
+                {showUserMenu && (
+                  <div className="user-menu-dropdown">
+                    <button
+                      className="user-menu-btn"
+                      onClick={() => {
+                        setShowUserMenu(false);
+                        navigate("/user/info");
+                      }}
+                    >
+                      Thông tin người dùng
+                    </button>
+                    <button
+                      className="user-menu-btn"
+                      onClick={() => {
+                        setShowUserMenu(false);
+                        navigate("/user/transactions");
+                      }}
+                    >
+                      Lịch sử giao dịch
+                    </button>
+                    {role === 'driver' && (
+                      <button
+                        className="user-menu-btn"
+                        onClick={() => {
+                          setShowUserMenu(false);
+                          navigate("/vehicle-link");
+                        }}
+                      >
+                        Liên kết xe
+                      </button>
+                    )}
+                    <button
+                      className="user-menu-btn logout"
+                      onClick={() => {
+                        setShowUserMenu(false);
+                        handleLogout();
+                      }}
+                    >
+                      Đăng xuất
+                    </button>
+                  </div>
+                )}
+              </div>
+              {/* Ẩn liên kết xe bên phải user icon khi ở dashboard driver */}
+            </>
           )}
-          {(isDriverDashboard || isStaffDashboard || isAdminDashboard) ? (
-            <UserActions role={role} isDashboard={true} onLogout={handleLogout} />
-          ) : (
-            user ? (
-              <UserActions role={role} isDashboard={false} onLogout={handleLogout} />
-            ) : (
-              <LoginButton onLoginClick={onLoginClick} />
-            )
-          )}
+          {!user && <LoginButton onLoginClick={onLoginClick} />}
         </div>
       </div>
     </header>

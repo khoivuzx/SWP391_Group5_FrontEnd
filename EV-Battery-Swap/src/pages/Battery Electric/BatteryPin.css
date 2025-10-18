@@ -1,6 +1,7 @@
 html, body {
   overflow-x: hidden !important;
   width: 100vw;
+  background: #fff !important;
 }
 /* Reset và Base Styles */
 * {
@@ -15,6 +16,7 @@ html, body {
   padding: 80px 0 0;
   margin: 0;
   overflow-x: hidden;
+  background: #fff;
 }
 
 /* Main Container */
@@ -28,6 +30,7 @@ html, body {
   box-sizing: border-box;
   position: relative;
   overflow: hidden;
+  background: #fff;
 }
 
 /* Background Video */

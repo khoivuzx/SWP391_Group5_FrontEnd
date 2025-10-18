@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import "./Battery.css";
 
 function Battery() {
@@ -54,6 +54,32 @@ function Battery() {
       <p>{desc}</p>
     </div>
   );
+
+  // ImageSwapper - crossfades between two images using CSS opacity transition
+  const ImageSwapper = ({ srcA = '/pinswap/img-swap1.jpg', srcB = '/pinswap/img-swap2.jpg', interval = 4000, alt = '' }) => {
+    const [current, setCurrent] = useState(0);
+
+    useEffect(() => {
+      // Preload images so crossfade is smooth
+      const a = new Image();
+      const b = new Image();
+      a.src = srcA;
+      b.src = srcB;
+
+      const id = setInterval(() => {
+        setCurrent((c) => (c === 0 ? 1 : 0));
+      }, interval);
+
+      return () => clearInterval(id);
+    }, [srcA, srcB, interval]);
+
+    return (
+      <div className="card-sumary image-swapper" role="img" aria-label={alt}>
+        <img className={`swap-img ${current === 0 ? 'visible' : ''}`} src={srcA} alt={alt} />
+        <img className={`swap-img ${current === 1 ? 'visible' : ''}`} src={srcB} alt={alt} />
+      </div>
+    );
+  };
 
   return (
     <div className="battery-page">
@@ -154,9 +180,7 @@ function Battery() {
       <section className="intro-section">
         <h2>VÌ SAO LỰA CHỌN GIẢI PHÁP CỦA CHÚNG TÔI</h2>
         <div className="intro-cards-sumary">
-          <div className="card-sumary">
-            <img src="/img-batte.jpg" alt="Pin cho xe điện" />
-          </div>
+          <ImageSwapper srcA="/pinswap/img-swap1.jpg" srcB="/pinswap/img-swap2.jpg" interval={2000} alt="Pin cho xe điện" />
 
           <div className="sumary-text-chung">
             <div className="sumary-text-1">

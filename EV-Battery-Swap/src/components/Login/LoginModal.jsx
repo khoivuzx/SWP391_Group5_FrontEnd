@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import RegisterModal from './RegisterModal';
+import ForgotPass from './ForgotPass';
 import './LoginModal.css';
 import API_BASE_URL from '../../config';
 
@@ -14,6 +15,7 @@ import API_BASE_URL from '../../config';
  */
 export default function LoginModal({ isOpen, onClose, onLoginSuccess }) {
   const [showRegister, setShowRegister] = useState(false);
+  const [showForgot, setShowForgot] = useState(false);
   const modalRef = useRef();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({ email: '', password: '' });
@@ -104,6 +106,7 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }) {
   };
 
   // Hiển thị RegisterModal nếu showRegister true
+
   if (showRegister) {
     return (
       <RegisterModal
@@ -111,6 +114,16 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }) {
         onClose={() => setShowRegister(false)}
         onSwitchToLogin={() => setShowRegister(false)}
       />
+    );
+  }
+  if (showForgot) {
+    return (
+      <div className="modal-backdrop">
+        <div className="login-modal" style={{padding: 0}}>
+          <button className="close-btn" onClick={() => setShowForgot(false)} aria-label="Đóng">&times;</button>
+          <ForgotPass />
+        </div>
+      </div>
     );
   }
 
@@ -150,7 +163,13 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }) {
             {isLoading ? 'Đang đăng nhập...' : 'Đăng nhập'}
           </button>
           <div className="form-options" style={{ marginTop: 12 }}>
-            <a href="#" className="forgot-password">Quên mật khẩu?</a>
+            <span
+              className="forgot-password"
+              style={{ color: '#1976d2', textDecoration: 'underline', cursor: 'pointer' }}
+              onClick={() => setShowForgot(true)}
+            >
+              Quên mật khẩu?
+            </span>
           </div>
         </form>
         <p className="signup-link">

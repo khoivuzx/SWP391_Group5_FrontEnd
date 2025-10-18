@@ -11,6 +11,7 @@ import Home from './pages/Home/Home';
 import Battery from './pages/Battery Electric/Battery';
 import BatteryPin from './pages/Battery Electric/BatteryPin';
 import Polices from './pages/Polices/polices';
+import ForgotPass from './components/Login/ForgotPass';
 import AdminDashboard from './pages/Dashboard/Admin/admin';
 import StaffDashboard from './pages/Dashboard/Staff/staff';
 import DriverDashboard from './pages/Dashboard/Driver/driver';
@@ -38,11 +39,12 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/battery" element={<Battery />} /> 
             <Route path="/battery-pin" element={<BatteryPin />} />
-            <Route path="/polices" element={<Polices />} />
+            <Route path="/polices" element={<Polices onLoginClick={handleOpenModal} user={user} />} />
             <Route path="/dashboard/admin" element={<AdminDashboard user={user} onLoginClick={handleOpenModal} />} />
             <Route path="/dashboard/staff" element={<StaffDashboard user={user} onLoginClick={handleOpenModal} />} />
             <Route path="/dashboard/driver" element={<DriverDashboard />} />
             <Route path="/vehicle-link" element={<VehicleLink />} />
+            <Route path="/forgot-pass" element={<ForgotPass />} />
           </Routes>
       </main>
       <Footer />

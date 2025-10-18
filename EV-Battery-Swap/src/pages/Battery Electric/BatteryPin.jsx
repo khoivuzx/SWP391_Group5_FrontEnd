@@ -43,14 +43,13 @@ export default function BatteryPin() {
     if (!canvas) return;
     const context = canvas.getContext('2d');
     // Đặt kích thước canvas phù hợp với ảnh (có thể điều chỉnh lại nếu ảnh khác size)
-  canvas.width = 800;
-  canvas.height = 900;
+  canvas.width = 1374;
+  canvas.height = 1374;
     // Vẽ ảnh đầu tiên lên canvas ngay khi nó tải xong
     imageCache[0].onload = () => {
       context.clearRect(0, 0, canvas.width, canvas.height);
   // Vẽ ảnh căn giữa, giữ tỉ lệ và zoom lớn hơn
   const img = imageCache[0];
-  const zoom = 1.5; // Zoom lớn hơn 1.5 lần
   const scale = Math.min(canvas.width / img.width, canvas.height / img.height) * zoom;
   const x = (canvas.width - img.width * scale) / 2;
   const y = (canvas.height - img.height * scale) / 2;
@@ -62,8 +61,8 @@ export default function BatteryPin() {
     const tl = gsap.timeline({
       scrollTrigger: {
         trigger: sectionRef.current,
-        start: 'top center',
-        end: 'bottom center',
+        start: 'top center 20%',
+        end: 'bottom 100%',
         scrub: 0.3, // scrub nhỏ hơn để animation mượt hơn
         pin: false,
       },

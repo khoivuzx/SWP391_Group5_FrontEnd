@@ -62,10 +62,10 @@ export default function BatteryPin() {
     const tl = gsap.timeline({
       scrollTrigger: {
         trigger: sectionRef.current,
-        start: 'top top',
-        end: '+=1500', // Giảm chiều dài cuộn để animation diễn ra nhanh hơn
+        start: 'top center',
+        end: 'bottom center',
         scrub: 0.3, // scrub nhỏ hơn để animation mượt hơn
-        pin: true,
+        pin: false,
       },
     });
     tl.to(frameData, {

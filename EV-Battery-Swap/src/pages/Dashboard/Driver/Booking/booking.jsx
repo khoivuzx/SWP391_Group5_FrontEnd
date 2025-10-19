@@ -1,68 +1,107 @@
 import React, { useState } from 'react';
+import API_BASE_URL from '../../../../config';
+import './booking.css';
 
 export default function Booking() {
   const [station, setStation] = useState('');
+  const [vehicleName, setVehicleName] = useState('');
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
-  const [batteryType, setBatteryType] = useState('Gogoro');
-  const [quantity, setQuantity] = useState(1);
-  const [note, setNote] = useState('');
   const [success, setSuccess] = useState(false);
+  const [error, setError] = useState('');
 
   // Demo danh sách trạm, thực tế lấy từ API
   const stations = [
-    'GoStation Hà Nội',
-    'GoStation Đà Nẵng',
-    'GoStation Hồ Chí Minh',
-    'GoStation Hải Phòng',
+    'Gogoro Central Park',
+    'Gogoro Grand Park - Khu 1',
+    'Gogoro Central Đồng Khởi',
+    'Gogoro Golden River',
+  ];
+  // Demo danh sách xe, thực tế lấy từ API hoặc user
+  const vehicles = [
+    "Gogoro SuperSport",
+    "Gogoro 2 Delight",
+    "Gogoro Viva Mix",
+    "Gogoro CrossOver S",
+    "Gogoro S2 ABS",    
   ];
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // TODO: Gửi dữ liệu đặt lịch tới API
-    setSuccess(true);
+    setError('');
+    setSuccess(false);
+    try {
+      // Lấy token từ localStorage (ưu tiên accessToken, authToken, jwt)
+      const token = localStorage.getItem("accessToken") || localStorage.getItem("authToken") || localStorage.getItem("jwt");
+
+      const res = await fetch(`${API_BASE_URL}/webAPI/api/secure/booking`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          station,
+          vehicleName,
+          date,
+          time,
+        }),
+      });
+      const text = await res.text();
+      let data = {};
+      try {
+        data = text && text.trim() ? JSON.parse(text) : {};
+      } catch {
+        data = { error: text };
+      }
+      if (!res.ok) {
+        const msg = data?.error || data?.message || `Đặt lịch thất bại (${res.status})`;
+        throw new Error(msg);
+      }
+      if (data.status === 'success') {
+        setSuccess(true);
+      } else {
+        setError(data.message || 'Đặt lịch thất bại!');
+      }
+    } catch (err) {
+      setError(err.message || 'Lỗi kết nối server!');
+    }
   };
 
   return (
-    <div style={{maxWidth: 480, margin: '48px auto', background: '#fff', borderRadius: 16, boxShadow: '0 4px 24px rgba(33,150,243,0.08)', padding: 32}}>
-      <h2 style={{color: '#1976d2', textAlign: 'center', marginBottom: 18}}>Đặt lịch đổi pin</h2>
+    <div className="booking-container">
+      <h2 className="booking-title">Đăng ký lịch đổi pin</h2>
       {success ? (
-        <div style={{color: '#10B981', fontWeight: 600, textAlign: 'center', fontSize: '1.1rem'}}>
-          Đặt lịch thành công! Vui lòng đến trạm đúng giờ để đổi pin.
+        <div className="booking-success">
+          Đăng ký thành công! Vui lòng đến trạm đúng giờ để đổi pin.
         </div>
       ) : (
-        <form onSubmit={handleSubmit} style={{display: 'flex', flexDirection: 'column', gap: 18}}>
+        <form onSubmit={handleSubmit} className="booking-form">
+          {error && <div className="booking-error">{error}</div>}
           <label>
-            Chọn trạm:
-            <select value={station} onChange={e => setStation(e.target.value)} required style={{marginTop: 6, padding: '8px 12px', borderRadius: 8, border: '1px solid #e0e7ef'}}>
+            Tên trạm:
+            <select value={station} onChange={e => setStation(e.target.value)} required>
               <option value="">-- Chọn trạm --</option>
               {stations.map(st => <option key={st} value={st}>{st}</option>)}
             </select>
           </label>
           <label>
-            Ngày đổi pin:
-            <input type="date" value={date} onChange={e => setDate(e.target.value)} required style={{marginTop: 6, padding: '8px 12px', borderRadius: 8, border: '1px solid #e0e7ef'}} />
-          </label>
-          <label>
-            Giờ đổi pin:
-            <input type="time" value={time} onChange={e => setTime(e.target.value)} required style={{marginTop: 6, padding: '8px 12px', borderRadius: 8, border: '1px solid #e0e7ef'}} />
-          </label>
-          <label>
-            Loại pin:
-            <select value={batteryType} onChange={e => setBatteryType(e.target.value)} style={{marginTop: 6, padding: '8px 12px', borderRadius: 8, border: '1px solid #e0e7ef'}}>
-              <option value="Gogoro">Gogoro</option>
-              <option value="VinFast">VinFast</option>
+            Tên xe:
+            <select value={vehicleName} onChange={e => setVehicleName(e.target.value)} required>
+              <option value="">-- Chọn xe --</option>
+              {vehicles.map(v => <option key={v} value={v}>{v}</option>)}
             </select>
           </label>
           <label>
-            Số lượng pin:
-            <input type="number" min={1} max={4} value={quantity} onChange={e => setQuantity(e.target.value)} style={{marginTop: 6, padding: '8px 12px', borderRadius: 8, border: '1px solid #e0e7ef', width: 80}} />
+            Ngày đổi pin:
+            <input type="date" value={date} onChange={e => setDate(e.target.value)} required />
           </label>
           <label>
-            Ghi chú (tuỳ chọn):
-            <textarea value={note} onChange={e => setNote(e.target.value)} rows={2} style={{marginTop: 6, padding: '8px 12px', borderRadius: 8, border: '1px solid #e0e7ef'}} />
+            Giờ đổi pin:
+            <input type="time" value={time} onChange={e => setTime(e.target.value)} required />
           </label>
-          <button type="submit" style={{background: 'linear-gradient(90deg,#1976d2,#10B981)', color: '#fff', fontWeight: 700, border: 'none', borderRadius: 8, padding: '12px 0', fontSize: '1.1rem', marginTop: 12, cursor: 'pointer'}}>Đặt lịch</button>
+          <button type="submit">Đăng ký</button>
         </form>
       )}
     </div>

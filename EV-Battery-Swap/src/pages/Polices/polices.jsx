@@ -1,5 +1,6 @@
 
 import React, { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "./polices.css";
 
 const slideWords = [
@@ -111,84 +112,118 @@ const Button = ({ size = 'md', variant = 'default', className = '', children, ..
 
 // --- DỮ LIỆU GÓI CƯỚC ĐÃ ĐƯỢC CẬP NHẬT THEO SOC/SOH ---
 const pricingTiers = [
-    {
-        nameVi: "Gói Theo Năng Lượng",
-        price: 0,
-        period: "VND/tháng",
-        description: "Chỉ trả tiền cho năng lượng bạn thực sự sử dụng.",
-        features: [
-          "Phí thuê tháng: 0 VND",
-          "Phí đổi pin: 2.500 VND / %SOC sử dụng", // Thay đổi từ km sang %SOC
-          "Đảm bảo SOH (sức khỏe pin) > 85%", // Thêm chỉ số SOH
-          "Phí thiết lập ban đầu",
-          "Lý tưởng cho người đi ít, không cố định",
-        ],
-        cta: "Chọn gói này",
-        cardClass: "card--basic"
-    },
-    {
-        nameVi: "Gói Tối Ưu",
-        price: 399000,
-        period: "VND/tháng",
-        description: "Cân bằng chi phí và chất lượng pin cho nhu cầu hàng ngày.",
-        features: [
-          "Bao gồm 200% SOC/tháng (~2 lần đổi đầy)", // Thay đổi sang SOC
-          "Phí vượt mức: 2.000 VND / %SOC", // Thêm phí vượt mức
-          "Đảm bảo SOH (sức khỏe pin) > 90%", // SOH cao hơn
-          "Phí thiết lập ưu đãi",
-          "Phù hợp cho người đi làm, di chuyển đều đặn",
-        ],
-        cta: "Chọn gói này",
-        highlighted: true,
-        cardClass: "card--standard"
-    },
-    {
-        nameVi: "Gói Cao Cấp",
-        price: 650000,
-        period: "VND/tháng",
-        description: "Năng lượng không giới hạn và pin chất lượng tốt nhất.",
-        features: [
-          "Năng lượng đổi pin: Không giới hạn", // Thay đổi
-          "Đảm bảo SOH (sức khỏe pin) > 95%", // SOH cao nhất
-          "Ưu tiên tại trạm và các dịch vụ đặc biệt",
-          "Miễn phí thiết lập khi cam kết dài hạn",
-          "Dành cho tài xế công nghệ, người đi rất nhiều",
-        ],
-        cta: "Chọn gói này",
-        cardClass: "card--optimal"
-    },
-    {
-        nameVi: "Gói Trải Nghiệm",
-        price: "70.000",
-        period: "VND / lần đổi pin đầy",
-        description: "Lựa chọn hoàn hảo cho du khách hoặc dùng thử dịch vụ.",
-        features: [
-          "Thanh toán một lần cho một pin đầy (100% SOC)", // Thay đổi
-          "Không cần hợp đồng hay cam kết",
-          "Đảm bảo SOH (sức khỏe pin) > 85%",
-          "Trải nghiệm nhanh chóng và tiện lợi",
-          "Phù hợp cho khách du lịch, công tác ngắn ngày",
-        ],
-        cta: "Chọn gói này",
-        cardClass: "card--advanced"
-    },
+	{
+		nameVi: "Eco",
+		price: 200000,
+		period: "VND/tháng",
+		description: "Nhận pin nhóm C (75–80%). Pin trả ≥75% thì free",
+		features: [
+			"Nhận pin nhóm C (SoH 75–80%)",
+			"Pin trả ≥75% thì miễn phí",
+			"Yêu cầu SoH tối thiểu: 75%",
+			"Phù hợp cho nhu cầu tiết kiệm",
+		],
+		cta: "Chọn gói Eco",
+		cardClass: "card--basic"
+	},
+	{
+		nameVi: "Basic",
+		price: 300000,
+		period: "VND/tháng",
+		description: "Nhận pin nhóm B (80%–85%). Pin trả ≥75% thì free",
+		features: [
+			"Nhận pin nhóm B (SoH 80–85%)",
+			"Pin trả ≥75% thì miễn phí",
+			"Yêu cầu SoH tối thiểu: 75%",
+			"Phù hợp cho người dùng phổ thông",
+		],
+		cta: "Chọn gói Basic",
+		highlighted: true,
+		cardClass: "card--standard"
+	},
+	{
+		nameVi: "Standard",
+		price: 500000,
+		period: "VND/tháng",
+		description: "Nhận pin nhóm A (≥85%). Pin trả ≥70% thì free",
+		features: [
+			"Nhận pin nhóm A (SoH ≥85%)",
+			"Pin trả ≥70% thì miễn phí",
+			"Yêu cầu SoH tối thiểu: 70%",
+			"Pin chất lượng cao, ổn định",
+		],
+		cta: "Chọn gói Standard",
+		cardClass: "card--optimal"
+	},
+	{
+		nameVi: "Premium",
+		price: 800000,
+		period: "VND/tháng",
+		description: "Nhận pin nhóm A mới. Pin trả ≥70% thì free",
+		features: [
+			"Nhận pin nhóm A mới (SoH 90–100%)",
+			"Pin trả ≥70% thì miễn phí",
+			"Yêu cầu SoH tối thiểu: 70%",
+			"Ưu tiên dịch vụ, pin mới nhất",
+		],
+		cta: "Chọn gói Premium",
+		cardClass: "card--advanced"
+	},
 ];
 
 
 // --- Main Page Component ---
 // Component chính của trang
+import API_BASE_URL from '../../config';
 export function PolicesPricingFAQ({ onLoginClick, user }) {
-	// Kiểm tra đăng nhập qua user (truyền từ App.jsx)
 	const isLoggedIn = !!(user && user.fullName);
+	const navigate = useNavigate();
+	const [message, setMessage] = useState("");
+
+	// Map tên gói sang packageId (theo backend)
+	const packageIdMap = {
+		"Eco": 1,
+		"Basic": 2,
+		"Standard": 3,
+		"Premium": 4
+	};
+
 	// Xử lý khi nhấn nút chọn gói
-	const handleChoosePlan = () => {
+	const handleChoosePlan = async (tier) => {
 		if (!isLoggedIn && onLoginClick) {
 			onLoginClick();
 		} else {
-			// TODO: Thực hiện logic chọn gói cho user đã đăng nhập
-			alert('Bạn đã đăng nhập, thực hiện chọn gói!');
+			const userId = user?.userId || user?.id;
+			const packageId = packageIdMap[tier.nameVi];
+			if (!userId || !packageId) {
+				setMessage("Không xác định được thông tin người dùng hoặc gói pin.");
+				return;
+			}
+			try {
+				const params = new URLSearchParams({
+					userId: userId.toString(),
+					packageId: packageId.toString()
+				});
+				const res = await fetch(`${API_BASE_URL}/webAPI/api/buyPackage?${params.toString()}`);
+				let data = {};
+				try {
+					data = await res.json();
+				} catch {
+					data = {};
+				}
+				if (data.vnpayUrl) {
+					window.location.href = data.vnpayUrl;
+				} else if (data.message) {
+					setMessage(data.message);
+				} else {
+					setMessage('Có lỗi khi mua gói.');
+				}
+			} catch (err) {
+				setMessage("Có lỗi khi kết nối đến máy chủ.");
+			}
 		}
 	};
+
 	return (
 		<div className="polices-container">
 			{/* Header */}
@@ -206,6 +241,9 @@ export function PolicesPricingFAQ({ onLoginClick, user }) {
 
 			{/* Pricing Cards Section */}
 			<main className="pricing-section">
+				{message && (
+					<div className="api-message" style={{ marginBottom: 16, color: message.includes('thành công') ? 'green' : 'red' }}>{message}</div>
+				)}
 				<div className="pricing-grid">
 					{pricingTiers.map((tier) => (
 						<div key={tier.nameVi} className={`pricing-card ${tier.cardClass}`}>
@@ -239,7 +277,7 @@ export function PolicesPricingFAQ({ onLoginClick, user }) {
 							</div>
 
 							<div className="card-footer">
-								<Button size="lg" className="w-full" onClick={handleChoosePlan}>
+								<Button size="lg" className="w-full" onClick={() => handleChoosePlan(tier)}>
 									{tier.cta}
 								</Button>
 							</div>
@@ -247,7 +285,6 @@ export function PolicesPricingFAQ({ onLoginClick, user }) {
 					))}
 				</div>
 			</main>
-
 		</div>
 	);
 }

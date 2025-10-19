@@ -1,0 +1,62 @@
+/* booking.css - Style cho trang đặt lịch đổi pin */
+.booking-container {
+  max-width: 480px;
+  margin: 48px auto;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(33,150,243,0.08);
+  padding: 32px;
+}
+.booking-title {
+  color: #1976d2;
+  text-align: center;
+  margin-bottom: 18px;
+}
+.booking-success {
+  color: #10B981;
+  font-weight: 600;
+  text-align: center;
+  font-size: 1.1rem;
+}
+.booking-error {
+  color: red;
+  text-align: center;
+  margin-bottom: 8px;
+}
+.booking-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.booking-form label {
+  font-weight: 500;
+}
+.booking-form select,
+.booking-form input[type="date"],
+.booking-form input[type="time"],
+.booking-form input[type="number"],
+.booking-form textarea {
+  margin-top: 6px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #e0e7ef;
+  font-size: 1rem;
+}
+.booking-form input[type="number"] {
+  width: 80px;
+}
+.booking-form button {
+  background: linear-gradient(90deg,#1976d2,#10B981);
+  color: #fff;
+  font-weight: 700;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 0;
+  font-size: 1.1rem;
+  margin-top: 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.booking-form button:hover {
+  background: linear-gradient(90deg,#10B981,#1976d2);
+}

@@ -18,6 +18,8 @@ import DriverDashboard from './pages/Dashboard/Driver/findSation/driver.jsx';
 import VehicleLink from './pages/Dashboard/Driver/vehicleLink/VehicleLink';
 import UserInfo from './pages/User/UserInfo';
 import TransactionHistory from './pages/User/TransactionHistory';
+import Booking from './pages/Dashboard/Driver/Booking/booking.jsx';
+
 function App() {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false); 
   const [user, setUser] = useState(() => {
@@ -45,6 +47,7 @@ function App() {
             <Route path="/dashboard/admin" element={<AdminDashboard user={user} onLoginClick={handleOpenModal} />} />
             <Route path="/dashboard/staff" element={<StaffDashboard user={user} onLoginClick={handleOpenModal} />} />
             <Route path="/dashboard/driver" element={<DriverDashboard />} />
+            <Route path="/dashboard/driver/booking" element={<Booking />} />
             <Route path="/vehicle-link" element={<VehicleLink />} />
             <Route path="/forgot-pass" element={<ForgotPass />} />
             <Route path="/user/info" element={<UserInfo />} />

@@ -1,8 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import './driver.css';
+import mapboxgl from 'mapbox-gl';
 
-
-import './driver.css';
 // Mapbox token (có thể lấy từ Home.jsx hoặc config riêng)
 const MAPBOX_TOKEN = 'pk.eyJ1Ijoia2hvaXZ1engiLCJhIjoiY21nNHcyZXZ4MHg5ZTJtcGtrNm9hbmVpciJ9.N3prC7rC3ycR6DV5giMUfg';
 
@@ -40,16 +39,13 @@ export default function DriverDashboard() {
   // Initialize map only once
   useEffect(() => {
     if (!mapContainer.current || map.current) return;
-    // eslint-disable-next-line
-    // @ts-ignore
-    import('mapbox-gl').then(mapboxgl => {
-      mapboxgl.accessToken = MAPBOX_TOKEN;
-      map.current = new mapboxgl.Map({
-        container: mapContainer.current,
-        style: 'mapbox://styles/mapbox/streets-v11',
-        center: [105.85, 21.03],
-        zoom: 11
-      });
+    mapboxgl.accessToken = MAPBOX_TOKEN;
+    map.current = new mapboxgl.Map({
+      container: mapContainer.current,
+      style: 'mapbox://styles/mapbox/streets-v11',
+      accessToken: MAPBOX_TOKEN,
+      center: [105.85, 21.03],
+      zoom: 11
     });
   }, []);
 

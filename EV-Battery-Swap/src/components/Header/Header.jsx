@@ -213,7 +213,7 @@ export default function Header({ onLoginClick, user }) {
                   className="dropdown-item"
                   onClick={() => {
                     setShowDriverMenu(false);
-                    navigate("/driver/booking");
+                    navigate("/dashboard/driver/booking");
                   }}
                 >
                   Đặt lịch

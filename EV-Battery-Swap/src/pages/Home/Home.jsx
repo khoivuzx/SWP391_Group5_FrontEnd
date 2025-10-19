@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import mapboxgl from 'mapbox-gl';
 import reactLogo from '../../assets/react.svg';
+import API_BASE_URL from '../../config';
 
 // Global Mapbox token constant
 const MAPBOX_TOKEN = 'pk.eyJ1Ijoia2hvaXZ1engiLCJhIjoiY21nNHcyZXZ4MHg5ZTJtcGtrNm9hbmVpciJ9.N3prC7rC3ycR6DV5giMUfg';
@@ -58,6 +59,46 @@ export default function Home() {
   const [stations, setStations] = useState([]);
   const [stationsLoading, setStationsLoading] = useState(true);
   const [stationsError, setStationsError] = useState("");
+  // Battery cache (we'll fetch the global report once when a popup opens)
+  const batteryCacheRef = useRef(new Map());
+  const batteryLoadingRef = useRef(false);
+
+  // Helper to build popup HTML for a station's battery list
+  function renderBatteryHtml(station, batteries) {
+    let html = '';
+    if (batteries && batteries.length) {
+      const totalSum = batteries.reduce((s, b) => s + (Number(b.Total ?? b.total ?? b.Total ?? 0)), 0);
+      html += `<div style="font-weight:600; margin-bottom:6px;">Batteries — total: ${totalSum}</div>`;
+      const hasAggregates = batteries.some(b => b.Good != null || b.Total != null || b.Average != null || b.Weak != null || b.Below75 != null);
+      if (hasAggregates) {
+        html += '<div style="max-height:220px; overflow:auto; text-align:left;">';
+        html += '<table style="width:100%; border-collapse:collapse; font-size:0.95em;">';
+        html += '<thead><tr style="text-align:left; border-bottom:1px solid rgba(0,0,0,0.08);"><th>Type</th><th style="padding-left:8px">Good</th><th style="padding-left:8px">Avg</th><th style="padding-left:8px">Weak</th><th style="padding-left:8px">&lt;75%</th><th style="padding-left:8px">Total</th></tr></thead>';
+        html += '<tbody>';
+        batteries.forEach(b => {
+          const type = b.batteryType ?? b.BatteryType ?? b.battery_type ?? b.type ?? b.batteryTypeName ?? '';
+          const good = b.Good ?? b.good ?? 0;
+          const avg = b.Average ?? b.average ?? b.Avg ?? 0;
+          const weak = b.Weak ?? b.weak ?? 0;
+          const below = b.Below75 ?? b.below75 ?? b.Below ?? 0;
+          const total = b.Total ?? b.total ?? 0;
+          const colorCell = (v, color) => `<td style="padding-left:8px; color:${color}; font-weight:600">${v}</td>`;
+          html += `<tr style="border-bottom:1px solid rgba(0,0,0,0.04);"><td style="padding:6px 0">${type}</td>${colorCell(good,'#16a34a')}${colorCell(avg,'#f59e0b')}${colorCell(weak,'#ef4444')}${colorCell(below,'#6b7280')}<td style="padding-left:8px">${total}</td></tr>`;
+        });
+        html += '</tbody></table></div>';
+      } else {
+        html += '<div style="max-height:160px; overflow:auto; text-align:left;">';
+        batteries.forEach(b => {
+          const label = b.Name || b.name || b.BatteryCode || b.Battery_SN || b.serial || b.Serial || JSON.stringify(b);
+          html += `<div style="padding:4px 0; border-bottom:1px solid rgba(0,0,0,0.04);">${label}</div>`;
+        });
+        html += '</div>';
+      }
+    } else {
+      html = '<div>No battery data available</div>';
+    }
+    return html;
+  }
 
   useEffect(() => {
     setStationsLoading(true);
@@ -116,9 +157,7 @@ export default function Home() {
       const popup = new mapboxgl.Popup({ offset: 25 })
         .setHTML(`
           <div style=\"color: #111; font-size: 1.1em; font-weight: 600;\">${station.name}</div>
-          <div style=\"margin-top: 6px; color: #333; font-size: 0.95em;\">
-            Available battery: <span id=\"battery-${station.id}\">Loading...</span>
-          </div>
+          <div id=\"battery-container-${station.id}\" style=\"margin-top: 6px; color: #333; font-size: 0.95em;\">Click to load batteries</div>
         `);
       const marker = new mapboxgl.Marker(el)
         .setLngLat(station.coords)
@@ -126,8 +165,47 @@ export default function Home() {
         .addTo(map.current);
       markerRefs.current[station.name] = marker;
       popupRefs.current[station.name] = popup;
+      // Lazy-load batteries when popup opens
+      popup.on('open', async () => {
+        const containerId = `battery-container-${station.id}`;
+        const popupEl = document.getElementById(containerId);
+        if (popupEl) popupEl.innerHTML = 'Loading batteries...';
+
+        // If we've already fetched and cached the list, use it
+        if (batteryCacheRef.current.has('all')) {
+          const list = batteryCacheRef.current.get('all');
+          const stationB = list.filter(b => String(b.stationId ?? b.Station_ID ?? b.stationId ?? b.station) === String(station.id));
+          const html = renderBatteryHtml(station, stationB);
+          if (popupEl) popupEl.innerHTML = html;
+          return;
+        }
+
+        // Avoid duplicate simultaneous fetches
+        if (batteryLoadingRef.current) {
+          if (popupEl) popupEl.innerHTML = 'Loading batteries...';
+          return;
+        }
+        batteryLoadingRef.current = true;
+        try {
+          const url = `${API_BASE_URL}/webAPI/api/getStationBatteryReportGuest`;
+          const res = await fetch(url, { credentials: 'omit', headers: { 'ngrok-skip-browser-warning': '1', 'Accept': 'application/json' } });
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const json = await res.json();
+          const list = Array.isArray(json) ? json : (json && Array.isArray(json.data) ? json.data : []);
+          batteryCacheRef.current.set('all', list);
+          const stationB = list.filter(b => String(b.stationId ?? b.Station_ID ?? b.station_id ?? b.station) === String(station.id));
+          const html = renderBatteryHtml(station, stationB);
+          if (popupEl) popupEl.innerHTML = html;
+        } catch (err) {
+          if (popupEl) popupEl.innerHTML = '<div style="color:#c00">Failed to load batteries</div>';
+        } finally {
+          batteryLoadingRef.current = false;
+        }
+      });
     });
   }, [stations]);
+
+  // We will lazy-load batteryReports when a popup opens. batteryLoadingRef prevents duplicate fetches.
 
   // Effect: when selectedStation changes, zoom to it and open popup
   useEffect(() => {

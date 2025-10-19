@@ -9,8 +9,10 @@ gsap.registerPlugin(ScrollTrigger);
 
 
 
+
 export default function BatteryPin() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isStatsModalOpen, setIsStatsModalOpen] = useState(false);
   const [selectedBatteryIndex, setSelectedBatteryIndex] = useState(null);
 
   const handleBatteryClick = (index) => {
@@ -133,35 +135,6 @@ export default function BatteryPin() {
         </div>
       </div>
 
-      {/* Section ảnh và số liệu nổi bật */}
-      <section className="statsSection">
-        <h2 className="title">
-          Nền tảng năng lượng tiên tiến cho xe điện hai bánh
-        </h2>
-        <p className="subtitle">
-          Hơn 50 thành phố | Một nền tảng | Hơn 55 mẫu xe điện hỗ trợ
-        </p>
-        <div className="statsRow">
-          <div className="statBlock">
-            <div className="statNumber blue">50<sup>+</sup></div>
-            <div className="statLabel">Thành phố</div>
-          </div>
-          <div className="statBlock">
-            <div className="statNumber green">ONE</div>
-            <div className="statLabel">Nền tảng</div>
-          </div>
-          <div className="statBlock">
-            <div className="statNumber blue">55<sup>+</sup></div>
-            <div className="statLabel">Mẫu xe</div>
-          </div>
-        </div>
-        <img
-          src="/img-pbgn-avengers@2x.jpg"
-          alt="EV Battery Platform"
-          className="statsImage"
-        />
-      </section>
-
       {/* Section giới thiệu pin kiểu VinFast */}
       <section className="vinfast-intro-section">
         {/* Left: Text */}
@@ -192,17 +165,23 @@ export default function BatteryPin() {
               <h2>Thông số kỹ thuật Pin Gogoro</h2>
             </div>
             <div className="battery-modal-body">
-              <img src="/batterypin3.jpg" alt="Gogoro Battery" className="battery-modal-img" />
-              <table className="battery-spec-table">
-                <tbody>
-                  <tr><td>Trọng lượng</td><td>~ 9 kg</td></tr>
-                  <tr><td>Kích thước</td><td>220 x 180 x 120 mm</td></tr>
-                  <tr><td>Cấp độ bảo vệ</td><td>IP55 (Chống bụi và chống nước tia nước áp suất thấp)</td></tr>
-                  <tr><td>Công nghệ làm mát</td><td>Làm mát thụ động</td></tr>
-                  <tr><td>Nhiệt độ hoạt động</td><td>-20°C đến 55°C</td></tr>
-                  <tr><td>Độ ẩm cho phép</td><td>0 - 95%</td></tr>
-                </tbody>
-              </table>
+              <div>
+                <div className="battery-modal-left">
+                  <img src="/batterypin3.jpg" alt="Gogoro Battery" className="battery-modal-img" />
+                </div>
+                <div className="battery-modal-right">
+                  <table className="battery-spec-table">
+                    <tbody>
+                      <tr><td>Trọng lượng</td><td>~ 9 kg</td></tr>
+                      <tr><td>Kích thước</td><td>220 x 180 x 120 mm</td></tr>
+                      <tr><td>Cấp độ bảo vệ</td><td>IP55 (Chống bụi và chống nước tia nước áp suất thấp)</td></tr>
+                      <tr><td>Công nghệ làm mát</td><td>Làm mát thụ động</td></tr>
+                      <tr><td>Nhiệt độ hoạt động</td><td>-20°C đến 55°C</td></tr>
+                      <tr><td>Độ ẩm cho phép</td><td>0 - 95%</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -217,6 +196,41 @@ export default function BatteryPin() {
           <canvas ref={canvasRef} className="bph-canvas" style={{display: 'block', margin: '32px auto 0 auto', maxWidth: '700px', width: '100%', height: 'auto', background: 'none'}}></canvas>
         </div>
       </section>
+      {/* Section ảnh và số liệu nổi bật */}
+      <section className="statsSection">
+        <h2 className="title">
+          Nền tảng năng lượng tiên tiến cho xe điện hai bánh
+        </h2>
+        <p className="subtitle">
+          Hơn 50 thành phố | Một nền tảng | Hơn 55 mẫu xe điện hỗ trợ
+        </p>
+        <div className="statsRow">
+          <div className="statBlock">
+            <div className="statNumber blue">50<sup>+</sup></div>
+            <div className="statLabel">Thành phố</div>
+          </div>
+          <div className="statBlock">
+            <div className="statNumber green">ONE</div>
+            <div className="statLabel">Nền tảng</div>
+          </div>
+          <div className="statBlock">
+            <div className="statNumber blue">55<sup>+</sup></div>
+            <div className="statLabel">Mẫu xe</div>
+          </div>
+        </div>
+        <img
+          src="/img-pbgn-avengers@2x.jpg"
+          alt="EV Battery Platform"
+          className="statsImage"
+          style={{cursor: 'pointer'}}
+          onClick={() => setIsStatsModalOpen(true)}
+        />
+      </section>
+
+      {/* Modal hiển thị thông tin khi click ảnh stats */}
+            <div style={{width: '100%', textAlign: 'center', margin: '0 auto', background: 'none'}}>
+        <img src="/img-underfooter.jpg" alt="Banner dưới footer" style={{width: '100%', maxWidth: '100vw', display: 'block', margin: '0 auto'}} />
+      </div>
     </div>
     
   );

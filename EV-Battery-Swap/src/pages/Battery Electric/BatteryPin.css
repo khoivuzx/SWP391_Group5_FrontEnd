@@ -23,69 +23,113 @@
 
 /* Modal content: bo góc lớn, bóng đẹp, padding rộng, responsive */
 .battery-modal-content {
-  background: #fff;
-  border-radius: 22px;
-  box-shadow: 0 8px 40px rgba(16, 185, 129, 0.13), 0 2px 16px rgba(30,41,59,0.10);
-  padding: 36px 32px 28px 32px;
-  max-width: 420px;
+  background: #f8fafc;
+  max-width: 1020px;
+  min-height: 500px;
   width: 95vw;
   position: relative;
   animation: fadeInModal 0.25s;
   display: flex;
   flex-direction: column;
   align-items: center;
+  box-shadow: 0 8px 32px rgba(33,150,243,0.10);
+  border-radius: 24px;
 }
 
 .battery-modal-header h2 {
-  font-size: 1.35rem;
   font-weight: 700;
-  margin-bottom: 18px;
   color: #1976d2;
   text-align: center;
-  letter-spacing: 0.01em;
+  background: none;
 }
 
 .battery-modal-body {
   text-align: center;
   width: 100%;
 }
+.battery-modal-body > div {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  justify-content: center;
+  width: 100%;
+  padding: 24px 0 8px 0;
+  gap: 0;
+}
+.battery-modal-img {
+  width: 100%;
+  max-width: 400px;
+  margin: 0;
+  background: #f8fafc;
+  border-radius: 22px;
+  display: block;
+  transition: box-shadow 0.2s;
+  box-shadow: 0 4px 24px rgba(33,150,243,0.10);
+}
+.battery-modal-left {
+  flex: 1 1 0;
+  width: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0 0 0;
+}
+.battery-modal-right {
+  flex: 1 1 0;
+  width: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0 0 0;
+}
 
 .battery-modal-img {
-  max-width: 320px;
-  width: 100%;
-  margin-bottom: 22px;
-  border-radius: 18px;
-  box-shadow: 0 4px 32px rgba(16,185,129,0.13), 0 1px 8px rgba(30,41,59,0.10);
-  background: #f8fafc;
-  padding: 12px 0;
-  object-fit: contain;
+  width: 800px;
+  max-width: 100%;
+  margin: 0;
+  background: #fff;
+  display: block;
 }
 
 .battery-spec-table {
   width: 100%;
-  border-collapse: separate;
-  border-spacing: 0 2px;
+  min-width: 180px;
+  border-collapse: collapse;
+  font-size: 0.98rem;
   margin: 0 auto;
-  font-size: 1.04rem;
-  background: none;
+  background: #f8fafc;
+  box-shadow: none;
+  border-radius: 12px;
+  overflow: hidden;
+}
+.battery-spec-table tr {
+  transition: background 0.18s;
+}
+.battery-spec-table tr:hover {
+  background: #e3f2fd;
 }
 .battery-spec-table td {
-  padding: 8px 10px;
-  border-bottom: 1px solid #f3f4f6;
-  color: #222;
+  padding: 10px 14px;
+  border-bottom: 1px solid #e0e7ef;
+  text-align: left;
+}
+.battery-spec-table tr:last-child td {
+  border-bottom: none;
+}
+.battery-spec-table td:first-child {
+  color: #1976d2;
+  font-weight: 600;
+  width: 45%;
+  font-size: 0.98rem;
+  letter-spacing: 0.1px;
   background: none;
 }
-.battery-spec-table tr td:first-child {
-  font-weight: 600;
-  color: #1976d2;
-  width: 48%;
-  text-align: left;
-  letter-spacing: 0.01em;
-}
-.battery-spec-table tr td:last-child {
-  text-align: right;
+.battery-spec-table td:last-child {
   color: #222;
-  font-weight: 500;
+  font-weight: 400;
+  font-size: 0.98rem;
+  text-align: right;
+  background: none;
 }
 
 @media (max-width: 600px) {
@@ -159,6 +203,7 @@
   justify-content: center;
   gap: 48px;
   padding: 0 60px;
+  margin-top: 100px;
 }
 .vinfast-intro-text {
   flex: 1;

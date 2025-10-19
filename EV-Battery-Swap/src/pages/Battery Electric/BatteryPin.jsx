@@ -165,17 +165,23 @@ export default function BatteryPin() {
               <h2>Thông số kỹ thuật Pin Gogoro</h2>
             </div>
             <div className="battery-modal-body">
-              <img src="/batterypin3.jpg" alt="Gogoro Battery" className="battery-modal-img" />
-              <table className="battery-spec-table">
-                <tbody>
-                  <tr><td>Trọng lượng</td><td>~ 9 kg</td></tr>
-                  <tr><td>Kích thước</td><td>220 x 180 x 120 mm</td></tr>
-                  <tr><td>Cấp độ bảo vệ</td><td>IP55 (Chống bụi và chống nước tia nước áp suất thấp)</td></tr>
-                  <tr><td>Công nghệ làm mát</td><td>Làm mát thụ động</td></tr>
-                  <tr><td>Nhiệt độ hoạt động</td><td>-20°C đến 55°C</td></tr>
-                  <tr><td>Độ ẩm cho phép</td><td>0 - 95%</td></tr>
-                </tbody>
-              </table>
+              <div>
+                <div className="battery-modal-left">
+                  <img src="/batterypin3.jpg" alt="Gogoro Battery" className="battery-modal-img" />
+                </div>
+                <div className="battery-modal-right">
+                  <table className="battery-spec-table">
+                    <tbody>
+                      <tr><td>Trọng lượng</td><td>~ 9 kg</td></tr>
+                      <tr><td>Kích thước</td><td>220 x 180 x 120 mm</td></tr>
+                      <tr><td>Cấp độ bảo vệ</td><td>IP55 (Chống bụi và chống nước tia nước áp suất thấp)</td></tr>
+                      <tr><td>Công nghệ làm mát</td><td>Làm mát thụ động</td></tr>
+                      <tr><td>Nhiệt độ hoạt động</td><td>-20°C đến 55°C</td></tr>
+                      <tr><td>Độ ẩm cho phép</td><td>0 - 95%</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
           </div>
         </div>

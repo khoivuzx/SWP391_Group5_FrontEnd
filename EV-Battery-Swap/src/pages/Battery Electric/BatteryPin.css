@@ -24,10 +24,8 @@
 /* Modal content: bo góc lớn, bóng đẹp, padding rộng, responsive */
 .battery-modal-content {
   background: #fff;
-  border-radius: 22px;
-  box-shadow: 0 8px 40px rgba(16, 185, 129, 0.13), 0 2px 16px rgba(30,41,59,0.10);
-  padding: 36px 32px 28px 32px;
-  max-width: 420px;
+  max-width: 720px;
+  height: 500px;
   width: 95vw;
   position: relative;
   animation: fadeInModal 0.25s;
@@ -37,12 +35,9 @@
 }
 
 .battery-modal-header h2 {
-  font-size: 1.35rem;
   font-weight: 700;
-  margin-bottom: 18px;
   color: #1976d2;
   text-align: center;
-  letter-spacing: 0.01em;
 }
 
 .battery-modal-body {
@@ -51,14 +46,9 @@
 }
 
 .battery-modal-img {
-  max-width: 320px;
-  width: 100%;
-  margin-bottom: 22px;
-  border-radius: 18px;
-  box-shadow: 0 4px 32px rgba(16,185,129,0.13), 0 1px 8px rgba(30,41,59,0.10);
+  max-width: 720px;
+  height: 500px;
   background: #f8fafc;
-  padding: 12px 0;
-  object-fit: contain;
 }
 
 .battery-spec-table {
@@ -159,6 +149,7 @@
   justify-content: center;
   gap: 48px;
   padding: 0 60px;
+  margin-top: 100px;
 }
 .vinfast-intro-text {
   flex: 1;

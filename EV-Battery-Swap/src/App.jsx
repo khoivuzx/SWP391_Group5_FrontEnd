@@ -51,9 +51,6 @@ function App() {
             <Route path="/user/transactions" element={<TransactionHistory />} />
           </Routes>
       </main>
-      <div style={{width: '100%', textAlign: 'center', margin: '0 auto', background: 'none'}}>
-        <img src="/img-underfooter.jpg" alt="Banner dưới footer" style={{width: '100%', maxWidth: '100vw', display: 'block', margin: '0 auto'}} />
-      </div>
       <Footer />
       <LoginModal 
         isOpen={isLoginModalOpen} 

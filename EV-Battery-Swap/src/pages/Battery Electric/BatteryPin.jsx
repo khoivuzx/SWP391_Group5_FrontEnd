@@ -162,6 +162,52 @@ export default function BatteryPin() {
         />
       </section>
 
+      {/* Section giới thiệu pin kiểu VinFast */}
+      <section className="vinfast-intro-section">
+        {/* Left: Text */}
+        <div className="vinfast-intro-text">
+          <div className="vinfast-intro-label">GIỚI THIỆU CHUNG</div>
+          <h2 className="vinfast-intro-title">
+            Gogoro Energy là <span className="vinfast-highlight">đơn vị hàng đầu</span> về cung cấp giải pháp lưu trữ năng lượng với <span className="vinfast-highlight">năng lực toàn diện từ nghiên cứu phát triển đến sản xuất</span>. Gogoro Energy ứng dụng công nghệ pin Lithium-ion hiện đại để cung cấp <span className="vinfast-highlight">giải pháp lưu trữ năng lượng đáp ứng các tiêu chuẩn quốc tế về an toàn và hiệu quả</span>.
+          </h2>
+        </div>
+        {/* Right: Hình ảnh pin */}
+        <div className="vinfast-intro-image-wrap">
+          <img 
+            src="/batterypin2.jpg" 
+            alt="Gogoro Battery" 
+            className="vinfast-intro-image" 
+            style={{cursor: 'pointer'}}
+            onClick={() => setIsModalOpen(true)}
+          />
+        </div>
+      </section>
+
+      {/* Modal hiển thị thông số khi click ảnh pin */}
+      {isModalOpen && (
+        <div className="battery-modal-overlay" onClick={closeModal}>
+          <div className="battery-modal-content" onClick={e => e.stopPropagation()}>
+            <button className="battery-modal-close" onClick={closeModal}>&times;</button>
+            <div className="battery-modal-header">
+              <h2>Thông số kỹ thuật Pin Gogoro</h2>
+            </div>
+            <div className="battery-modal-body">
+              <img src="/batterypin3.jpg" alt="Gogoro Battery" className="battery-modal-img" />
+              <table className="battery-spec-table">
+                <tbody>
+                  <tr><td>Trọng lượng</td><td>~ 9 kg</td></tr>
+                  <tr><td>Kích thước</td><td>220 x 180 x 120 mm</td></tr>
+                  <tr><td>Cấp độ bảo vệ</td><td>IP55 (Chống bụi và chống nước tia nước áp suất thấp)</td></tr>
+                  <tr><td>Công nghệ làm mát</td><td>Làm mát thụ động</td></tr>
+                  <tr><td>Nhiệt độ hoạt động</td><td>-20°C đến 55°C</td></tr>
+                  <tr><td>Độ ẩm cho phép</td><td>0 - 95%</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Section pin nổi bật với animation cuộn ảnh */}
       <section ref={sectionRef} className="battery-pin-highlight">
         <div className="bph-text-content">
@@ -171,13 +217,6 @@ export default function BatteryPin() {
           <canvas ref={canvasRef} className="bph-canvas" style={{display: 'block', margin: '32px auto 0 auto', maxWidth: '700px', width: '100%', height: 'auto', background: 'none'}}></canvas>
         </div>
       </section>
-
-      {/* Section trống để có không gian cuộn */}
-      <div style={{ height: '100vh', background: '#fff' }}>
-        <h2>
-          ádasda
-        </h2>
-      </div>
     </div>
     
   );

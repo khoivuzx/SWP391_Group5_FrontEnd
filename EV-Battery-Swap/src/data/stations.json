@@ -1,27 +1,68 @@
 [
-  { "id": 1, "name": "Station 1", "coords": [106.660172, 10.762622] },
-  { "id": 2, "name": "Station 2", "coords": [106.700981, 10.776889] },
-  { "id": 3, "name": "Station 3", "coords": [106.682231, 10.762913] },
-  { "id": 4, "name": "Station 4", "coords": [106.629662, 10.823099] },
-  { "id": 5, "name": "Station 5", "coords": [106.800000, 10.870000] },
-  { "id": 6, "name": "Station 6", "coords": [106.660500, 10.770000] },
-  { "id": 7, "name": "Station 7", "coords": [106.715000, 10.780000] },
-  { "id": 8, "name": "Station 8", "coords": [106.680000, 10.765000] },
-  { "id": 9, "name": "Station 9", "coords": [106.690000, 10.770000] },
-  { "id": 10, "name": "Station 10", "coords": [106.695000, 10.775000] },
-  { "id": 11, "name": "Station 11", "coords": [106.700000, 10.780000] },
-  { "id": 12, "name": "Station 12", "coords": [106.705000, 10.785000] },
-  { "id": 13, "name": "Station 13", "coords": [106.710000, 10.790000] },
-  { "id": 14, "name": "Station 14", "coords": [106.715000, 10.795000] },
-  { "id": 15, "name": "Station 15", "coords": [106.720000, 10.800000] },
-  { "id": 16, "name": "Station 16", "coords": [106.725000, 10.805000] },
-  { "id": 17, "name": "Station 17", "coords": [106.730000, 10.810000] },
-  { "id": 18, "name": "Station 18", "coords": [106.735000, 10.815000] },
-  { "id": 19, "name": "Station 19", "coords": [106.740000, 10.820000] },
-  { "id": 20, "name": "Station 20", "coords": [106.745000, 10.825000] },
-  { "id": 21, "name": "Station 21", "coords": [106.750000, 10.830000] },
-  { "id": 22, "name": "Station 22", "coords": [106.755000, 10.835000] },
-  { "id": 23, "name": "Station 23", "coords": [106.760000, 10.840000] },
-  { "id": 24, "name": "Station 24", "coords": [106.765000, 10.845000] },
-  { "id": 25, "name": "Station 25", "coords": [106.770000, 10.850000] }
+  {
+    "id": 1,
+    "name": "Gogoro Central Park",
+    "address": "Số 208 Nguyễn Hữu Cảnh, Phường 22, Quận Bình Thạnh, TP.HCM",
+    "latitude": 10.809452618394472,
+    "longitude": 106.69811168144163,
+    "coords": [
+      106.69811168144163,
+      10.809452618394472
+    ]
+  },
+  {
+    "id": 2,
+    "name": "Gogoro Grand Park - Khu 1",
+    "address": "Số 512 Nguyễn Xiển, Phường Long Thạnh Mỹ, TP. Thủ Đức, TP.HCM",
+    "latitude": 10.77444955827571,
+    "longitude": 106.69902657494673,
+    "coords": [
+      106.69902657494673,
+      10.77444955827571
+    ]
+  },
+  {
+    "id": 3,
+    "name": "Gogoro Central Ð?ng Kh?i",
+    "address": "Hầm B5, số 72 Lê Thánh Tông, Phường Bến Nghé",
+    "latitude": 10.817027560277282,
+    "longitude": 106.6712803221293,
+    "coords": [
+      106.6712803221293,
+      10.817027560277282
+    ]
+  },
+  {
+    "id": 4,
+    "name": "Gogoro Golden River",
+    "address": "Tòa LUXURY 6, Hầm B3, Đ. Tôn Đức Thắng, Phường Bến Nghé",
+    "latitude": 10.73574175180667,
+    "longitude": 106.75015384786592,
+    "coords": [
+      106.75015384786592,
+      10.73574175180667
+    ]
+  },
+  {
+    "id": 5,
+    "name": "Chung Cu Golden King",
+    "address": "Số 512 Nguyễn Xiển, Phường Long Thạnh Mỹ, TP. Thủ Đức, TP.HCM",
+    "latitude": 10.788596283479821,
+    "longitude": 106.7508529630996,
+    "coords": [
+      106.7508529630996,
+      10.788596283479821
+    ]
+  },
+  {
+    "id": 6,
+    "name": "TTTM VinCom+ Nam Long",
+    "address": "71 Trần Trọng Cung, Phường Tân Thuận Đông",
+    "latitude": 10.796460456423901,
+    "longitude": 106.6855808750579,
+    "coords": [
+      106.6855808750579,
+      10.796460456423901
+    ]
+  }
 ]

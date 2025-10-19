@@ -10,7 +10,7 @@ function Brand() {
   return (
     <a className="brand" href="/" aria-label="home">
       <img src={logo} alt="Logo" className="brand-logo" />
-      <span className="brand-title">EV Battery Swapping</span>
+      <span className="brand-title">GogoRo Battery Swapping</span>
     </a>
   );
 }
@@ -150,6 +150,7 @@ export default function Header({ onLoginClick, user }) {
 
   // State cho menu user
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showDriverMenu, setShowDriverMenu] = useState(false);
   const navigate = useNavigate();
   const userMenuRef = useRef();
 
@@ -182,13 +183,53 @@ export default function Header({ onLoginClick, user }) {
           setShowBatteryDropdown={setShowBatteryDropdown}
         />
         {role === 'driver' && (
-          <Link
-            to="/dashboard/driver"
-            className={`nav-link driver-nav-btn${isActive('/dashboard/driver') ? ' active' : ''}`}
-            style={{ marginLeft: 12 }}
+          <div
+            className="nav-dropdown driver-dropdown"
+            onMouseEnter={() => setShowDriverMenu(true)}
+            onMouseLeave={() => setShowDriverMenu(false)}
           >
-            Driver
-          </Link>
+            <span
+              className={`nav-link driver-nav-btn${isActive('/dashboard/driver') ? ' active' : ''}`}
+              style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
+            >
+              <span
+                onClick={() => navigate('/dashboard/driver')}
+                style={{ userSelect: 'none' }}
+              >
+                Driver
+              </span>
+              <svg
+                className="dropdown-arrow driver-arrow"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                style={{ marginLeft: 6, pointerEvents: 'none' }}
+              >
+                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+            </span>
+            {showDriverMenu && (
+              <div className="dropdown-menu driver-dropdown-menu">
+                <button
+                  className="dropdown-item"
+                  onClick={() => {
+                    setShowDriverMenu(false);
+                    navigate("/driver/booking");
+                  }}
+                >
+                  Đặt lịch
+                </button>
+                <button
+                  className="dropdown-item"
+                  onClick={() => {
+                    setShowDriverMenu(false);
+                    navigate("/driver/booking-history");
+                  }}
+                >
+                  Kiểm tra đặt lịch
+                </button>
+              </div>
+            )}
+          </div>
         )}
 
         <div className="actions">

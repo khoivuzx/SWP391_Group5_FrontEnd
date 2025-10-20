@@ -59,6 +59,12 @@ function Navigation({ isActive, isBatteryActive, showBatteryDropdown, setShowBat
       >
         Trang Chủ
       </Link>
+      <Link 
+        to="/dashboard/driver" 
+        className={`nav-link ${isActive('/dashboard/driver') ? 'active' : ''}`}
+      >
+        Tìm trạm
+      </Link>
       <BatteryDropdown 
         show={showBatteryDropdown}
         onEnter={() => setShowBatteryDropdown(true)}

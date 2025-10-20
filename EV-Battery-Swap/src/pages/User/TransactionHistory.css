@@ -1,0 +1,87 @@
+.transaction-container {
+  max-width: 700px;
+  margin: 48px auto;
+  padding: 0 12px;
+}
+.transaction-card {
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 6px 32px rgba(33,150,243,0.10);
+  padding: 38px 28px 32px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.transaction-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1976d2;
+  margin-bottom: 4px;
+}
+.transaction-desc {
+  color: #888;
+  font-size: 1.05rem;
+  margin-bottom: 18px;
+}
+.transaction-empty {
+  color: #aaa;
+  text-align: center;
+  font-size: 1.08rem;
+  margin: 32px 0;
+}
+.transaction-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #f7f8fa;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(33,150,243,0.04);
+}
+.transaction-table th {
+  background: #e6f2fd;
+  color: #1976d2;
+  font-weight: 700;
+  padding: 12px 8px;
+  font-size: 1.05rem;
+  border-bottom: 2px solid #e0e7ef;
+}
+.transaction-table td {
+  padding: 12px 8px;
+  font-size: 1.05rem;
+  color: #444;
+  border-bottom: 1px solid #ececf0;
+  text-align: center;
+}
+.tx-id {
+  font-weight: 600;
+  color: #165ba0;
+}
+.tx-amount {
+  font-weight: 700;
+  color: #d32f2f;
+}
+.tx-success {
+  color: #10B981;
+  font-weight: 700;
+}
+.tx-failed {
+  color: #d32f2f;
+  font-weight: 700;
+}
+@media (max-width: 600px) {
+  .transaction-container {
+    max-width: 99vw;
+    padding: 0 2vw;
+  }
+  .transaction-card {
+    padding: 18px 6px 18px 6px;
+    border-radius: 12px;
+  }
+  .transaction-title {
+    font-size: 1.15rem;
+  }
+  .transaction-table th, .transaction-table td {
+    font-size: 0.95rem;
+    padding: 8px 2px;
+  }
+}

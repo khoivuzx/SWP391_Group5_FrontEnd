@@ -4,6 +4,8 @@ import './driver.css';
 import MapboxMap from '../../../../components/Mapbox/MapboxMap';
 import TabBar from '../../../../components/TabBar/TabBar';
 import { PolicesPricingFAQ } from '../../../Polices/polices';
+import TransactionHistory from '../../../User/TransactionHistory';
+import BookingHistory from '../Booking/BookingHistory';
 
 const MAPBOX_TOKEN = 'pk.eyJ1Ijoia2hvaXZ1engiLCJhIjoiY21nNHcyZXZ4MHg5ZTJtcGtrNm9hbmVpciJ9.N3prC7rC3ycR6DV5giMUfg';
 
@@ -60,17 +62,6 @@ export default function DriverDashboard() {
             <h2 style={{ fontWeight: 700, fontSize: 28, marginBottom: 16 }}>Tìm trạm đổi pin</h2>
             <div className="driver-station-flex">
               <div className="driver-station-form-card">
-                <label htmlFor="station-select">Chọn trạm:</label>
-                <select
-                  id="station-select"
-                  value={selectedStation}
-                  onChange={e => setSelectedStation(e.target.value)}
-                >
-                  <option value="">-- Chọn trạm --</option>
-                  {stations.map(station => (
-                    <option key={station.name} value={station.name}>{station.name}</option>
-                  ))}
-                </select>
                 <button
                   onClick={handleFindPath}
                   disabled={!selectedStation || routeLoading}
@@ -96,7 +87,9 @@ export default function DriverDashboard() {
           </>
         )}
         {activeTab === 'booked' && (
-          <div style={{padding:'32px 0', textAlign:'center', color:'#444', fontSize:'1.15rem'}}>Lịch đã đặt (demo)</div>
+          <div style={{padding:'32px 0'}}>
+            <BookingHistory user={user} />
+          </div>
         )}
         {activeTab === 'service' && (
           <div style={{padding:'32px 0'}}>
@@ -104,7 +97,9 @@ export default function DriverDashboard() {
           </div>
         )}
         {activeTab === 'history' && (
-          <div style={{padding:'32px 0', textAlign:'center', color:'#444', fontSize:'1.15rem'}}>Lịch sử (demo)</div>
+         <div style={{padding:'32px 0'}}>
+            <TransactionHistory user={user} />
+          </div>
         )}
       </div>
     </div>

@@ -1,6 +1,7 @@
 // src/App.jsx
 
 import React, { useState } from 'react';
+import BookingHistory from './pages/Dashboard/Driver/Booking/BookingHistory.jsx';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Header from './components/Header/Header';
 import Footer from './components/Footer/Footer';
@@ -49,6 +50,7 @@ function App() {
             <Route path="/dashboard/staff" element={<StaffDashboard user={user} onLoginClick={handleOpenModal} />} />
             <Route path="/dashboard/driver" element={<DriverDashboard />} />
             <Route path="/dashboard/driver/booking" element={<Booking />} />
+            <Route path="/driver/booking-history" element={<BookingHistory />} />
             <Route path="/vehicle-link" element={<VehicleLink />} />
             <Route path="/forgot-pass" element={<ForgotPass />} />
             <Route path="/user/info" element={<UserInfo />} />

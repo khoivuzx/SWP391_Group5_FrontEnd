@@ -11,6 +11,7 @@ import Home from './pages/Home/Home';
 import Battery from './pages/Battery Electric/Battery';
 import BatteryPin from './pages/Battery Electric/BatteryPin';
 import Polices from './pages/Polices/polices';
+import Payment from './pages/Polices/Payment';
 import ForgotPass from './components/Login/ForgotPass';
 import AdminDashboard from './pages/Dashboard/Admin/admin';
 import StaffDashboard from './pages/Dashboard/Staff/staff';
@@ -52,6 +53,7 @@ function App() {
             <Route path="/forgot-pass" element={<ForgotPass />} />
             <Route path="/user/info" element={<UserInfo />} />
             <Route path="/user/transactions" element={<TransactionHistory />} />
+            <Route path="/payment" element={<Payment />} />
           </Routes>
       </main>
       <Footer />

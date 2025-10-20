@@ -1,62 +1,198 @@
-/* booking.css - Style cho trang đặt lịch đổi pin */
-.booking-container {
-  max-width: 480px;
-  margin: 48px auto;
+/* Radix UI Select custom styles */
+.booking-select-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--border, #e0e7ef);
+  background: var(--input-background, #f3f3f5);
+  color: var(--foreground, #222);
+  font-size: 1rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.booking-select-trigger:focus {
+  outline: none;
+  border-color: var(--color-blue-600, #1976d2);
+}
+.booking-select-content {
   background: #fff;
-  border-radius: 16px;
-  box-shadow: 0 4px 24px rgba(33,150,243,0.08);
-  padding: 32px;
+  border-radius: 0.75rem;
+  box-shadow: 0 10px 15px -3px #0001, 0 4px 6px -4px #0001;
+  padding: 0.5rem 0;
+  font-size: 1rem;
+  max-height: 320px;
+  overflow-y: auto;
+  z-index: 100;
 }
-.booking-title {
-  color: #1976d2;
-  text-align: center;
-  margin-bottom: 18px;
+.booking-select-item {
+  padding: 0.75rem 1.5rem;
+  cursor: pointer;
+  border-radius: 0.5rem;
+  transition: background 0.15s;
+  display: flex;
+  align-items: center;
+  font-size: 1rem;
 }
-.booking-success {
-  color: #10B981;
+.booking-select-item[data-state="checked"] {
+  background: #ececf0;
+  color: #030213;
+}
+.booking-select-item:hover {
+  background: #e9ebef;
+}
+.booking-select-item:focus {
+  outline: none;
+  background: #e9ebef;
+}
+.booking-select-item span {
+  font-size: 1rem;
+}
+/* DayPicker custom styles override */
+.rdp {
+  background: #fff;
+  border-radius: 1rem;
+  border: 1px solid #ececf0;
+  box-shadow: 0 2px 8px #0001;
+  padding: 1.5rem;
+  margin: 0 auto;
+}
+.rdp-caption {
+  font-size: 1.1rem;
   font-weight: 600;
   text-align: center;
+  margin-bottom: 0.5rem;
+}
+.rdp-head th {
+  color: #717182;
+  font-weight: 400;
+  font-size: 0.9rem;
+  border-radius: 0.5rem;
+}
+.rdp-day {
+  border-radius: 0.5rem;
+  font-weight: 500;
+  transition: background 0.15s, color 0.15s;
+}
+.rdp-day_selected {
+  background: #030213 !important;
+  color: #fff !important;
+}
+.rdp-day_outside {
+  color: #d1d5db !important;
+}
+.rdp-nav_button {
+  background: transparent;
+  border: none;
+  color: #222;
   font-size: 1.1rem;
+  border-radius: 0.5rem;
+  margin: 0 2px;
+  cursor: pointer;
+  opacity: 0.5;
+  transition: opacity 0.15s;
+}
+.rdp-nav_button:hover {
+  opacity: 1;
+  background: #ececf0;
+}
+/* booking.css - Style cho trang đặt lịch đổi pin */
+
+.booking-container {
+  max-width: 600px;
+  margin: 48px auto;
+  background: var(--background, #fff);
+  border-radius: var(--radius, 0.625rem);
+  box-shadow: 0 10px 15px -3px #0001, 0 4px 6px -4px #0001;
+  padding: 2.5rem 1.5rem;
+  font-family: var(--font-sans, ui-sans-serif, system-ui, sans-serif);
+  color: var(--foreground, #222);
+  text-align: left;
+}
+.booking-title {
+  color: var(--primary, #030213);
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  text-align: left;
+}
+.booking-success {
+  color: var(--color-green-600, #10B981);
+  font-weight: 600;
+  text-align: left;
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
 }
 .booking-error {
-  color: red;
-  text-align: center;
-  margin-bottom: 8px;
+  color: var(--color-red-600, #d4183d);
+  text-align: left;
+  margin-bottom: 0.75rem;
+  font-size: 1rem;
 }
 .booking-form {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 1.25rem;
 }
 .booking-form label {
   font-weight: 500;
+  font-size: 1rem;
+  margin-bottom: 0.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 .booking-form select,
 .booking-form input[type="date"],
 .booking-form input[type="time"],
 .booking-form input[type="number"],
 .booking-form textarea {
-  margin-top: 6px;
-  padding: 8px 12px;
-  border-radius: 8px;
-  border: 1px solid #e0e7ef;
+  margin-top: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-xs, 0.125rem);
+  border: 1px solid var(--border, #e0e7ef);
   font-size: 1rem;
+  background: var(--input-background, #f3f3f5);
+  color: var(--foreground, #222);
+  transition: border-color 0.15s;
 }
 .booking-form input[type="number"] {
   width: 80px;
 }
 .booking-form button {
-  background: linear-gradient(90deg,#1976d2,#10B981);
-  color: #fff;
-  font-weight: 700;
+  background: var(--primary, #030213);
+  color: var(--primary-foreground, #fff);
+  font-weight: 600;
   border: none;
-  border-radius: 8px;
-  padding: 12px 0;
+  border-radius: var(--radius-xs, 0.125rem);
+  padding: 0.75rem 0;
   font-size: 1.1rem;
-  margin-top: 12px;
+  margin-top: 1rem;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background 0.15s;
+  box-shadow: 0 2px 8px #0001;
 }
 .booking-form button:hover {
-  background: linear-gradient(90deg,#10B981,#1976d2);
+  background: var(--color-blue-600, #1976d2);
+}
+.booking-form input:focus,
+.booking-form select:focus,
+.booking-form textarea:focus {
+  outline: none;
+  border-color: var(--color-blue-600, #1976d2);
+}
+.booking-form input[type="date"],
+.booking-form input[type="time"] {
+  min-width: 140px;
+}
+.booking-form select {
+  min-width: 180px;
+}
+.booking-form label svg {
+  color: var(--color-blue-600, #1976d2);
+  margin-right: 0.25rem;
 }

@@ -82,7 +82,7 @@ export default function Booking() {
           <label>
             Tên trạm:
             <select value={station} onChange={e => setStation(e.target.value)} required>
-              <option value="">-- Chọn trạm --</option>
+              <option value="">-- Chọn trạm --</option>              rm -rf node_modules ; npm install ; npm run dev
               {stations.map(st => <option key={st} value={st}>{st}</option>)}
             </select>
           </label>
@@ -93,13 +93,46 @@ export default function Booking() {
               {vehicles.map(v => <option key={v} value={v}>{v}</option>)}
             </select>
           </label>
-          <label>
-            Ngày đổi pin:
-            <input type="date" value={date} onChange={e => setDate(e.target.value)} required />
+          <label style={{display:'block'}}>
+            <span style={{display:'flex',alignItems:'center',gap:8,fontWeight:500}}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{marginRight:4}}><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M8 2v4"/><path d="M16 2v4"/><path d="M3 10h18"/></svg>
+              Chọn ngày
+            </span>
+            <div style={{display:'flex',justifyContent:'center',margin:'16px 0'}}>
+              <input
+                type="date"
+                value={date}
+                onChange={e => setDate(e.target.value)}
+                min={new Date().toISOString().split('T')[0]}
+                required
+                className="booking-input"
+                style={{padding:'0.5rem 1rem',borderRadius:'8px',border:'1px solid #ececf0',fontSize:'1rem'}}
+              />
+            </div>
           </label>
-          <label>
-            Giờ đổi pin:
-            <input type="time" value={time} onChange={e => setTime(e.target.value)} required />
+          <label style={{display:'block'}}>
+            <span style={{display:'flex',alignItems:'center',gap:8,fontWeight:500}}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{marginRight:4}}><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+              Chọn giờ
+            </span>
+            <div style={{margin:'16px 0'}}>
+              <select
+                value={time}
+                onChange={e => setTime(e.target.value)}
+                required
+                className="booking-input"
+                style={{padding:'0.5rem 1rem',borderRadius:'8px',border:'1px solid #ececf0',fontSize:'1rem'}}
+              >
+                <option value="">Chọn khung giờ</option>
+                {[...Array(13)].map((_,i)=>{
+                  const hour = 7+i;
+                  const label = `${hour.toString().padStart(2,'0')}:00`;
+                  return (
+                    <option key={label} value={label}>{label}</option>
+                  );
+                })}
+              </select>
+            </div>
           </label>
           <button type="submit">Đăng ký</button>
         </form>

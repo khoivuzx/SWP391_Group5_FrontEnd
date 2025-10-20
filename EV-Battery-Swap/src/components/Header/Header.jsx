@@ -24,7 +24,7 @@ function BatteryDropdown({ show, onEnter, onLeave, isActive }) {
       onMouseLeave={onLeave}
     >
       <span className={`nav-link dropdown-trigger ${isActive ? 'active' : ''}`}>
-        Pin và trạm sạc
+        Pin và Trạm đổi pin
         <svg className="dropdown-arrow" viewBox="0 0 20 20" fill="currentColor">
           <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
         </svg>
@@ -50,7 +50,7 @@ function BatteryDropdown({ show, onEnter, onLeave, isActive }) {
 }
 
 // Component Navigation
-function Navigation({ isActive, isBatteryActive, showBatteryDropdown, setShowBatteryDropdown }) {
+function Navigation({ isActive, isBatteryActive, showBatteryDropdown, setShowBatteryDropdown, hideService }) {
   return (
     <nav className="main-nav" aria-label="Primary">
       <Link 
@@ -65,12 +65,14 @@ function Navigation({ isActive, isBatteryActive, showBatteryDropdown, setShowBat
         onLeave={() => setShowBatteryDropdown(false)}
         isActive={isBatteryActive()}
       />
-      <Link 
-        to="/polices" 
-        className={`nav-link ${isActive('/polices') ? 'active' : ''}`}
-      >
-        Chính sách
-      </Link>
+      {!hideService && (
+        <Link 
+          to="/polices" 
+          className={`nav-link ${isActive('/polices') ? 'active' : ''}`}
+        >
+          Gói dịch vụ
+        </Link>
+      )}
     </nav>
   );
 }
@@ -181,6 +183,7 @@ export default function Header({ onLoginClick, user }) {
           isBatteryActive={isBatteryActive}
           showBatteryDropdown={showBatteryDropdown}
           setShowBatteryDropdown={setShowBatteryDropdown}
+          hideService={role === 'driver'}
         />
         {role === 'driver' && (
           <div

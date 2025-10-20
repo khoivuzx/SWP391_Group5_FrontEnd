@@ -14,8 +14,6 @@
   object-fit: cover;
   display: block;
   margin: 0 auto 32px auto;
-  border-bottom-left-radius: 32px;
-  border-bottom-right-radius: 32px;
   box-shadow: 0 4px 32px rgba(33,150,243,0.08);
 }
 .driver-header-welcome {

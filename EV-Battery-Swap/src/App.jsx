@@ -1,6 +1,7 @@
 // src/App.jsx
 
 import React, { useState } from 'react';
+import BookingHistory from './pages/Dashboard/Driver/Booking/BookingHistory.jsx';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Header from './components/Header/Header';
 import Footer from './components/Footer/Footer';
@@ -11,7 +12,7 @@ import Home from './pages/Home/Home';
 import Battery from './pages/Battery Electric/Battery';
 import BatteryPin from './pages/Battery Electric/BatteryPin';
 import Polices from './pages/Polices/polices';
-import Payment from './pages/Polices/Payment';
+// import Payment from './pages/Polices/Payment';
 import ForgotPass from './components/Login/ForgotPass';
 import AdminDashboard from './pages/Dashboard/Admin/admin';
 import StaffDashboard from './pages/Dashboard/Staff/staff';
@@ -49,11 +50,12 @@ function App() {
             <Route path="/dashboard/staff" element={<StaffDashboard user={user} onLoginClick={handleOpenModal} />} />
             <Route path="/dashboard/driver" element={<DriverDashboard />} />
             <Route path="/dashboard/driver/booking" element={<Booking />} />
+            <Route path="/driver/booking-history" element={<BookingHistory />} />
             <Route path="/vehicle-link" element={<VehicleLink />} />
             <Route path="/forgot-pass" element={<ForgotPass />} />
             <Route path="/user/info" element={<UserInfo />} />
             <Route path="/user/transactions" element={<TransactionHistory />} />
-            <Route path="/payment" element={<Payment />} />
+            {/* <Route path="/payment" element={<Payment />} /> */}
           </Routes>
       </main>
       <Footer />

@@ -1,8 +1,7 @@
 // src/App.jsx
 
 import React, { useState } from 'react';
-import BookingHistory from './pages/Dashboard/Driver/Booking/BookingHistory.jsx';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route } from 'react-router-dom'; // 👈 Dùng HashRouter cho đúng URL dạng #/
 import Header from './components/Header/Header';
 import Footer from './components/Footer/Footer';
 import LoginModal from './components/Login/LoginModal';
@@ -12,8 +11,8 @@ import Home from './pages/Home/Home';
 import Battery from './pages/Battery Electric/Battery';
 import BatteryPin from './pages/Battery Electric/BatteryPin';
 import Polices from './pages/Polices/polices';
-// import Payment from './pages/Polices/Payment';
 import ForgotPass from './components/Login/ForgotPass';
+import ResetPass from './components/Login/ResetPass'; // 👈 THÊM DÒNG NÀY
 import AdminDashboard from './pages/Dashboard/Admin/admin';
 import StaffDashboard from './pages/Dashboard/Staff/staff';
 import DriverDashboard from './pages/Dashboard/Driver/findSation/driver.jsx';
@@ -31,6 +30,7 @@ function App() {
 
   const handleOpenModal = () => setIsLoginModalOpen(true);
   const handleCloseModal = () => setIsLoginModalOpen(false);
+  
   // Khi đăng nhập thành công, cập nhật user và đóng modal
   const handleLoginSuccess = (userObj) => {
     setUser(userObj);
@@ -41,26 +41,25 @@ function App() {
     <Router>
       <Header onLoginClick={handleOpenModal} user={user} />
       <main> 
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/battery" element={<Battery />} /> 
-            <Route path="/battery-pin" element={<BatteryPin />} />
-            <Route path="/polices" element={<Polices onLoginClick={handleOpenModal} user={user} />} />
-            <Route path="/dashboard/admin" element={<AdminDashboard user={user} onLoginClick={handleOpenModal} />} />
-            <Route path="/dashboard/staff" element={<StaffDashboard user={user} onLoginClick={handleOpenModal} />} />
-            <Route path="/dashboard/driver" element={<DriverDashboard />} />
-            <Route path="/dashboard/driver/booking" element={<Booking />} />
-            <Route path="/driver/booking-history" element={<BookingHistory />} />
-            <Route path="/vehicle-link" element={<VehicleLink />} />
-            <Route path="/forgot-pass" element={<ForgotPass />} />
-            <Route path="/user/info" element={<UserInfo />} />
-            <Route path="/user/transactions" element={<TransactionHistory />} />
-            {/* <Route path="/payment" element={<Payment />} /> */}
-          </Routes>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/battery" element={<Battery />} /> 
+          <Route path="/battery-pin" element={<BatteryPin />} />
+          <Route path="/polices" element={<Polices onLoginClick={handleOpenModal} user={user} />} />
+          <Route path="/dashboard/admin" element={<AdminDashboard user={user} onLoginClick={handleOpenModal} />} />
+          <Route path="/dashboard/staff" element={<StaffDashboard user={user} onLoginClick={handleOpenModal} />} />
+          <Route path="/dashboard/driver" element={<DriverDashboard />} />
+          <Route path="/dashboard/driver/booking" element={<Booking />} />
+          <Route path="/vehicle-link" element={<VehicleLink />} />
+          <Route path="/forgot-pass" element={<ForgotPass />} />
+          <Route path="/reset-password" element={<ResetPass />} /> {/* 👈 THÊM ROUTE NÀY */}
+          <Route path="/user/info" element={<UserInfo />} />
+          <Route path="/user/transactions" element={<TransactionHistory />} />
+        </Routes>
       </main>
       <Footer />
-      <LoginModal 
-        isOpen={isLoginModalOpen} 
+      <LoginModal
+isOpen={isLoginModalOpen} 
         onClose={handleCloseModal} 
         onLoginSuccess={handleLoginSuccess}
       />
@@ -68,4 +67,4 @@ function App() {
   )
 }
 
-export default App
+export default App;

@@ -50,7 +50,7 @@ function BatteryDropdown({ show, onEnter, onLeave, isActive }) {
 }
 
 // Component Navigation
-function Navigation({ isActive, isBatteryActive, showBatteryDropdown, setShowBatteryDropdown, hideService }) {
+function Navigation({ isActive, isBatteryActive, showBatteryDropdown, setShowBatteryDropdown, hideService, user }) {
   return (
     <nav className="main-nav" aria-label="Primary">
       <Link 
@@ -59,12 +59,15 @@ function Navigation({ isActive, isBatteryActive, showBatteryDropdown, setShowBat
       >
         Trang Chủ
       </Link>
-      <Link 
-        to="/dashboard/driver" 
-        className={`nav-link ${isActive('/dashboard/driver') ? 'active' : ''}`}
-      >
-        Tìm trạm
-      </Link>
+      {/* Chỉ hiển thị 'Tìm trạm' khi đã đăng nhập */}
+      {user && (
+        <Link 
+          to="/dashboard/driver" 
+          className={`nav-link ${isActive('/dashboard/driver') ? 'active' : ''}`}
+        >
+          Tìm trạm
+        </Link>
+      )}
       <BatteryDropdown 
         show={showBatteryDropdown}
         onEnter={() => setShowBatteryDropdown(true)}
@@ -190,6 +193,7 @@ export default function Header({ onLoginClick, user }) {
           showBatteryDropdown={showBatteryDropdown}
           setShowBatteryDropdown={setShowBatteryDropdown}
           hideService={role === 'driver'}
+          user={user}
         />
         {role === 'driver' && (
           <div

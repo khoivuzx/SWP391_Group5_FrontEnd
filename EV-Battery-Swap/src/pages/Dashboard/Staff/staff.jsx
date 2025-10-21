@@ -1,8 +1,8 @@
 
 import React, { useEffect, useState } from 'react';
-import Header from '../../../components/Header/Header';
 import stationsData from '../../../data/stations.json';
 import './staff.css';
+import API_BASE_URL from '../../../config';
 
 function SlotCard({ slot, onOpen, onToggleCharging, onSetStatus }) {
   const cls = slot.status === 'charging' ? 'slot-row slot-row--charging' : (slot.status === 'available' ? 'slot-row slot-row--available' : 'slot-row slot-row--empty');
@@ -27,6 +27,8 @@ function SlotCard({ slot, onOpen, onToggleCharging, onSetStatus }) {
 
 export default function StaffDashboard({ user, onLoginClick }) {
   const [stations, setStations] = useState([]);
+  const [fetchFailed, setFetchFailed] = useState(false);
+  const [showFetchBanner, setShowFetchBanner] = useState(true);
   const [assignedStationId, setAssignedStationId] = useState(() => {
     try {
       const raw = localStorage.getItem('assignedStationId');
@@ -40,7 +42,46 @@ export default function StaffDashboard({ user, onLoginClick }) {
   const [slotsMap, setSlotsMap] = useState({});
 
   useEffect(() => {
-    setStations(stationsData || []);
+    // Try to load stations.json via fetch so we can detect network/file load failures.
+    // Note: stations.json is bundled in the repo and usually served by dev server; this won't detect backend API availability.
+    let mounted = true;
+    (async () => {
+      try {
+        const res = await fetch('/src/data/stations.json');
+        if (!res.ok) throw new Error('fetch failed');
+        const json = await res.json();
+        if (mounted) {
+          setStations(Array.isArray(json) ? json : (json.data || []));
+          // leave fetchFailed alone for now; we'll check backend API availability separately
+        }
+      } catch (err) {
+        if (mounted) {
+          setStations(stationsData || []);
+        }
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
+
+  // One-shot health check for the battery API — if it fails, mark fetchFailed so slots render empty
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        if (!API_BASE_URL) throw new Error('no api base');
+        const url = `${API_BASE_URL}/webAPI/api/getStationBatteryReportGuest`;
+        const res = await fetch(url, { credentials: 'omit', headers: { 'ngrok-skip-browser-warning': '1', 'Accept': 'application/json' } });
+        if (!mounted) return;
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        // success: API available
+        setFetchFailed(false);
+      } catch (err) {
+        if (!mounted) return;
+        setFetchFailed(true);
+        setShowFetchBanner(true);
+      }
+    })();
+    return () => { mounted = false; };
   }, []);
 
   useEffect(() => {
@@ -49,12 +90,8 @@ export default function StaffDashboard({ user, onLoginClick }) {
     stations.forEach(s => {
       const arr = [];
       for (let i = 1; i <= 20; i++) {
-        // random initial statuses
-        const statuses = ['empty', 'charging', 'available'];
-        const status = statuses[Math.floor(Math.random() * statuses.length)];
-        const soc = status === 'empty' ? 0 : Math.floor(Math.random() * 61) + 40; // 40-100
-        const soh = Math.max(70, Math.floor(Math.random() * 31) + 70); // 70-100
-        arr.push({ index: i, status, soc, soh, charging: status === 'charging' });
+        // Initialize deterministic empty slots; real data will replace these when available
+        arr.push({ index: i, status: 'empty', soc: 0, soh: 0, charging: false });
       }
       sm[s.id] = arr;
     });
@@ -63,7 +100,10 @@ export default function StaffDashboard({ user, onLoginClick }) {
   }, [stations]);
 
   const assignedStation = stations.find(s => s.id === assignedStationId) || null;
-  const slots = slotsMap[assignedStationId] || [];
+  // Display station: prefer assignedStation, otherwise fall back to the first available station so UI shows slots immediately
+  const displayStation = assignedStation || (stations && stations.length ? stations[0] : null);
+  const displayStationId = displayStation ? displayStation.id : null;
+  const slots = displayStationId ? (slotsMap[displayStationId] || []) : [];
 
   const openSlot = (index) => {
     // in real app you'd call backend; here we show a console message and toggle status to available
@@ -99,42 +139,61 @@ export default function StaffDashboard({ user, onLoginClick }) {
     });
   };
 
-  function SlotRow({ slot }) {
-    const cls = slot.status === 'charging' ? 'slot-row slot-row--charging' : (slot.status === 'available' ? 'slot-row slot-row--available' : 'slot-row slot-row--empty');
+  function VisualSlot({ slot }) {
+    const stateClass = slot.status === 'charging' ? 'visual-slot charging' : (slot.status === 'available' ? 'visual-slot available' : 'visual-slot empty');
     return (
-      <div className={cls}>
-        <div className="slot-index">Slot #{slot.index}</div>
-        <div className="slot-status"><strong>Status:</strong> {slot.status}</div>
-        <div className="slot-soc">{slot.status !== 'empty' ? <span>SoC: {slot.soc}%</span> : <span>&nbsp;</span>}</div>
-        <div className="slot-soh">{slot.status !== 'empty' ? <span>SoH: {slot.soh}%</span> : <span>&nbsp;</span>}</div>
-        <div className="slot-actions">
-          <button className="slot-action-btn" onClick={() => openSlot(slot.index)}>Open Slot</button>
-          <button className="slot-action-btn" onClick={() => toggleCharging(slot.index)}>{slot.charging ? 'Stop' : 'Start'}</button>
-          <button className="slot-action-btn" onClick={() => setStatus(slot.index, 'empty')}>Set Empty</button>
-        </div>
+      <div className={stateClass} onClick={() => openSlot(slot.index)} title={`Slot ${slot.index} — ${slot.status}`}>
+        <div className="visual-slot-index">{slot.index}</div>
+        <div className="visual-slot-status">{slot.status}</div>
       </div>
     );
   }
 
   return (
-    <>
-      <Header user={user} onLoginClick={onLoginClick} />
+    <main style={{ padding: 0, margin: 0 }}>
       <div className="staff-container">
         <h1>Station Slot Management</h1>
-        {assignedStation ? (
+        {fetchFailed && showFetchBanner && (
+          <div className="fetch-error-banner">
+            <div>Failed to load station inventory — all slots shown as empty.</div>
+            <button className="fetch-error-dismiss" onClick={() => setShowFetchBanner(false)}>Dismiss</button>
+          </div>
+        )}
+        {displayStation ? (
           <>
-            <div className="station-title"><strong>Station:</strong> {assignedStation.name} (ID: {assignedStation.id})</div>
+            <div className="station-title"><strong>Station:</strong> {displayStation.name} (ID: {displayStation.id})</div>
 
-            <div className="slots-list">
-              {slots.map(slot => (
-                <SlotRow key={slot.index} slot={slot} />
-              ))}
+            {/* Visual grid: left half = Lithium-Ion (slots 1-10), right half = LFP (slots 11-20) */}
+            <div className="visual-slots-container">
+              <div className="visual-half">
+                <div className="visual-half-title">Lithium-Ion</div>
+                <div className="visual-grid">
+                  {slots.filter(s => s.index >= 1 && s.index <= 10).map(s => (
+                    <VisualSlot key={s.index} slot={s} />
+                  ))}
+                </div>
+              </div>
+              <div className="visual-half">
+                <div className="visual-half-title">LFP</div>
+                <div className="visual-grid">
+                  {slots.filter(s => s.index >= 11 && s.index <= 20).map(s => (
+                    <VisualSlot key={s.index} slot={s} />
+                  ))}
+                </div>
+              </div>
             </div>
           </>
         ) : (
-          <div>No assigned station</div>
+          <div>No stations available</div>
         )}
+
+        {/* Action bar placed below the station title area — always visible */}
+        <div className="staff-action-bar">
+          <button className="staff-action-btn" onClick={() => console.log('Check-in clicked')}>Check-in</button>
+          <button className="staff-action-btn" onClick={() => console.log('Create booking clicked')}>Create booking</button>
+          <button className="staff-action-btn" onClick={() => console.log('View booking clicked')}>View booking</button>
+        </div>
       </div>
-    </>
+    </main>
   );
 }

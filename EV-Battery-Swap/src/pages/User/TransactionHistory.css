@@ -1,87 +1,77 @@
-.transaction-container {
-  max-width: 700px;
-  margin: 48px auto;
-  padding: 0 12px;
+/* chừa khoảng cho header/footer */
+:root { --header-h: 64px; }
+.th-page{
+  min-height: calc(100vh - var(--header-h));
+  padding: calc(var(--header-h) + 24px) 16px 48px;
+  display:flex;
+  justify-content:center;
+  background: #f7f9fc;
 }
-.transaction-card {
-  background: #fff;
-  border-radius: 20px;
-  box-shadow: 0 6px 32px rgba(33,150,243,0.10);
-  padding: 38px 28px 32px 28px;
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
+
+.th-card{
+  width:100%;
+  max-width:1100px;
+  background:#fff;
+  border-radius:16px;
+  box-shadow:0 8px 30px rgba(0,0,0,0.06);
+  padding:20px;
 }
-.transaction-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #1976d2;
-  margin-bottom: 4px;
+
+/* Header + filters */
+.th-header{
+  display:flex; 
+  flex-wrap:wrap;
+  align-items:flex-end; 
+  justify-content:space-between; 
+  gap:16px;
+  margin-bottom:8px;
+  border-bottom:1px solid #eef1f6;
+  padding-bottom:12px;
 }
-.transaction-desc {
-  color: #888;
-  font-size: 1.05rem;
-  margin-bottom: 18px;
+.th-title{
+  margin:0;
+  font-size:1.4rem;
+  color:#0f172a;
 }
-.transaction-empty {
-  color: #aaa;
-  text-align: center;
-  font-size: 1.08rem;
-  margin: 32px 0;
+.th-filters{
+  display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap;
 }
-.transaction-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: #f7f8fa;
-  border-radius: 14px;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(33,150,243,0.04);
+.th-field{ display:flex; flex-direction:column; gap:6px; }
+.th-field label{ font-size:.9rem; color:#475569; }
+.th-field input[type="date"]{
+  padding:8px 10px; border:1px solid #e5e7eb; border-radius:8px;
 }
-.transaction-table th {
-  background: #e6f2fd;
-  color: #1976d2;
-  font-weight: 700;
-  padding: 12px 8px;
-  font-size: 1.05rem;
-  border-bottom: 2px solid #e0e7ef;
+
+/* Tabs */
+.th-tabs{ display:flex; gap:8px; margin:14px 0 6px; }
+.th-tab{
+  padding:10px 14px; border-radius:10px; border:1px solid #e5e7eb;
+  background:#fff; color:#0f172a; cursor:pointer; font-weight:700;
 }
-.transaction-table td {
-  padding: 12px 8px;
-  font-size: 1.05rem;
-  color: #444;
-  border-bottom: 1px solid #ececf0;
-  text-align: center;
+.th-tab.active{ background:#e8f6ef; border-color:#c7eddc; color:#166534; }
+
+/* Table */
+.th-table-wrap{ width:100%; overflow:auto; }
+.th-table{
+  width:100%; border-collapse:collapse; font-size:.95rem;
 }
-.tx-id {
-  font-weight: 600;
-  color: #165ba0;
+.th-table thead th{
+  text-align:left; padding:12px; background:#f8fafc; color:#334155;
+  position:sticky; top:0; z-index:1;
 }
-.tx-amount {
-  font-weight: 700;
-  color: #d32f2f;
-}
-.tx-success {
-  color: #10B981;
-  font-weight: 700;
-}
-.tx-failed {
-  color: #d32f2f;
-  font-weight: 700;
-}
-@media (max-width: 600px) {
-  .transaction-container {
-    max-width: 99vw;
-    padding: 0 2vw;
-  }
-  .transaction-card {
-    padding: 18px 6px 18px 6px;
-    border-radius: 12px;
-  }
-  .transaction-title {
-    font-size: 1.15rem;
-  }
-  .transaction-table th, .transaction-table td {
-    font-size: 0.95rem;
-    padding: 8px 2px;
-  }
+.th-table tbody td{ padding:12px; border-top:1px solid #eef2f7; color:#0f172a; }
+.th-table tbody tr:hover{ background:#fafcff; }
+
+/* States */
+.th-loading{ padding:20px; text-align:center; color:#2563eb; font-weight:600; }
+.th-alert{ padding:12px 14px; background:#fff3f3; color:#b91c1c; border:1px solid #fecaca; border-radius:10px; margin-top:12px; }
+.th-btn{ padding:10px 14px; border-radius:10px; border:none; cursor:pointer; font-weight:700; }
+.th-btn-primary{ background:#1976d2; color:#fff; }
+.th-empty{ padding:28px; text-align:center; color:#64748b; }
+.th-empty-ico{ font-size:28px; margin-bottom:8px; }
+
+@media (max-width: 720px){
+  .th-title{ font-size:1.2rem; }
+  .th-card{ padding:16px; }
+  .th-table{ font-size:.9rem; }
 }

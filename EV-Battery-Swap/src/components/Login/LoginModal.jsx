@@ -1,53 +1,62 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-
 import RegisterModal from './RegisterModal';
 import ForgotPass from './ForgotPass';
 import './LoginModal.css';
 import API_BASE_URL from '../../config';
 
-
 /**
- * Component LoginModal
- * @param {boolean} isOpen - Trạng thái hiển thị modal
- * @param {function} onClose - Hàm đóng modal
- * @param {function} onLoginSuccess - Hàm gọi khi đăng nhập thành công
+ * LoginModal — Ghi nhớ trang hiện tại (cả HashRouter và BrowserRouter)
+ * Khi login xong: quay lại đúng trang đó hoặc sang /payment nếu login từ /polices.
  */
 export default function LoginModal({ isOpen, onClose, onLoginSuccess }) {
+  const modalRef = useRef(null);
   const [showRegister, setShowRegister] = useState(false);
   const [showForgot, setShowForgot] = useState(false);
-  const modalRef = useRef();
-  const navigate = useNavigate();
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.id]: e.target.value });
+  // ======== Hàm lấy đường dẫn hiện tại (hỗ trợ cả HashRouter và BrowserRouter) ========
+  const getCurrentPath = () => {
+    const hash = window.location.hash; // ví dụ: #/polices
+    if (hash && hash.startsWith('#/')) {
+      return hash.slice(1); // -> /polices
+    }
+    return window.location.pathname || '/';
   };
 
+  // Đóng modal khi click ra ngoài
   useEffect(() => {
     if (!isOpen) return;
-    const handleClickOutside = (event) => {
-      if (modalRef.current && !modalRef.current.contains(event.target)) {
+    const handleClickOutside = (e) => {
+      if (modalRef.current && !modalRef.current.contains(e.target)) {
         onClose();
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
+  const handleChange = (e) => {
+    const { id, value } = e.target;
+    setFormData((prev) => ({ ...prev, [id]: value }));
+  };
+
+  // ======== Gửi request login ========
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
     setIsLoading(true);
+
     try {
-  const endpoint = `${API_BASE_URL}/webAPI/api/login`;
-      const res = await fetch(endpoint, {
+      // Nếu chưa có redirect → lưu lại trang hiện tại
+      if (!localStorage.getItem('redirectAfterLogin')) {
+        localStorage.setItem('redirectAfterLogin', getCurrentPath());
+      }
+
+      const res = await fetch(`${API_BASE_URL}/webAPI/api/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -57,56 +66,52 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }) {
         body: JSON.stringify(formData),
       });
 
-      console.log('Response status:', res.status);
-      console.log('Response headers:', [...res.headers.entries()]);
+      let data = null;
+      try { data = await res.json(); } catch {}
 
-      // Try to parse JSON safely
-      let data;
-      try {
-        data = await res.json();
-      } catch (jsonErr) {
-        data = null;
+      if (!res.ok) {
+        const msg = data?.message || data?.error || 'Email hoặc mật khẩu không đúng.';
+        throw new Error(msg);
       }
-      if (res.ok) {
-        if (data && data.token) {
-          localStorage.setItem('authToken', data.token);
-        }
-        if (data && data.user) {
-          localStorage.setItem('user', JSON.stringify(data.user));
-        }
-        if (data && data.user && onLoginSuccess) {
-          onLoginSuccess(data.user);
-        }
-        onClose();
-        if (data && data.user && data.user.role) {
-          const role = String(data.user.role).toLowerCase();
-          if (role === 'admin') {
-            navigate('/dashboard/admin');
-          } else if (role === 'staff') {
-            navigate('/dashboard/staff');
-          } else if (role === 'driver') {
-            navigate('/dashboard/driver');
-          } else {
-            setError('Tài khoản không có quyền truy cập dashboard phù hợp!');
-            navigate('/');
-          }
+
+      // Lưu thông tin đăng nhập
+      if (data?.token) localStorage.setItem('authToken', data.token);
+      if (data?.user) localStorage.setItem('user', JSON.stringify(data.user));
+
+      if (onLoginSuccess) onLoginSuccess(data?.user);
+
+      // ======== Xác định trang đích sau khi login ========
+      const redirectPath = localStorage.getItem('redirectAfterLogin') || '/';
+      const selectedPkg = localStorage.getItem('selectedPackageId');
+
+      // Xóa cờ trước khi điều hướng
+      localStorage.removeItem('redirectAfterLogin');
+      onClose();
+
+      // Hàm điều hướng an toàn (hoạt động tốt cho cả HashRouter)
+      const go = (path) => {
+        if (window.location.hash !== undefined) {
+          window.location.hash = '#' + path;
         } else {
-          setError('API không trả về user.role. Vui lòng kiểm tra lại backend!');
-          navigate('/');
+          window.location.href = path;
         }
+      };
+
+      // Nếu login từ /polices và có gói được chọn → sang payment
+      if (redirectPath.includes('/polices') && selectedPkg) {
+        localStorage.removeItem('selectedPackageId');
+        go(`/payment?packageId=${encodeURIComponent(selectedPkg)}`);
       } else {
-        const msg = data?.message || data?.error || res.statusText || 'Email hoặc mật khẩu không đúng.';
-        setError(msg);
+        go(redirectPath);
       }
     } catch (err) {
-      setError('Lỗi kết nối mạng. Vui lòng thử lại.');
+      setError(err.message || 'Lỗi kết nối mạng. Vui lòng thử lại.');
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Hiển thị RegisterModal nếu showRegister true
-
+  // ======== Modal con (Register / Forgot Password) ========
   if (showRegister) {
     return (
       <RegisterModal
@@ -116,10 +121,11 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }) {
       />
     );
   }
+
   if (showForgot) {
     return (
       <div className="modal-backdrop">
-        <div className="login-modal" style={{padding: 0}}>
+        <div className="login-modal" style={{ padding: 0 }}>
           <button className="close-btn" onClick={() => setShowForgot(false)} aria-label="Đóng">&times;</button>
           <ForgotPass />
         </div>
@@ -127,14 +133,14 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }) {
     );
   }
 
+  // ======== UI chính ========
   return (
     <div className="modal-backdrop">
       <div className="login-modal" ref={modalRef}>
-        <button className="close-btn" onClick={onClose} aria-label="Đóng">
-          &times;
-        </button>
+        <button className="close-btn" onClick={onClose} aria-label="Đóng">&times;</button>
         <h2 className="modal-title">Đăng nhập</h2>
         <p className="modal-subtitle">Chào mừng trở lại. Vui lòng nhập thông tin của bạn.</p>
+
         <form className="login-form" onSubmit={handleSubmit}>
           <div className="form-group">
             <label htmlFor="email">Email</label>
@@ -145,8 +151,10 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }) {
               required
               value={formData.email}
               onChange={handleChange}
+              autoFocus
             />
           </div>
+
           <div className="form-group">
             <label htmlFor="password">Mật khẩu</label>
             <input
@@ -158,10 +166,13 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }) {
               onChange={handleChange}
             />
           </div>
+
           {error && <p className="error-message">{error}</p>}
+
           <button type="submit" className="login-button" disabled={isLoading}>
             {isLoading ? 'Đang đăng nhập...' : 'Đăng nhập'}
           </button>
+
           <div className="form-options" style={{ marginTop: 12 }}>
             <span
               className="forgot-password"
@@ -172,6 +183,7 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }) {
             </span>
           </div>
         </form>
+
         <p className="signup-link">
           Chưa có tài khoản?{' '}
           <button

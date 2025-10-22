@@ -4,27 +4,6 @@ import stationsData from '../../../data/stations.json';
 import './staff.css';
 import API_BASE_URL from '../../../config';
 
-function SlotCard({ slot, onOpen, onToggleCharging, onSetStatus }) {
-  const cls = slot.status === 'charging' ? 'slot-row slot-row--charging' : (slot.status === 'available' ? 'slot-row slot-row--available' : 'slot-row slot-row--empty');
-  return (
-    <div className={cls}>
-      <div className="slot-index">Slot #{slot.index}</div>
-      <div className="slot-status"><strong>Status:</strong> {slot.status}</div>
-      {slot.status !== 'empty' && (
-        <>
-          <div className="slot-soc">SoC: <strong>{slot.soc}%</strong></div>
-          <div className="slot-soh">SoH: <strong>{slot.soh}%</strong></div>
-        </>
-      )}
-      <div className="slot-actions">
-        <button className="slot-action-btn" onClick={() => onOpen(slot.index)}>Open Slot</button>
-        <button className="slot-action-btn" onClick={() => onToggleCharging(slot.index)}>{slot.charging ? 'Stop Charging' : 'Start Charging'}</button>
-        <button className="slot-action-btn" onClick={() => onSetStatus(slot.index, 'empty')}>Set Empty</button>
-      </div>
-    </div>
-  );
-}
-
 export default function StaffDashboard({ user, onLoginClick }) {
   const [stations, setStations] = useState([]);
   const [fetchFailed, setFetchFailed] = useState(false);
@@ -114,31 +93,6 @@ export default function StaffDashboard({ user, onLoginClick }) {
     });
   };
 
-  const toggleCharging = (index) => {
-    setSlotsMap(prev => {
-      const copy = { ...prev };
-      copy[assignedStationId] = copy[assignedStationId].map(slot => {
-        if (slot.index !== index) return slot;
-        const newCharging = !slot.charging;
-        return { ...slot, charging: newCharging, status: newCharging ? 'charging' : (slot.soc >= 100 ? 'available' : 'available') };
-      });
-      return copy;
-    });
-  };
-
-  const setStatus = (index, status) => {
-    setSlotsMap(prev => {
-      const copy = { ...prev };
-      copy[assignedStationId] = copy[assignedStationId].map(slot => {
-        if (slot.index !== index) return slot;
-        if (status === 'empty') return { ...slot, status: 'empty', soc: 0, charging: false };
-        if (status === 'charging') return { ...slot, status: 'charging', charging: true };
-        return { ...slot, status: 'available', charging: false };
-      });
-      return copy;
-    });
-  };
-
   function VisualSlot({ slot }) {
     const stateClass = slot.status === 'charging' ? 'visual-slot charging' : (slot.status === 'available' ? 'visual-slot available' : 'visual-slot empty');
     return (
@@ -150,7 +104,7 @@ export default function StaffDashboard({ user, onLoginClick }) {
   }
 
   return (
-    <main style={{ padding: 0, margin: 0 }}>
+    <main style={{ padding: 0, margin: 0, width: '100%' }}>
       <div className="staff-container">
         <h1>Station Slot Management</h1>
         {fetchFailed && showFetchBanner && (

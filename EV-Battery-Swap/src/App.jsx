@@ -1,7 +1,5 @@
-// src/App.jsx
-
 import React, { useState } from 'react';
-import { HashRouter as Router, Routes, Route } from 'react-router-dom'; // 👈 Dùng HashRouter cho đúng URL dạng #/
+import { HashRouter as Router, Routes, Route, useLocation } from 'react-router-dom'; // 👈 Dùng HashRouter cho đúng URL dạng #/
 import Header from './components/Header/Header';
 import Footer from './components/Footer/Footer';
 import LoginModal from './components/Login/LoginModal';
@@ -20,6 +18,7 @@ import VehicleLink from './pages/Dashboard/Driver/vehicleLink/VehicleLink';
 import UserInfo from './pages/User/UserInfo';
 import TransactionHistory from './pages/User/TransactionHistory';
 import Booking from './pages/Dashboard/Driver/Booking/booking.jsx';
+import BookingHistory from './pages/Dashboard/Driver/Booking/BookingHistory.jsx';
 
 function App() {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false); 
@@ -39,32 +38,50 @@ function App() {
 
   return (
     <Router>
-      <Header onLoginClick={handleOpenModal} user={user} />
-      <main> 
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/battery" element={<Battery />} /> 
-          <Route path="/battery-pin" element={<BatteryPin />} />
-          <Route path="/polices" element={<Polices onLoginClick={handleOpenModal} user={user} />} />
-          <Route path="/dashboard/admin" element={<AdminDashboard user={user} onLoginClick={handleOpenModal} />} />
-          <Route path="/dashboard/staff" element={<StaffDashboard user={user} onLoginClick={handleOpenModal} />} />
-          <Route path="/dashboard/driver" element={<DriverDashboard />} />
-          <Route path="/dashboard/driver/booking" element={<Booking />} />
-          <Route path="/vehicle-link" element={<VehicleLink />} />
-          <Route path="/forgot-pass" element={<ForgotPass />} />
-          <Route path="/reset-password" element={<ResetPass />} /> {/* 👈 THÊM ROUTE NÀY */}
-          <Route path="/user/info" element={<UserInfo />} />
-          <Route path="/user/transactions" element={<TransactionHistory />} />
-        </Routes>
-      </main>
-      <Footer />
-      <LoginModal
-isOpen={isLoginModalOpen} 
-        onClose={handleCloseModal} 
+      <AppContent 
+        user={user} 
+        isLoginModalOpen={isLoginModalOpen} 
+        onOpenModal={handleOpenModal}
+        onCloseModal={handleCloseModal}
         onLoginSuccess={handleLoginSuccess}
       />
     </Router>
   )
+}
+
+function AppContent({ user, isLoginModalOpen, onOpenModal, onCloseModal, onLoginSuccess }) {
+  const location = useLocation();
+  const isStaffDashboard = location.pathname === '/dashboard/staff';
+
+  return (
+    <>
+      <Header onLoginClick={onOpenModal} user={user} />
+      <main> 
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/battery" element={<Battery />} /> 
+            <Route path="/battery-pin" element={<BatteryPin />} />
+            <Route path="/polices" element={<Polices onLoginClick={onOpenModal} user={user} />} />
+            <Route path="/dashboard/admin" element={<AdminDashboard user={user} onLoginClick={onOpenModal} />} />
+            <Route path="/dashboard/staff" element={<StaffDashboard user={user} onLoginClick={onOpenModal} />} />
+            <Route path="/dashboard/driver" element={<DriverDashboard />} />
+            <Route path="/dashboard/driver/booking" element={<Booking />} />
+            <Route path="/driver/booking-history" element={<BookingHistory />} />
+            <Route path="/vehicle-link" element={<VehicleLink />} />
+            <Route path="/forgot-pass" element={<ForgotPass />} />
+            <Route path="/user/info" element={<UserInfo />} />
+            <Route path="/user/transactions" element={<TransactionHistory />} />
+            {/* <Route path="/payment" element={<Payment />} /> */}
+          </Routes>
+      </main>
+      {!isStaffDashboard && <Footer />}
+      <LoginModal
+        isOpen={isLoginModalOpen}
+        onClose={onCloseModal}
+        onLoginSuccess={onLoginSuccess}
+      />
+    </>
+  );
 }
 
 export default App;

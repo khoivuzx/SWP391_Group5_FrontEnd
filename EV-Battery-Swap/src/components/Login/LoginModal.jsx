@@ -118,6 +118,7 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }) {
         isOpen={showRegister}
         onClose={() => setShowRegister(false)}
         onSwitchToLogin={() => setShowRegister(false)}
+        onLoginSuccess={onLoginSuccess}
       />
     );
   }

@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 
 import API_BASE_URL from '../../config';
 
-export default function RegisterModal({ isOpen, onClose, onSwitchToLogin }) {
+export default function RegisterModal({ isOpen, onClose, onSwitchToLogin, onLoginSuccess }) {
   const modalRef = useRef();
   const [regForm, setRegForm] = useState({
     fullName: '',
@@ -61,6 +61,39 @@ export default function RegisterModal({ isOpen, onClose, onSwitchToLogin }) {
     }
   }
 
+  async function loginUser({ email, password }) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/webAPI/api/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ email, password }),
+      });
+
+      let data = {};
+      try {
+        data = await response.json();
+      } catch (e) {
+        console.log('Không parse được JSON từ login response:', e);
+      }
+
+      if (!response.ok) {
+        throw new Error((data.error || data.message || 'Đăng nhập thất bại') + ` (HTTP ${response.status})`);
+      }
+
+      // Lưu thông tin đăng nhập
+      if (data?.token) localStorage.setItem('authToken', data.token);
+      if (data?.user) localStorage.setItem('user', JSON.stringify(data.user));
+
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
   const handleRegister = async (e) => {
     e.preventDefault();
     setError(null);
@@ -73,15 +106,34 @@ export default function RegisterModal({ isOpen, onClose, onSwitchToLogin }) {
       return;
     }
     try {
+      // Đăng ký tài khoản
       await registerUser({
         fullName: regForm.fullName,
         phone: regForm.phone,
         email: regForm.email,
         password: regForm.password,
       });
-      alert('Đăng ký thành công!');
-      setRegForm({ fullName: '', phone: '', email: '', password: '', confirm: '' });
-      onSwitchToLogin && onSwitchToLogin();
+
+      // Tự động đăng nhập sau khi đăng ký thành công
+      try {
+        const loginData = await loginUser({
+          email: regForm.email,
+          password: regForm.password,
+        });
+
+        // Cập nhật state và đóng modal
+        if (onLoginSuccess && loginData?.user) {
+          onLoginSuccess(loginData.user);
+        }
+        onClose();
+      } catch (loginErr) {
+        console.warn('Auto-login failed:', loginErr.message);
+        // Nếu auto-login thất bại, vẫn thông báo đăng ký thành công
+        // và chuyển sang trang đăng nhập
+        alert('Đăng ký thành công! Vui lòng đăng nhập.');
+        setRegForm({ fullName: '', phone: '', email: '', password: '', confirm: '' });
+        onSwitchToLogin && onSwitchToLogin();
+      }
     } catch (err) {
       setError(err.message || 'Đăng ký thất bại.');
     }

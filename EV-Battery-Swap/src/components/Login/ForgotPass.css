@@ -1,9 +1,10 @@
 .forgotpass-container {
-  min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
   background: #f7fafc;
+    border-radius: 16px;
+
 }
 
 .forgotpass-box {

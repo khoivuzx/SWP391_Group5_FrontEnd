@@ -1,7 +1,7 @@
 // src/App.jsx
 
 import React, { useState } from 'react';
-import { HashRouter as Router, Routes, Route } from 'react-router-dom'; // 👈 Dùng HashRouter cho đúng URL dạng #/
+import { HashRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import Header from './components/Header/Header';
 import Footer from './components/Footer/Footer';
 import LoginModal from './components/Login/LoginModal';
@@ -21,7 +21,7 @@ import UserInfo from './pages/User/UserInfo';
 import TransactionHistory from './pages/User/TransactionHistory';
 import Booking from './pages/Dashboard/Driver/Booking/booking.jsx';
 
-function App() {
+function AppContent() {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false); 
   const [user, setUser] = useState(() => {
     const storedUser = localStorage.getItem('user');
@@ -30,15 +30,17 @@ function App() {
 
   const handleOpenModal = () => setIsLoginModalOpen(true);
   const handleCloseModal = () => setIsLoginModalOpen(false);
-  
-  // Khi đăng nhập thành công, cập nhật user và đóng modal
   const handleLoginSuccess = (userObj) => {
     setUser(userObj);
     setIsLoginModalOpen(false);
   };
 
+  const location = useLocation();
+  // const isDriverRoute = location.pathname.startsWith('/dashboard/driver');
+  const isUserRoute = location.pathname.startsWith('/user');
+
   return (
-    <Router>
+    <>
       <Header onLoginClick={handleOpenModal} user={user} />
       <main> 
         <Routes>
@@ -52,19 +54,25 @@ function App() {
           <Route path="/dashboard/driver/booking" element={<Booking />} />
           <Route path="/vehicle-link" element={<VehicleLink />} />
           <Route path="/forgot-pass" element={<ForgotPass />} />
-          <Route path="/reset-password" element={<ResetPass />} /> {/* 👈 THÊM ROUTE NÀY */}
+          <Route path="/reset-password" element={<ResetPass />} />
           <Route path="/user/info" element={<UserInfo />} />
           <Route path="/user/transactions" element={<TransactionHistory />} />
         </Routes>
       </main>
-      <Footer />
+      {!isUserRoute && <Footer />}
       <LoginModal
-isOpen={isLoginModalOpen} 
+        isOpen={isLoginModalOpen} 
         onClose={handleCloseModal} 
         onLoginSuccess={handleLoginSuccess}
       />
-    </Router>
-  )
+    </>
+  );
 }
 
-export default App;
+export default function App() {
+  return (
+    <Router>
+      <AppContent />
+    </Router>
+  );
+}

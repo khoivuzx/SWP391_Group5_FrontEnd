@@ -1,0 +1,99 @@
+/* Gogoro Policy Modern Design CSS */
+.gogoro-policy-modern {
+  background: #fff;
+  border-radius: 16px;
+  margin-top: 32px;
+  padding: 32px 24px;
+}
+.gogoro-policy-modern h1 {
+  text-align: center;
+  font-size: 2.5rem;
+  font-weight: 600;
+  color: #3d9a3f;
+  margin-bottom: 24px;
+}
+.gogoro-tabs {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+.gogoro-tab {
+  border: none;
+  background: none;
+  font-size: 1.25rem;
+  font-weight: 400;
+  color: #7c8c8f;
+  border-bottom: 3px solid #eee;
+  padding: 8px 32px;
+  cursor: pointer;
+  transition: color 0.2s, border-bottom 0.2s;
+}
+.gogoro-tab.active {
+  font-weight: 700;
+  color: #02d306;
+  border-bottom: 3px solid #02d306;
+}
+.gogoro-policy-content {
+  display: flex;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+.gogoro-policy-left,
+.gogoro-policy-right {
+  flex: 1;
+  min-width: 320px;
+  background: #f7fafc;
+  border-radius: 12px;
+  padding: 24px;
+}
+.gogoro-policy-left h2,
+.gogoro-policy-right h2 {
+  font-size: 1.5rem;
+  color: #374151;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+.gogoro-policy-left ul,
+.gogoro-policy-right ul {
+  margin-left: 16px;
+}
+.gogoro-policy-left li,
+.gogoro-policy-right li {
+  font-size: 1rem;
+  color: #374151;
+}
+.gogoro-policy-left .section-title,
+.gogoro-policy-right .section-title {
+  font-weight: 600;
+  font-size: 1.25rem;
+  color: #374151;
+  margin-bottom: 8px;
+}
+.gogoro-policy-right .plan {
+  margin-bottom: 24px;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 16px;
+}
+.gogoro-policy-right .plan-title {
+  font-weight: 700;
+  font-size: 1.15rem;
+  color: #111827;
+  margin-bottom: 8px;
+}
+.gogoro-policy-right .plan-note {
+  background: #fff;
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: #374151;
+  font-size: 0.95rem;
+}
+.gogoro-policy-right .vat {
+  color: #374151;
+  font-size: 0.95rem;
+  margin-top: 8px;
+}
+.gogoro-policy-right .right-note {
+  color: #3d9a3f;
+  font-size: 1rem;
+  margin-bottom: 12px;
+}

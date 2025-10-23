@@ -1,199 +1,247 @@
-
-import React, { useEffect, useState } from 'react';
-import stationsData from '../../../data/stations.json';
+import React, { useEffect, useMemo, useState } from 'react';
 import './staff.css';
 import API_BASE_URL from '../../../config';
 
-function SlotCard({ slot, onOpen, onToggleCharging, onSetStatus }) {
-  const cls = slot.status === 'charging' ? 'slot-row slot-row--charging' : (slot.status === 'available' ? 'slot-row slot-row--available' : 'slot-row slot-row--empty');
-  return (
-    <div className={cls}>
-      <div className="slot-index">Slot #{slot.index}</div>
-      <div className="slot-status"><strong>Status:</strong> {slot.status}</div>
-      {slot.status !== 'empty' && (
-        <>
-          <div className="slot-soc">SoC: <strong>{slot.soc}%</strong></div>
-          <div className="slot-soh">SoH: <strong>{slot.soh}%</strong></div>
-        </>
-      )}
-      <div className="slot-actions">
-        <button className="slot-action-btn" onClick={() => onOpen(slot.index)}>Open Slot</button>
-        <button className="slot-action-btn" onClick={() => onToggleCharging(slot.index)}>{slot.charging ? 'Stop Charging' : 'Start Charging'}</button>
-        <button className="slot-action-btn" onClick={() => onSetStatus(slot.index, 'empty')}>Set Empty</button>
+export default function StaffDashboard() {
+  const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState(null);
+  const [slots, setSlots] = useState([]);
+  const [selectedBattery, setSelectedBattery] = useState(null); // 👈 popup info
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        setLoading(true);
+        setErr(null);
+        if (!API_BASE_URL) throw new Error('Missing API_BASE_URL');
+
+        const token = localStorage.getItem('authToken') || '';
+        const res = await fetch(`${API_BASE_URL}/webAPI/api/secure/viewBatterySlotStatus`, {
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+            Accept: 'application/json',
+            'ngrok-skip-browser-warning': '1',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+        });
+
+        if (!mounted) return;
+        if (!res.ok) throw new Error(`HTTP ${res.status} - ${await res.text()}`);
+
+        const data = await res.json();
+        if (!Array.isArray(data)) throw new Error('Unexpected payload');
+
+        const normalized = data.map((x, i) => {
+          const firstDefined = (...vals) => vals.find(v => v !== undefined && v !== null);
+          return {
+            slotId: firstDefined(x.Slot_ID, x.slot_ID, x.slotId, i + 1),
+            code: firstDefined(x.Slot_Code, x.slot_Code, x.slotCode, `S${i + 1}`),
+            state: String(firstDefined(x.State, x.state, '')).trim(),
+            condition: String(firstDefined(x.Condition, x.condition, '')).trim(),
+            door: String(firstDefined(x.Door_State, x.door_State, x.doorState, '')).trim(),
+            batteryId: firstDefined(x.Battery_ID, x.battery_ID, x.batteryId, null),
+            soh: firstDefined(x.BatterySoH, x.batterySoH, x.batterySoH, x.soh, null),
+            serial: firstDefined(x.BatterySerial, x.batterySerial, x.batterySerial, x.serial, null),
+            stationId: firstDefined(x.Station_ID, x.station_ID, x.stationId, null),
+            chargingStationId: firstDefined(x.ChargingStation_ID, x.chargingStation_ID, x.chargingStationId, null),
+            chargingStationName: firstDefined(x.ChargingStationName, x.chargingStationName, 'Station'),
+            lastUpdate: firstDefined(x.Last_Update, x.last_Update, x.lastUpdate, null),
+          };
+        });
+
+        setSlots(normalized);
+      } catch (e) {
+        setErr(e.message || 'Failed to load slots');
+        setSlots([]);
+      } finally {
+        setLoading(false);
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
+
+  // ---- Helper: tên trạm gốc ----
+  const toBaseStationName = (name) => {
+    if (!name) return 'Station';
+    const m = String(name).match(/^(.*?)(?:\s*-\s*CS#\d+)?$/i);
+    return (m?.[1] || name).trim();
+  };
+
+  // ---- Helper: màu theo trạng thái ----
+  const colorClass = (s) => {
+    const state = (s.state || '').toLowerCase();
+    const cond  = (s.condition || '').toLowerCase();
+    if (cond === 'damage' || cond === 'damaged') return 'damage';
+    if (cond === 'weak' || cond === 'charging')  return 'weak';
+    if (state === 'reserved' || state === 'reserve') return 'reserved';
+    if (state === 'occupied' && cond === 'good')  return 'good';
+    return 'empty';
+  };
+
+  // ---- Xác định loại pin từ ID trụ sạc ----
+  const getChemFromChargingStationId = (id) => {
+    if (!id) return 'unknown';
+    if (id === 11) return 'lfp';
+    if (id === 12) return 'li';
+    if (id % 2 === 1) return 'li';
+    if (id % 2 === 0) return 'lfp';
+    return 'unknown';
+  };
+
+  // ---- Gom theo Station_ID ----
+  const groupedByStation = useMemo(() => {
+    const map = new Map();
+    for (const s of slots) {
+      const stationKey = String(s.stationId ?? 'unknown');
+      const baseName = toBaseStationName(s.chargingStationName);
+      if (!map.has(stationKey)) {
+        map.set(stationKey, { name: baseName, li: [], lfp: [], rest: [] });
+      }
+      const g = map.get(stationKey);
+      const chem = getChemFromChargingStationId(s.chargingStationId);
+      if (chem === 'li') g.li.push(s);
+      else if (chem === 'lfp') g.lfp.push(s);
+      else g.rest.push(s);
+    }
+
+    for (const g of map.values()) {
+      g.li.sort((a,b) => (a.slotId??0)-(b.slotId??0));
+      g.lfp.sort((a,b) => (a.slotId??0)-(b.slotId??0));
+      g.rest.sort((a,b) => (a.slotId??0)-(b.slotId??0));
+    }
+    return map;
+  }, [slots]);
+
+  // 🔍 Khi click vào 1 slot → gọi API lấy thông tin pin
+const handleViewBatteryInfo = async (slotId) => {
+  try {
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      alert('Bạn chưa đăng nhập. Vui lòng đăng nhập lại.');
+      return;
+    }
+
+    console.log(`[DEBUG] SlotID = ${slotId}, token = ${token.substring(0, 15)}...`);
+
+    const res = await fetch(`${API_BASE_URL}/webAPI/api/secure/getBatteryInfo?slotId=${slotId}`, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'ngrok-skip-browser-warning': 'true',
+        'Authorization': `Bearer ${token}` // ✅ chuẩn cho JwtAuthFilter
+      },
+      credentials: 'include'
+    });
+
+    console.log('[DEBUG] Status:', res.status);
+
+    const data = await res.json();
+
+    if (!res.ok || !data.success) {
+      console.warn('[DEBUG] Response error:', data);
+      alert(data.message || 'Không thể lấy thông tin pin.');
+      return;
+    }
+
+    console.log('[DEBUG] Battery info data:', data);
+    setSelectedBattery(data);
+
+  } catch (err) {
+    console.error('[DEBUG] Fetch error:', err);
+    alert('Lỗi khi lấy thông tin pin.');
+  }
+};
+  // 🔲 UI của từng slot
+  const SlotCard = ({ s }) => (
+    <div
+      className={`visual-slot ${colorClass(s)}`}
+      onClick={() => handleViewBatteryInfo(s.slotId)} // 👈 click để xem chi tiết
+      title={`#${s.slotId} ${s.code}\nClick để xem thông tin pin`}
+    >
+      <div className="visual-slot-index">{s.code}</div>
+      <div className="visual-slot-status">
+        {(s.state || '-')} • {(s.condition || '-')}
       </div>
     </div>
   );
-}
-
-export default function StaffDashboard({ user, onLoginClick }) {
-  const [stations, setStations] = useState([]);
-  const [fetchFailed, setFetchFailed] = useState(false);
-  const [showFetchBanner, setShowFetchBanner] = useState(true);
-  const [assignedStationId, setAssignedStationId] = useState(() => {
-    try {
-      const raw = localStorage.getItem('assignedStationId');
-      return raw ? Number(raw) : (stationsData[0] && stationsData[0].id) || null;
-    } catch (e) {
-      return (stationsData[0] && stationsData[0].id) || null;
-    }
-  });
-
-  // slots per station: { stationId: [ {index, status, soc, soh, charging}, ... ] }
-  const [slotsMap, setSlotsMap] = useState({});
-
-  useEffect(() => {
-    // Try to load stations.json via fetch so we can detect network/file load failures.
-    // Note: stations.json is bundled in the repo and usually served by dev server; this won't detect backend API availability.
-    let mounted = true;
-    (async () => {
-      try {
-        const res = await fetch('/src/data/stations.json');
-        if (!res.ok) throw new Error('fetch failed');
-        const json = await res.json();
-        if (mounted) {
-          setStations(Array.isArray(json) ? json : (json.data || []));
-          // leave fetchFailed alone for now; we'll check backend API availability separately
-        }
-      } catch (err) {
-        if (mounted) {
-          setStations(stationsData || []);
-        }
-      }
-    })();
-    return () => { mounted = false; };
-  }, []);
-
-  // One-shot health check for the battery API — if it fails, mark fetchFailed so slots render empty
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        if (!API_BASE_URL) throw new Error('no api base');
-        const url = `${API_BASE_URL}/webAPI/api/getStationBatteryReportGuest`;
-        const res = await fetch(url, { credentials: 'omit', headers: { 'ngrok-skip-browser-warning': '1', 'Accept': 'application/json' } });
-        if (!mounted) return;
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        // success: API available
-        setFetchFailed(false);
-      } catch (err) {
-        if (!mounted) return;
-        setFetchFailed(true);
-        setShowFetchBanner(true);
-      }
-    })();
-    return () => { mounted = false; };
-  }, []);
-
-  useEffect(() => {
-    if (!stations.length) return;
-    const sm = {};
-    stations.forEach(s => {
-      const arr = [];
-      for (let i = 1; i <= 20; i++) {
-        // Initialize deterministic empty slots; real data will replace these when available
-        arr.push({ index: i, status: 'empty', soc: 0, soh: 0, charging: false });
-      }
-      sm[s.id] = arr;
-    });
-    setSlotsMap(sm);
-    if (!assignedStationId) setAssignedStationId(stations[0].id);
-  }, [stations]);
-
-  const assignedStation = stations.find(s => s.id === assignedStationId) || null;
-  // Display station: prefer assignedStation, otherwise fall back to the first available station so UI shows slots immediately
-  const displayStation = assignedStation || (stations && stations.length ? stations[0] : null);
-  const displayStationId = displayStation ? displayStation.id : null;
-  const slots = displayStationId ? (slotsMap[displayStationId] || []) : [];
-
-  const openSlot = (index) => {
-    // in real app you'd call backend; here we show a console message and toggle status to available
-    setSlotsMap(prev => {
-      const copy = { ...prev };
-      copy[assignedStationId] = copy[assignedStationId].map(slot => slot.index === index ? { ...slot, status: 'available', soc: 100, charging: false } : slot);
-      return copy;
-    });
-  };
-
-  const toggleCharging = (index) => {
-    setSlotsMap(prev => {
-      const copy = { ...prev };
-      copy[assignedStationId] = copy[assignedStationId].map(slot => {
-        if (slot.index !== index) return slot;
-        const newCharging = !slot.charging;
-        return { ...slot, charging: newCharging, status: newCharging ? 'charging' : (slot.soc >= 100 ? 'available' : 'available') };
-      });
-      return copy;
-    });
-  };
-
-  const setStatus = (index, status) => {
-    setSlotsMap(prev => {
-      const copy = { ...prev };
-      copy[assignedStationId] = copy[assignedStationId].map(slot => {
-        if (slot.index !== index) return slot;
-        if (status === 'empty') return { ...slot, status: 'empty', soc: 0, charging: false };
-        if (status === 'charging') return { ...slot, status: 'charging', charging: true };
-        return { ...slot, status: 'available', charging: false };
-      });
-      return copy;
-    });
-  };
-
-  function VisualSlot({ slot }) {
-    const stateClass = slot.status === 'charging' ? 'visual-slot charging' : (slot.status === 'available' ? 'visual-slot available' : 'visual-slot empty');
-    return (
-      <div className={stateClass} onClick={() => openSlot(slot.index)} title={`Slot ${slot.index} — ${slot.status}`}>
-        <div className="visual-slot-index">{slot.index}</div>
-        <div className="visual-slot-status">{slot.status}</div>
-      </div>
-    );
-  }
 
   return (
-    <main style={{ padding: 0, margin: 0 }}>
+    <main style={{ padding: 0, margin: 0, width: '100%' }}>
       <div className="staff-container">
         <h1>Station Slot Management</h1>
-        {fetchFailed && showFetchBanner && (
-          <div className="fetch-error-banner">
-            <div>Failed to load station inventory — all slots shown as empty.</div>
-            <button className="fetch-error-dismiss" onClick={() => setShowFetchBanner(false)}>Dismiss</button>
+
+        {loading && <div className="info-banner">Loading slots…</div>}
+        {err && !loading && (
+          <div className="error-banner">
+            <div>Không tải được dữ liệu slot.</div>
+            <pre style={{ whiteSpace: 'pre-wrap' }}>{err}</pre>
           </div>
         )}
-        {displayStation ? (
-          <>
-            <div className="station-title"><strong>Station:</strong> {displayStation.name} (ID: {displayStation.id})</div>
 
-            {/* Visual grid: left half = Lithium-Ion (slots 1-10), right half = LFP (slots 11-20) */}
+        <div className="legend">
+          <span className="legend-item"><i className="legend-box good" /> Good</span>
+          <span className="legend-item"><i className="legend-box reserved" /> Reserved</span>
+          <span className="legend-item"><i className="legend-box weak" /> Weak</span>
+          <span className="legend-item"><i className="legend-box damage" /> Damage</span>
+          <span className="legend-item"><i className="legend-box empty" /> Empty</span>
+        </div>
+
+        {!loading && !err && [...groupedByStation.entries()].map(([stationKey, g]) => (
+          <section key={stationKey} className="station-section">
+            <div className="station-title">
+              <strong>Station:</strong> {g.name}
+            </div>
             <div className="visual-slots-container">
               <div className="visual-half">
-                <div className="visual-half-title">Lithium-Ion</div>
+                <div className="visual-half-title">Lithium-ion</div>
                 <div className="visual-grid">
-                  {slots.filter(s => s.index >= 1 && s.index <= 10).map(s => (
-                    <VisualSlot key={s.index} slot={s} />
-                  ))}
+                  {g.li.length ? g.li.map(s => <SlotCard key={`li-${s.slotId}`} s={s} />) : <div style={{opacity:.6}}>No data</div>}
                 </div>
               </div>
               <div className="visual-half">
                 <div className="visual-half-title">LFP</div>
                 <div className="visual-grid">
-                  {slots.filter(s => s.index >= 11 && s.index <= 20).map(s => (
-                    <VisualSlot key={s.index} slot={s} />
-                  ))}
+                  {g.lfp.length ? g.lfp.map(s => <SlotCard key={`lfp-${s.slotId}`} s={s} />) : <div style={{opacity:.6}}>No data</div>}
                 </div>
               </div>
             </div>
-          </>
-        ) : (
-          <div>No stations available</div>
-        )}
+            {g.rest.length > 0 && (
+              <>
+                <div className="visual-half-title" style={{marginTop:16}}>Unknown Type</div>
+                <div className="visual-grid">
+                  {g.rest.map(s => <SlotCard key={`u-${s.slotId}`} s={s} />)}
+                </div>
+              </>
+            )}
+          </section>
+        ))}
 
-        {/* Action bar placed below the station title area — always visible */}
         <div className="staff-action-bar">
-          <button className="staff-action-btn" onClick={() => console.log('Check-in clicked')}>Check-in</button>
-          <button className="staff-action-btn" onClick={() => console.log('Create booking clicked')}>Create booking</button>
-          <button className="staff-action-btn" onClick={() => console.log('View booking clicked')}>View booking</button>
+          <button className="staff-action-btn">Check-in</button>
+          <button className="staff-action-btn">Create booking</button>
+          <button className="staff-action-btn">View booking</button>
         </div>
       </div>
+
+      {/* 💡 Modal hiển thị thông tin pin */}
+      {selectedBattery && (
+        <div className="battery-modal-backdrop" onClick={() => setSelectedBattery(null)}>
+          <div className="battery-modal" onClick={(e) => e.stopPropagation()}>
+            <h2>Battery Information</h2>
+            <p><b>Slot:</b> {selectedBattery.slotCode}</p>
+            <p><b>Station:</b> {selectedBattery.stationName}</p>
+            <p><b>Serial Number:</b> {selectedBattery.serialNumber}</p>
+            <p><b>Resistance:</b> {selectedBattery.resistance} Ω</p>
+            <p><b>State of Health (SoH):</b> {selectedBattery.soH}%</p>
+            <p><b>Condition:</b> {selectedBattery.condition}</p>
+            <p><b>Last Update:</b> {selectedBattery.lastUpdate}</p>
+            <button onClick={() => setSelectedBattery(null)}>Close</button>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

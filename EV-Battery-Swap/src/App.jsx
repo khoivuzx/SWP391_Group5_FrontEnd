@@ -39,6 +39,16 @@ function AppContent() {
   // const isDriverRoute = location.pathname.startsWith('/dashboard/driver');
   const isUserRoute = location.pathname.startsWith('/user');
 
+  React.useEffect(() => {
+    // Nếu truy cập nhầm /admin/dashboard thì chuyển hướng sang /dashboard/admin
+    if (window.location.hash === '#/admin/dashboard') {
+      window.location.hash = '#/dashboard/admin';
+    }
+    // Nếu truy cập nhầm /dashboard/staff thì chuyển hướng sang /staff/dashboard
+    if (window.location.hash === '#/dashboard/staff') {
+      window.location.hash = '#/staff/dashboard';
+    }
+  }, []);
   return (
     <>
       <Header onLoginClick={handleOpenModal} user={user} />
@@ -49,7 +59,7 @@ function AppContent() {
           <Route path="/battery-pin" element={<BatteryPin />} />
           <Route path="/polices" element={<Polices onLoginClick={handleOpenModal} user={user} />} />
           <Route path="/dashboard/admin" element={<AdminDashboard user={user} onLoginClick={handleOpenModal} />} />
-          <Route path="/dashboard/staff" element={<StaffDashboard user={user} onLoginClick={handleOpenModal} />} />
+          <Route path="/staff/dashboard" element={<StaffDashboard user={user} onLoginClick={handleOpenModal} />} />
           <Route path="/dashboard/driver" element={<DriverDashboard />} />
           <Route path="/dashboard/driver/booking" element={<Booking />} />
           <Route path="/vehicle-link" element={<VehicleLink />} />

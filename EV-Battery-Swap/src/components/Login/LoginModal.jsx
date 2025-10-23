@@ -6,7 +6,10 @@ import API_BASE_URL from '../../config';
 
 /**
  * LoginModal — Ghi nhớ trang hiện tại (cả HashRouter và BrowserRouter)
- * Khi login xong: quay lại đúng trang đó hoặc sang /payment nếu login từ /polices.
+ * Khi login xong: điều hướng theo role:
+ *  - Staff/Manager/Admin: luôn vào dashboard role
+ *  - Driver: giữ logic cũ (polices -> payment nếu có gói; ngược lại quay lại trang trước)
+ *  - Guest/khác: quay lại trang trước
  */
 export default function LoginModal({ isOpen, onClose, onLoginSuccess }) {
   const modalRef = useRef(null);
@@ -19,10 +22,38 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }) {
   // ======== Hàm lấy đường dẫn hiện tại (hỗ trợ cả HashRouter và BrowserRouter) ========
   const getCurrentPath = () => {
     const hash = window.location.hash; // ví dụ: #/polices
-    if (hash && hash.startsWith('#/')) {
-      return hash.slice(1); // -> /polices
-    }
+    if (hash && hash.startsWith('#/')) return hash.slice(1); // -> /polices
     return window.location.pathname || '/';
+  };
+
+  // ======== Điều hướng an toàn (HashRouter/BrowswerRouter) ========
+  const go = (path) => {
+    // Nếu đang dùng HashRouter (có hash root) → dùng hash
+    if (window.location.hash !== undefined) {
+      // Nếu đã có '#', đảm bảo path bắt đầu với '/'
+      const normalized = path.startsWith('/') ? path : `/${path}`;
+      window.location.hash = '#' + normalized;
+    } else {
+      window.location.href = path;
+    }
+  };
+
+  // ======== Map role -> dashboard path ========
+  const getDashboardPathByRole = (role) => {
+    switch ((role || '').toLowerCase()) {
+      case 'staff':
+        return '/staff/dashboard';
+      case 'manager':
+        return '/manager/dashboard';
+      case 'admin':
+        return '/admin/dashboard';
+      case 'driver':
+        // Driver có thể vẫn muốn về trang trước (giữ logic cũ),
+        // nên không ép route ở đây. Trả null để dùng tiếp redirect cũ.
+        return null;
+      default:
+        return null; // Guest/khác: dùng redirect cũ
+    }
   };
 
   // Đóng modal khi click ra ngoài
@@ -51,7 +82,7 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }) {
     setIsLoading(true);
 
     try {
-      // Nếu chưa có redirect → lưu lại trang hiện tại
+      // Nếu chưa có redirect → lưu lại trang hiện tại (chỉ để dùng cho Driver/Guest)
       if (!localStorage.getItem('redirectAfterLogin')) {
         localStorage.setItem('redirectAfterLogin', getCurrentPath());
       }
@@ -80,29 +111,36 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }) {
 
       if (onLoginSuccess) onLoginSuccess(data?.user);
 
-      // ======== Xác định trang đích sau khi login ========
+      // ======== QUY TẮC ĐIỀU HƯỚNG THEO ROLE ========
+      const role = data?.user?.role || data?.user?.Role || data?.user?.roleName;
+      const roleDash = getDashboardPathByRole(role);
+
+      // Đóng modal trước khi điều hướng
+      onClose();
+
+      // 1) Nếu là Staff/Manager/Admin → vào dashboard role (bỏ qua redirect cũ)
+      if (roleDash) {
+        localStorage.removeItem('redirectAfterLogin');
+        go(roleDash);
+        return;
+      }
+
+      // 2) Driver/Guest/khác → dùng logic cũ
       const redirectPath = localStorage.getItem('redirectAfterLogin') || '/';
       const selectedPkg = localStorage.getItem('selectedPackageId');
 
       // Xóa cờ trước khi điều hướng
       localStorage.removeItem('redirectAfterLogin');
-      onClose();
-
-      // Hàm điều hướng an toàn (hoạt động tốt cho cả HashRouter)
-      const go = (path) => {
-        if (window.location.hash !== undefined) {
-          window.location.hash = '#' + path;
-        } else {
-          window.location.href = path;
-        }
-      };
 
       // Nếu login từ /polices và có gói được chọn → sang payment
       if (redirectPath.includes('/polices') && selectedPkg) {
         localStorage.removeItem('selectedPackageId');
         go(`/payment?packageId=${encodeURIComponent(selectedPkg)}`);
       } else {
-        go(redirectPath);
+        // Ngăn quay lại trang login nếu có
+        const safeRedirect =
+          redirectPath === '/login' || redirectPath === '/signin' ? '/' : redirectPath;
+        go(safeRedirect);
       }
     } catch (err) {
       setError(err.message || 'Lỗi kết nối mạng. Vui lòng thử lại.');

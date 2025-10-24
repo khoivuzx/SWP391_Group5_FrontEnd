@@ -46,7 +46,8 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }) {
       case 'manager':
         return '/manager/dashboard';
       case 'admin':
-        return '/admin/dashboard';
+        // Luôn trả về đúng hash route cho admin
+        return '/dashboard/admin';
       case 'driver':
         // Driver có thể vẫn muốn về trang trước (giữ logic cũ),
         // nên không ép route ở đây. Trả null để dùng tiếp redirect cũ.

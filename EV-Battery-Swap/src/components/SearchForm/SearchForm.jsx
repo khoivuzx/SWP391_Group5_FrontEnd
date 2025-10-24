@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-export default function ReservationForm({ stations, selectedStation, setSelectedStation, onFindPath, mode = 'station', foundStations = [], onFindBattery }) {
+export default function SearchForm({ stations, selectedStation, setSelectedStation, onFindPath, mode = 'station', foundStations = [], onFindBattery }) {
   const [selectedBattery, setSelectedBattery] = useState("");
   const [msg, setMsg] = useState("");
   const [searching, setSearching] = useState(false);
@@ -40,12 +40,12 @@ export default function ReservationForm({ stations, selectedStation, setSelected
       }}
     >
       <h2 style={{ margin: 0, fontSize: '1.3em', fontWeight: 600, color: '#222' }}>
-        🔋 Reserve Battery
+         Find Station
       </h2>
 
       <div style={{ display: 'flex', gap: 8 }}>
-        <button type="button" onClick={() => setViewMode('station')} style={{ flex: 1, padding: 8, background: viewMode === 'station' ? '#1976d2' : '#eef2f7', color: viewMode === 'station' ? '#fff' : '#222', border: 'none', borderRadius: 8, cursor: 'pointer' }}>Find station</button>
-        <button type="button" onClick={() => setViewMode('battery')} style={{ flex: 1, padding: 8, background: viewMode === 'battery' ? '#1976d2' : '#eef2f7', color: viewMode === 'battery' ? '#fff' : '#222', border: 'none', borderRadius: 8, cursor: 'pointer' }}>Find battery</button>
+        <button type="button" onClick={() => setViewMode('battery')} style={{ flex: 1, padding: 8, background: viewMode === 'battery' ? '#1976d2' : '#eef2f7', color: viewMode === 'battery' ? '#fff' : '#222', border: 'none', borderRadius: 8, cursor: 'pointer' }}>Find by battery</button>
+        <button type="button" onClick={() => setViewMode('station')} style={{ flex: 1, padding: 8, background: viewMode === 'station' ? '#1976d2' : '#eef2f7', color: viewMode === 'station' ? '#fff' : '#222', border: 'none', borderRadius: 8, cursor: 'pointer' }}>Find by name</button>
       </div>
 
       {viewMode === 'station' && (
@@ -75,14 +75,14 @@ export default function ReservationForm({ stations, selectedStation, setSelected
       {viewMode === 'battery' && (
         <div>
           <label style={{ textAlign: 'left', fontWeight: 500, display: 'block' }}>
-            Battery chemistry:
+            Battery type:
             <select
               value={selectedBattery}
               onChange={e => setSelectedBattery(e.target.value)}
               style={{ width: '100%', padding: '10px', marginTop: 6, borderRadius: 8, border: '1px solid #ccc' }}
             >
-              <option value="">Select chemistry...</option>
-              <option value="Li-ion">Lithium-ion</option>
+              <option value="">Select battery type...</option>
+              <option value="Li-ion">Li-ion</option>
               <option value="LFP">LFP</option>
             </select>
           </label>
@@ -103,14 +103,27 @@ export default function ReservationForm({ stations, selectedStation, setSelected
               <div style={{ fontWeight: 700, marginBottom: 8 }}>Stations found</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {foundStations.map(fs => (
-                  <div key={fs.name} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 8, borderRadius: 8, background: '#f7fafc' }}>
+                  <div
+                    key={fs.name}
+                    onClick={() => setSelectedStation(fs.name)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setSelectedStation(fs.name); }}
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      padding: 8,
+                      borderRadius: 8,
+                      background: '#f7fafc',
+                      cursor: 'pointer'
+                    }}
+                  >
                     <div>
                       <div style={{ fontWeight: 700 }}>{fs.name}</div>
                       <div style={{ fontSize: '0.9em', color: '#666' }}>{(fs.distanceMeters/1000).toFixed(2)} km</div>
                     </div>
-                    <div>
-                      <button type="button" onClick={() => setSelectedStation(fs.name)} style={{ padding: '6px 10px', background: '#1976d2', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}>Select</button>
-                    </div>
+                    <div style={{ color: '#1976d2', fontWeight: 700 }}>Go</div>
                   </div>
                 ))}
               </div>

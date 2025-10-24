@@ -19,7 +19,7 @@ if (typeof window !== 'undefined' && !window.__FETCH_SPY__) {
 }
 
 import React, { useState, useEffect, useRef } from 'react';
-import ReservationForm from '../../components/ReserveForm/ReservationForm';
+import SearchForm from '../../components/SearchForm/SearchForm';
 import MapboxMap from '../../components/Mapbox/MapboxMap';
 import API_BASE_URL from '../../config';
 import useGeolocation from '../../hooks/useGeolocation';
@@ -101,52 +101,48 @@ const handleFindBattery = async (chemistry) => {
     const userCoords = [pos.coords.longitude, pos.coords.latitude];
     setUserLocation(userCoords);
 
-    // fetch battery reports for each station (sequential to be gentle)
-    const results = [];
-    for (const st of stations) {
-      try {
-        // ✅ BE chỉ hỗ trợ GET; ưu tiên truyền stationId nếu có
-        const qs = (st.id != null) ? `?stationId=${encodeURIComponent(st.id)}` : '';
-        const url = (API_BASE_URL || '') + '/webAPI/api/getStationBatteryReportGuest' + qs;
-
-        const res = await fetch(url, {
-          method: 'GET',
-          credentials: 'include',
-          headers: {
-            'Accept': 'application/json',
-            'ngrok-skip-browser-warning': '1',
-          },
-        });
-        if (!res.ok) continue;
-
+    // Fetch the full battery report once and group results by stationName.
+    const candidates = [];
+    try {
+      const url = (API_BASE_URL || '') + '/webAPI/api/getStationBatteryReportGuest';
+      const res = await fetch(url, { method: 'GET', headers: { 'Accept': 'application/json', 'ngrok-skip-browser-warning': '1' } });
+      if (res.ok) {
         const payload = await res.json();
-        // BE thường trả { status, data: [...] }
-        const arr = Array.isArray(payload?.data) ? payload.data
-                  : (Array.isArray(payload) ? payload : []);
-        const rep = arr[0] || payload;
-
-        const items =
-          Array.isArray(rep?.batteries) ? rep.batteries :
-          Array.isArray(rep?.items) ? rep.items :
-          Array.isArray(rep?.detail) ? rep.detail : [];
-
-        const has = items.some(b =>
-          String(b.chemistry || b.type || b.Battery_Type || '')
-            .toLowerCase()
-            .includes(chemistry.toLowerCase())
-        );
-
-        if (has) {
-          const dist = distanceMeters(userCoords, st.coords);
-          results.push({ name: st.name, station: st, distanceMeters: dist });
+        const list = Array.isArray(payload?.data) ? payload.data : (Array.isArray(payload) ? payload : []);
+        // group by stationName (normalize casing/whitespace)
+        const grouped = {};
+        for (const item of list) {
+          const nameRaw = item.stationName || item.station || '';
+          const name = String(nameRaw).trim().toLowerCase();
+          if (!grouped[name]) grouped[name] = [];
+          grouped[name].push(item);
         }
-      } catch (e) {
-        continue;
+        for (const st of stations) {
+          const key = String(st.name || '').trim().toLowerCase();
+          const items = grouped[key] || [];
+          const has = items.some(b => String(b.batteryType || b.chemistry || b.type || b.Battery_Type || '').toLowerCase().includes(chemistry.toLowerCase()));
+          if (has) candidates.push({ name: st.name, station: st });
+        }
       }
+    } catch (e) {
+      // fallthrough to empty candidates
     }
 
-    results.sort((a,b) => a.distanceMeters - b.distanceMeters);
-    const mapped = results.map(r => ({ name: r.name, distanceMeters: r.distanceMeters, coords: r.station.coords }));
+    if (!candidates.length) {
+      setFoundStations([]);
+      return [];
+    }
+
+    // Compute straight-line distance (meters) from user to each candidate and pick top 3 closest.
+    const withDistances = candidates.map(c => {
+      const dest = c.station.coords || [(c.station.lng || c.station.longitude), (c.station.lat || c.station.latitude)];
+      const dist = distanceMeters(userCoords, dest);
+      return { ...c, distanceMeters: dist };
+    });
+
+    withDistances.sort((a, b) => a.distanceMeters - b.distanceMeters);
+    const top3 = withDistances.slice(0, 3);
+    const mapped = top3.map(r => ({ name: r.name, distanceMeters: r.distanceMeters, coords: r.station.coords || [r.station.lng || r.station.longitude, r.station.lat || r.station.latitude] }));
     setFoundStations(mapped);
     return mapped;
   } catch (err) {
@@ -253,7 +249,7 @@ const handleFindBattery = async (chemistry) => {
           {stationsLoading && <div>Loading stations...</div>}
           {stationsError && <div style={{ color: 'red' }}>{stationsError}</div>}
           {!stationsLoading && !stationsError && (
-            <ReservationForm
+            <SearchForm
               stations={stations}
               selectedStation={selectedStation}
               setSelectedStation={setSelectedStation}

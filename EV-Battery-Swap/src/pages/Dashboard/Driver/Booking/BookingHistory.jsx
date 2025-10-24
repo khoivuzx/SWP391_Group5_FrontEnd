@@ -1,60 +1,137 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import './booking.css';
+import API_BASE_URL from '../../../../config';
 
 export default function BookingHistory() {
-  // TODO: Replace with real API data
-  const bookings = [
-    {
-      id: 'BK-001',
-      station: 'Gogoro Central Park',
-      vehicle: 'Gogoro 2 Delight',
-      date: '2025-12-31',
-      time: '12:31',
-      status: 'Thành công',
-    },
-    {
-      id: 'BK-002',
-      station: 'Gogoro Golden River',
-      vehicle: 'Gogoro Viva Mix',
-      date: '2025-11-15',
-      time: '09:00',
-      status: 'Đã hủy',
-    },
-  ];
+  const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Bộ lọc
+  const [status, setStatus] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+
+  const fetchBookings = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const token = localStorage.getItem('authToken') || '';
+
+      // ===== Tạo query string =====
+      const params = new URLSearchParams();
+      if (status) params.append('status', status);
+      if (startDate) params.append('start', startDate);
+      if (endDate) params.append('end', endDate);
+
+      const url = `${API_BASE_URL}/webAPI/api/secure/my-bookings?${params.toString()}`;
+
+      const res = await fetch(url, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          Accept: 'application/json',
+          'ngrok-skip-browser-warning': '1',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      });
+
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      setBookings(Array.isArray(data.items) ? data.items : []);
+    } catch (err) {
+      setError(err.message || 'Không thể tải lịch sử đặt lịch');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchBookings();
+  }, []);
+
+  const handleFilter = () => fetchBookings();
+
+  const getStatusColor = (status) => {
+    const s = String(status || '').toLowerCase();
+    if (s === 'completed' || s === 'complete') return '#10B981';
+    if (s === 'expired') return '#EF4444';
+    if (s === 'reserved' || s === 'reverse') return '#FACC15';
+    return '#111827';
+  };
 
   return (
     <div className="booking-container">
       <h2 className="booking-title">Lịch sử đặt lịch đổi pin</h2>
-      <div style={{marginTop: 18}}>
-        {bookings.length === 0 ? (
-          <div style={{color:'#888',textAlign:'center'}}>Chưa có lịch sử đặt lịch.</div>
-        ) : (
-          <table style={{width:'100%',borderCollapse:'collapse',marginTop:8}}>
-            <thead>
-              <tr style={{background:'#f7f8fa'}}>
-                <th style={{padding:'10px',borderBottom:'1.5px solid #e0e7ef'}}>Mã</th>
-                <th style={{padding:'10px',borderBottom:'1.5px solid #e0e7ef'}}>Trạm</th>
-                <th style={{padding:'10px',borderBottom:'1.5px solid #e0e7ef'}}>Xe</th>
-                <th style={{padding:'10px',borderBottom:'1.5px solid #e0e7ef'}}>Ngày</th>
-                <th style={{padding:'10px',borderBottom:'1.5px solid #e0e7ef'}}>Giờ</th>
-                <th style={{padding:'10px',borderBottom:'1.5px solid #e0e7ef'}}>Trạng thái</th>
-              </tr>
-            </thead>
-            <tbody>
-              {bookings.map(b => (
-                <tr key={b.id} style={{background:'#fff'}}>
-                  <td style={{padding:'10px',borderBottom:'1px solid #f0f4fa',fontWeight:600}}>{b.id}</td>
-                  <td style={{padding:'10px',borderBottom:'1px solid #f0f4fa'}}>{b.station}</td>
-                  <td style={{padding:'10px',borderBottom:'1px solid #f0f4fa'}}>{b.vehicle}</td>
-                  <td style={{padding:'10px',borderBottom:'1px solid #f0f4fa'}}>{b.date}</td>
-                  <td style={{padding:'10px',borderBottom:'1px solid #f0f4fa'}}>{b.time}</td>
-                  <td style={{padding:'10px',borderBottom:'1px solid #f0f4fa',color:b.status==='Thành công'?'#10B981':'#d32f2f',fontWeight:700}}>{b.status}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+
+      {/* ===== Bộ lọc ===== */}
+      <div className="filter-bar">
+        <div className="filter-item">
+          <label>Từ ngày:</label>
+          <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+        </div>
+        <div className="filter-item">
+          <label>Đến ngày:</label>
+          <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+        </div>
+        <div className="filter-item">
+          <label>Trạng thái:</label>
+          <select value={status} onChange={(e) => setStatus(e.target.value)}>
+            <option value="">Tất cả</option>
+            <option value="Reserved">Reserved</option>
+            <option value="Expired">Expired</option>
+            <option value="Completed">Completed</option>
+          </select>
+        </div>
+        <button className="btn-filter" onClick={handleFilter}>
+          Lọc
+        </button>
       </div>
+
+      {loading && <div style={{ color: '#666', textAlign: 'center' }}>Đang tải dữ liệu…</div>}
+      {error && <div style={{ color: '#d32f2f', textAlign: 'center' }}>{error}</div>}
+
+      {!loading && !error && bookings.length > 0 && (
+        <table className="booking-table">
+          <thead>
+            <tr>
+              <th>Mã</th>
+              <th>Trạm</th>
+              <th>Trạm sạc</th>
+              <th>Yêu cầu pin</th>
+              <th>Ngày đặt</th>
+              <th>Giờ đặt</th>
+              <th>Ngày hết hạn</th>
+              <th>Giờ hết hạn</th>
+              <th>Slot ID</th>
+              <th>Trạng thái</th>
+            </tr>
+          </thead>
+          <tbody>
+            {bookings.map((b) => (
+              <tr key={b.bookingId}>
+                <td>{b.bookingId}</td>
+                <td>{b.stationName || '-'}</td>
+                <td>{b.chargingStationName || '-'}</td>
+                <td>{b.batteryRequest || '-'}</td>
+                <td>{b.bookingDate || '-'}</td>
+                <td>{b.bookingTime || '-'}</td>
+                <td>{b.expiredDate || '-'}</td>
+                <td>{b.expiredTime || '-'}</td>
+                <td>{b.slotId || '-'}</td>
+                <td style={{ color: getStatusColor(b.status), fontWeight: 600 }}>
+                  {b.status || '-'}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+
+      {!loading && !error && bookings.length === 0 && (
+        <div style={{ color: '#888', textAlign: 'center' }}>Không có dữ liệu hiển thị</div>
+      )}
     </div>
   );
 }

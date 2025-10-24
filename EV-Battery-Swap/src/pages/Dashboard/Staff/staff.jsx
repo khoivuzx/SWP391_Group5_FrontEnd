@@ -32,10 +32,95 @@ const tabs = [
 	{ label: 'Giao dịch đổi pin', value: 'transaction' },
 ];
 
+
+
+
+
+
+
+// Pin station mockup - phong cách tối giản, pin hình tròn, nền sáng, hiệu ứng glow
+function PinStationMockup({ batteries }) {
+	const [selected, setSelected] = useState(null);
+	const totalSlots = 30;
+	const filled = batteries.slice(0, totalSlots);
+	const emptySlots = totalSlots - filled.length;
+	const allSlots = [
+		...filled,
+		...Array.from({ length: emptySlots }, (_, i) => ({
+			id: `EMPTY${i+1}`,
+			type: 'Chưa có pin',
+			status: 'Trống',
+			soh: 0,
+			location: '-',
+			lastCharge: '-',
+			empty: true
+		}))
+	];
+	const fullCount = filled.length;
+	return (
+		
+		<div className="station-mockup-minimal">
+			<div className="station-mockup-minimal-inner">
+				<div className="station-mockup-minimal-screen">
+			</div>
+				<div className="station-mockup-minimal-grid">
+					{allSlots.map((b, i) => (
+						<div
+							key={b.id}
+							className={"station-mockup-minimal-battery" + (selected === i ? " selected" : "") + (b.empty ? " empty" : "")}
+							onClick={() => setSelected(i)}
+							title={b.id}
+							style={{ cursor: 'pointer' }}
+						>
+							<span className="station-mockup-minimal-dot" style={{
+								background: b.empty ? '#e5e7eb' : '#6be445',
+								boxShadow: b.empty ? 'none' : '0 0 16px 4px #6be44588, 0 2px 8px #b6e4b6',
+								border: b.empty ? '2px solid #bbb' : '2.5px solid #6be445',
+								opacity: b.empty ? 0.5 : 1
+							}}></span>
+						</div>
+					))}
+				</div>
+			</div>
+			{selected !== null && (
+				<div className="station-popup">
+					{allSlots[selected].empty ? (
+						<>
+							<strong>{allSlots[selected].id}</strong> - <em>Ô trống</em><br />
+							<span>Hiện tại chưa có pin trong ô này.</span><br />
+							<span>Vị trí: <b>{allSlots[selected].location || '-'}</b></span><br />
+						</>
+					) : (
+						<>
+							<strong>{allSlots[selected].id}</strong> - {allSlots[selected].type}<br />
+							<span>Trạng thái: <b>{allSlots[selected].status}</b></span><br />
+							<span>Sức khỏe: <b>{allSlots[selected].soh}%</b></span><br />
+							<span>Vị trí: <b>{allSlots[selected].location}</b></span><br />
+							<span>Sạc lần cuối: <b>{allSlots[selected].lastCharge}</b></span><br />
+						</>
+					)}
+					<button className="station-popup-close" onClick={() => setSelected(null)}>Đóng</button>
+				</div>
+			)}
+		</div>
+		
+	);
+}
+
 export default function StaffDashboard({ user, onLoginClick }) {
 	const [activeTab, setActiveTab] = useState('inventory');
+	const [showStationModal, setShowStationModal] = useState(false);
+	const openStationModal = () => setShowStationModal(true);
+	const closeStationModal = () => setShowStationModal(false);
 	return (
 		<div className="staff-dashboard-wrap">
+
+			{/* Right side image panel (moved to top) */}
+			<div className="staff-right-panel">
+				<img src="/ping.jpg" alt="Ping" className="staff-right-image" onClick={openStationModal} style={{ cursor: 'pointer' }} />
+			</div>
+
+			{/* Main dashboard card below the top row */}
 			<div className="staff-dashboard-card">
 				<h2 className="staff-dashboard-title">Dashboard Nhân viên Trạm</h2>
 				<div className="staff-dashboard-subtitle">Quản lý tồn kho pin và giao dịch đổi pin</div>
@@ -146,7 +231,21 @@ export default function StaffDashboard({ user, onLoginClick }) {
 						</div>
 					)}
 				</div>
+			</div>
+
+
+			{/* Station modal (opens when clicking the image) */}
+			{showStationModal && (
+				<div className="station-modal-backdrop" onClick={closeStationModal}>
+					<div className="station-modal" onClick={(e) => e.stopPropagation()}>
+						{/* reuse the same mockup component inside the modal so clicking a slot shows the popup */}
+						<PinStationMockup batteries={batteryList} />
+						<div style={{ textAlign: 'right', marginTop: 12 }}>
+							<button className="detail-btn" onClick={closeStationModal}>Đóng</button>
+						</div>
+					</div>
+				</div>
+			)}
 		</div>
-	</div>
 	);
 }

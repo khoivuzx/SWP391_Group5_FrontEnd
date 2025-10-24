@@ -10,7 +10,7 @@ import Battery from './pages/Battery Electric/Battery';
 import BatteryPin from './pages/Battery Electric/BatteryPin';
 import Polices from './pages/Polices/polices';
 import ForgotPass from './components/Login/ForgotPass';
-import ResetPass from './components/Login/ResetPass'; // 👈 THÊM DÒNG NÀY
+import ResetPass from './components/Login/ResetPass'; 
 import AdminDashboard from './pages/Dashboard/Admin/admin';
 import StaffDashboard from './pages/Dashboard/Staff/staff';
 import DriverDashboard from './pages/Dashboard/Driver/findSation/driver.jsx';

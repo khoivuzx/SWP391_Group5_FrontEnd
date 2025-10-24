@@ -42,7 +42,7 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }) {
   const getDashboardPathByRole = (role) => {
     switch ((role || '').toLowerCase()) {
       case 'staff':
-        return '/staff/dashboard';
+        return '/dashboard/staff';
       case 'manager':
         return '/manager/dashboard';
       case 'admin':

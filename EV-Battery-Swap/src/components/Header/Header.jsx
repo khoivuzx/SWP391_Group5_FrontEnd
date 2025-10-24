@@ -51,6 +51,8 @@ function BatteryDropdown({ show, onEnter, onLeave, isActive }) {
 
 // Component Navigation
 function Navigation({ isActive, isBatteryActive, showBatteryDropdown, setShowBatteryDropdown, hideService, user }) {
+  // Ẩn "Tìm trạm" nếu là admin
+  const role = user && user.role ? user.role.toLowerCase() : '';
   return (
     <nav className="main-nav" aria-label="Primary">
       <Link 
@@ -59,8 +61,8 @@ function Navigation({ isActive, isBatteryActive, showBatteryDropdown, setShowBat
       >
         Trang Chủ
       </Link>
-      {/* Chỉ hiển thị 'Tìm trạm' khi đã đăng nhập */}
-      {user && (
+      {/* Chỉ hiển thị 'Tìm trạm' khi đã đăng nhập và không phải admin */}
+      {user && role !== 'admin' && (
         <Link 
           to="/dashboard/driver" 
           className={`nav-link ${isActive('/dashboard/driver') ? 'active' : ''}`}
@@ -131,7 +133,7 @@ function UserActions({ role, isDashboard, onLogout }) {
 }
 
 // CHỈNH SỬA: Nhận prop onLoginClick từ App.jsx
-export default function Header({ onLoginClick, user }) { 
+export default function Header({ onLoginClick, user, pageTitle }) { 
   const [scrolled, setScrolled] = useState(false);
   const [hovered, setHovered] = useState(false);
   const [showBatteryDropdown, setShowBatteryDropdown] = useState(false);
@@ -151,7 +153,7 @@ export default function Header({ onLoginClick, user }) {
   const role = user && user.role ? user.role.toLowerCase() : '';
   const isDriverDashboard = role === 'driver' && location.pathname === '/dashboard/driver';
   const isStaffDashboard = role === 'staff' && location.pathname === '/dashboard/staff';
-  const isAdminDashboard = role === 'admin' && location.pathname === '/dashboard/admin';
+  // moved isAdminDashboard below for use in render only
 
   const handleLogout = () => {
     localStorage.removeItem('authToken');
@@ -177,6 +179,7 @@ export default function Header({ onLoginClick, user }) {
     return () => document.removeEventListener('mousedown', handleClick);
   }, [showUserMenu]);
 
+  const isAdminDashboard = role === 'admin' && location.pathname === '/dashboard/admin';
   return (
     <header
       className={`site-header ${scrolled ? "scrolled" : hovered ? "hovered" : ""}`}
@@ -186,18 +189,23 @@ export default function Header({ onLoginClick, user }) {
       <div className="header-inner">
         <Brand />
 
-        {/* Nav cho driver dashboard */}
-        <Navigation
-          isActive={isActive}
-          isBatteryActive={isBatteryActive}
-          showBatteryDropdown={showBatteryDropdown}
-          setShowBatteryDropdown={setShowBatteryDropdown}
-          hideService={role === 'driver'}
-          user={user}
-        />
-
+        {/* Ẩn Navigation khi là admin dashboard */}
+        {!isAdminDashboard && (
+          <Navigation
+            isActive={isActive}
+            isBatteryActive={isBatteryActive}
+            showBatteryDropdown={showBatteryDropdown}
+            setShowBatteryDropdown={setShowBatteryDropdown}
+            hideService={role === 'driver'}
+            user={user}
+          />
+        )}
 
         <div className="actions">
+          {/* Hiển thị pageTitle như một action button nếu có */}
+          {pageTitle && (
+            <span className="cta" style={{ fontWeight: 700, fontSize: 16, color: '#1976d2', background: '#e6f2fd', borderRadius: 10, padding: '8px 18px', marginRight: 10, cursor: 'default' }}>{pageTitle}</span>
+          )}
           {user && user.fullName && (
             <>
               <div className="user-menu-wrap" ref={userMenuRef}>

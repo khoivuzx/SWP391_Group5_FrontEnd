@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import Header from '../../../components/Header/Header';
+import './admin.css';
 
 // Simple placeholder chart (replace with real chart lib later)
 function PlaceholderChart({ type = 'line', height = 180 }) {
@@ -49,15 +50,15 @@ export default function AdminDashboard({ user, onLoginClick }) {
   const [activeTab, setActiveTab] = useState('overview');
   return (
     <>
-      <Header user={user} onLoginClick={onLoginClick} />
-      <div style={{ maxWidth: 1200, margin: '32px auto', padding: '0 16px' }}>
-        <div style={{ background: '#fff', borderRadius: 16, boxShadow: '0 2px 16px rgba(33,150,243,0.07)', padding: 24, marginBottom: 24 }}>
-          <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 4 }}>Dashboard Quản trị</h2>
-          <div style={{ color: '#64748b', fontSize: 15, marginBottom: 18 }}>Tổng quan hệ thống, báo cáo và phân tích dữ liệu</div>
+      <Header user={user} onLoginClick={onLoginClick} pageTitle="Hệ thống quản lí" />
+      <div className="admin-dashboard-wrap">
+        <div className="admin-dashboard-card">
+          <h2 className="admin-dashboard-title">Hệ thống quản lí</h2>
+          <div className="admin-dashboard-subtitle">Tổng quan hệ thống, báo cáo và phân tích dữ liệu</div>
           {/* Summary cards */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 18, marginBottom: 18 }}>
+          <div className="admin-dashboard-summary">
             {summaryCards.map((c, i) => (
-              <div key={i} style={{ background: '#f7fafc', borderRadius: 12, padding: 18, boxShadow: '0 1px 4px rgba(33,150,243,0.04)' }}>
+              <div key={i} className="admin-dashboard-summary-card">
                 <div style={{ fontSize: 15, color: '#7c8c8f', marginBottom: 6 }}>{c.label}</div>
                 <div style={{ fontSize: 26, fontWeight: 700, color: '#1976d2', marginBottom: 2 }}>{c.value}</div>
                 <div style={{ fontSize: 13, color: '#10b981' }}>{c.sub}</div>
@@ -65,23 +66,12 @@ export default function AdminDashboard({ user, onLoginClick }) {
             ))}
           </div>
           {/* Tabs */}
-          <div style={{ display: 'flex', gap: 0, borderRadius: 8, overflow: 'hidden', marginBottom: 18, background: '#f7fafc', border: '1px solid #e5e7eb' }}>
+          <div className="admin-dashboard-tabs">
             {tabs.map(tab => (
               <button
                 key={tab.value}
                 onClick={() => setActiveTab(tab.value)}
-                style={{
-                  flex: 1,
-                  padding: '10px 0',
-                  fontWeight: activeTab === tab.value ? 700 : 500,
-                  color: activeTab === tab.value ? '#02d306' : '#7c8c8f',
-                  background: 'none',
-                  border: 'none',
-                  borderBottom: activeTab === tab.value ? '3px solid #02d306' : '3px solid #eee',
-                  fontSize: 16,
-                  cursor: 'pointer',
-                  transition: 'color 0.2s, border-bottom 0.2s',
-                }}
+                className={"admin-dashboard-tab-btn" + (activeTab === tab.value ? " active" : "")}
               >
                 {tab.label}
               </button>

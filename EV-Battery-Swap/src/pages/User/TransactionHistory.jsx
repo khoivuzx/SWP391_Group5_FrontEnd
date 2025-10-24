@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import API_BASE_URL from "../../config"; // ví dụ: http://localhost:8084  (KHÔNG có /webAPI)
+import API_BASE_URL from "../../config";
 import "./TransactionHistory.css";
 
 export default function TransactionHistory() {
@@ -14,7 +14,7 @@ export default function TransactionHistory() {
   const [packageItems, setPackageItems] = useState([]);
   const [error, setError] = useState("");
 
-  // ⛳️ Build query string từ from/to (định dạng yyyy-MM-dd)
+  // Build query string từ from/to
   const params = useMemo(() => {
     const p = new URLSearchParams();
     if (from) p.append("from", from);
@@ -22,7 +22,7 @@ export default function TransactionHistory() {
     return p.toString() ? `?${p.toString()}` : "";
   }, [from, to]);
 
-  // Đọc JSON an toàn (nếu BE trả HTML lỗi => ném lỗi rõ ràng)
+  // Đọc JSON an toàn
   const safeJson = async (res) => {
     const ct = res.headers.get("content-type") || "";
     if (ct.includes("application/json")) return await res.json();
@@ -30,34 +30,34 @@ export default function TransactionHistory() {
     throw new Error(`HTTP ${res.status} – ${text.slice(0, 200)}`);
   };
 
-  // Chuẩn hoá 1 item swap về camelCase cho FE
+  // ✅ Chuẩn hoá dữ liệu swap — KHÔNG CÒN paymentMethod
   const normalizeSwap = (s) => ({
-    id: s.id != null ? s.id : s.ID,
-    stationId: s.stationId != null ? s.stationId : s.Station_ID,
-    chargingStationId:
-      s.chargingStationId != null ? s.chargingStationId : s.ChargingStation_ID,
-    sohOld: s.sohOld != null ? s.sohOld : s.SoH_Old,
-    sohNew: s.sohNew != null ? s.sohNew : s.SoH_New,
-    fee: s.fee != null ? s.fee : s.Fee,
-    paymentId: s.paymentId != null ? s.paymentId : s.Payment_ID,
-    status: s.status != null ? s.status : s.Status,
-    swapTime: s.swapTime != null ? s.swapTime : s.Swap_Time,
+    id: s.swapId ?? s.id ?? s.ID,
+    station: s.station ?? s.Station ?? "-",
+    chargingStation:
+      s.chargingStation ?? s["Charging Station"] ?? s.Charging_Station ?? "-",
+    sohOld: s.sohOld ?? s.SoH_Old ?? null,
+    sohNew: s.sohNew ?? s.SoH_New ?? null,
+    fee: s.fee ?? s.Fee ?? null,
+    description:
+      s.description ?? s.Description ?? s["Mô tả"] ?? s.status ?? s.Status ?? "-",
+    time:
+      s.time ?? s.TimeAt ?? s["Thời gian"] ?? s.swapTime ?? s.Swap_Time ?? null,
   });
 
-  // Chuẩn hoá 1 item package payment về camelCase
+  // Chuẩn hoá package (giữ nguyên)
   const normalizePackage = (x) => ({
     id: x.id != null ? x.id : x.ID,
     userId: x.userId != null ? x.userId : x.User_ID,
     stationId: x.stationId != null ? x.stationId : x.Station_ID,
     packageId: x.packageId != null ? x.packageId : x.Package_ID,
     amount: x.amount != null ? x.amount : x.Amount,
-    paymentMethod:
-      x.paymentMethod != null ? x.paymentMethod : x.Payment_Method,
-    description: x.description != null ? x.description : x.Description,
-    transactionTime:
-      x.transactionTime != null ? x.transactionTime : x.Transaction_Time,
+    paymentMethod: x.paymentMethod ?? x.Payment_Method ?? "-",
+    description: x.description ?? x.Description ?? "-",
+    transactionTime: x.transactionTime ?? x.Transaction_Time,
   });
 
+  // Gọi API swap history
   const fetchSwaps = async () => {
     if (!jwt) {
       setError("Vui lòng đăng nhập lại.");
@@ -96,6 +96,7 @@ export default function TransactionHistory() {
     }
   };
 
+  // Gọi API package history
   const fetchPackageHistory = async () => {
     if (!jwt) {
       setError("Vui lòng đăng nhập lại.");
@@ -134,14 +135,11 @@ export default function TransactionHistory() {
     }
   };
 
-  // load lần đầu: gọi cả hai
   useEffect(() => {
     fetchSwaps();
     fetchPackageHistory();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, []); // chỉ gọi 1 lần
 
-  // Nhấn nút Lọc thì gọi lại API với params hiện tại
   const onFilter = (e) => {
     e.preventDefault();
     fetchSwaps();
@@ -157,7 +155,6 @@ export default function TransactionHistory() {
     if (!iso) return "-";
     try {
       const d = new Date(iso);
-      // Nếu BE trả “YYYY-MM-DD HH:mm:ss.SSS” thì Date có thể hiểu kém ⇒ fallback 'T'
       if (isNaN(d.getTime())) {
         const parsed = new Date(String(iso).replace(" ", "T"));
         return isNaN(parsed.getTime())
@@ -240,7 +237,6 @@ export default function TransactionHistory() {
                       <th>Kiosk</th>
                       <th>SoH cũ → mới</th>
                       <th>Phí</th>
-                      <th>PTTT</th>
                       <th>Mô tả</th>
                       <th>Thời gian</th>
                     </tr>
@@ -249,16 +245,15 @@ export default function TransactionHistory() {
                     {swapItems.map((r) => (
                       <tr key={r.id}>
                         <td>{r.id}</td>
-                        <td>{r.stationId ?? "-"}</td>
-                        <td>{r.chargingStationId ?? "-"}</td>
+                        <td>{r.station ?? "-"}</td>
+                        <td>{r.chargingStation ?? "-"}</td>
                         <td>
                           {r.sohOld != null ? r.sohOld : "-"} →{" "}
                           <b>{r.sohNew != null ? r.sohNew : "-"}</b>
                         </td>
                         <td>{currency(r.fee)}</td>
-                        <td>{r.paymentMethod ?? r.paymentId ?? "-"}</td>
-                        <td>{r.description ?? r.status ?? "-"}</td>
-                        <td>{dateTime(r.swapTime)}</td>
+                        <td>{r.description ?? "-"}</td>
+                        <td>{dateTime(r.time)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -268,7 +263,7 @@ export default function TransactionHistory() {
           </>
         )}
 
-        {/* Bảng Gói pin */}
+        {/* Bảng Gói pin (GIỮ NGUYÊN) */}
         {!loading && activeTab === "package" && (
           <>
             {packageItems.length === 0 ? (

@@ -20,12 +20,11 @@ export default function RegisterModal({ isOpen, onClose, onSwitchToLogin, onRegi
   const [notice, setNotice] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // resend controls (khớp logic BE: cooldown 60s, max 5 lần)
   const [resendCooldown, setResendCooldown] = useState(0);
   const [resendCount, setResendCount] = useState(0);
   const MAX_RESEND = 5;
 
-  // close-outside
+  // ======= Lifecycle =======
   useEffect(() => {
     if (!isOpen) return;
     const handleClickOutside = (event) => {
@@ -37,14 +36,12 @@ export default function RegisterModal({ isOpen, onClose, onSwitchToLogin, onRegi
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isOpen, onClose]);
 
-  // cooldown timer
   useEffect(() => {
     if (resendCooldown <= 0) return;
     const t = setInterval(() => setResendCooldown((s) => (s > 0 ? s - 1 : 0)), 1000);
     return () => clearInterval(t);
   }, [resendCooldown]);
 
-  // reset state khi mở/đóng
   useEffect(() => {
     if (isOpen) return;
     setStep(1);
@@ -63,56 +60,76 @@ export default function RegisterModal({ isOpen, onClose, onSwitchToLogin, onRegi
     setRegForm({ ...regForm, [e.target.name]: e.target.value });
   };
 
-  // ================== API calls ==================
+  // ================== API with debug logs ==================
   async function apiSendOtp(payload) {
-    const res = await fetch(`${API_BASE_URL}/webAPI/api/register/send-otp`, {
+    const url = `${API_BASE_URL}/webAPI/api/register/send-otp`;
+    console.log('📤 [SEND-OTP] URL =', url);
+    console.log('📦 [SEND-OTP] Payload =', payload);
+
+    const res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
       body: JSON.stringify(payload),
     });
+
+    const raw = await res.text();
+    console.log('📥 [SEND-OTP] Status =', res.status);
+    console.log('📥 [SEND-OTP] Raw Response =', raw);
+
     let data = {};
-    try { data = await res.json(); } catch (_) {}
-    if (!res.ok) {
-      throw new Error(data.error || data.message || `Send OTP failed (HTTP ${res.status})`);
-    }
+    try { data = JSON.parse(raw); } catch (_) {}
+    if (!res.ok) throw new Error(data.error || data.message || `Send OTP failed (HTTP ${res.status})`);
     return data;
   }
 
   async function apiVerifyOtp({ email, otp }) {
-    const res = await fetch(`${API_BASE_URL}/webAPI/api/register/verify-otp`, {
+    const url = `${API_BASE_URL}/webAPI/api/register/verify-otp`;
+    console.log('📤 [VERIFY-OTP] URL =', url);
+    console.log('📦 [VERIFY-OTP] Payload =', { email, otp });
+
+    const res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
       body: JSON.stringify({ email, otp }),
     });
+
+    const raw = await res.text();
+    console.log('📥 [VERIFY-OTP] Status =', res.status);
+    console.log('📥 [VERIFY-OTP] Raw Response =', raw);
+
     let data = {};
-    try { data = await res.json(); } catch (_) {}
-    if (!res.ok) {
-      throw new Error(data.error || data.message || `Verify OTP failed (HTTP ${res.status})`);
-    }
-    return data; // {status, token, user, message}
+    try { data = JSON.parse(raw); } catch (_) {}
+    if (!res.ok) throw new Error(data.error || data.message || `Verify OTP failed (HTTP ${res.status})`);
+    return data;
   }
 
   async function apiResendOtp({ email }) {
-    const res = await fetch(`${API_BASE_URL}/webAPI/api/register/resend-otp`, {
+    const url = `${API_BASE_URL}/webAPI/api/register/resend-otp`;
+    console.log('📤 [RESEND-OTP] URL =', url);
+    console.log('📦 [RESEND-OTP] Payload =', { email });
+
+    const res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
       body: JSON.stringify({ email }),
     });
+
+    const raw = await res.text();
+    console.log('📥 [RESEND-OTP] Status =', res.status);
+    console.log('📥 [RESEND-OTP] Raw Response =', raw);
+
     let data = {};
-    try { data = await res.json(); } catch (_) {}
-    if (!res.ok) {
-      throw new Error(data.error || data.message || `Resend OTP failed (HTTP ${res.status})`);
-    }
+    try { data = JSON.parse(raw); } catch (_) {}
+    if (!res.ok) throw new Error(data.error || data.message || `Resend OTP failed (HTTP ${res.status})`);
     return data;
   }
 
-  // ================== handlers ==================
+  // ================== Handlers ==================
   const handleSendOtp = async (e) => {
     e.preventDefault();
     setError(null);
     setNotice(null);
 
-    // Theo yêu cầu: không validate phức tạp → chỉ check có nhập
     const { fullName, phone, email, password, confirm } = regForm;
     if (!fullName || !phone || !email || !password || !confirm) {
       setError('Vui lòng nhập đầy đủ thông tin.');
@@ -128,10 +145,10 @@ export default function RegisterModal({ isOpen, onClose, onSwitchToLogin, onRegi
       await apiSendOtp({ fullName, phone, email, password });
       setStep(2);
       setNotice(`Đã gửi OTP tới ${email}. Vui lòng kiểm tra hộp thư (OTP hiệu lực 5 phút).`);
-      // set cooldown lần đầu
       setResendCooldown(60);
       setResendCount(0);
     } catch (err) {
+      console.error('❌ [SEND-OTP] Error:', err);
       setError(err.message || 'Gửi OTP thất bại');
     } finally {
       setLoading(false);
@@ -152,15 +169,12 @@ export default function RegisterModal({ isOpen, onClose, onSwitchToLogin, onRegi
       setLoading(true);
       const { email } = regForm;
       const data = await apiVerifyOtp({ email, otp });
-      // Thành công → có token & user
+      console.log('✅ [VERIFY-OTP] Success data:', data);
       setNotice('Xác thực thành công! Tài khoản đã được tạo.');
-      // callback cho app lưu token/user nếu cần
-      if (onRegisterSuccess) {
-        onRegisterSuccess({ token: data.token, user: data.user });
-      }
-      // chuyển sang login (hoặc đóng modal)
+      if (onRegisterSuccess) onRegisterSuccess({ token: data.token, user: data.user });
       onSwitchToLogin ? onSwitchToLogin() : onClose && onClose();
     } catch (err) {
+      console.error('❌ [VERIFY-OTP] Error:', err);
       setError(err.message || 'Xác thực OTP thất bại');
     } finally {
       setLoading(false);
@@ -184,13 +198,14 @@ export default function RegisterModal({ isOpen, onClose, onSwitchToLogin, onRegi
       setResendCooldown(60);
       setResendCount((c) => c + 1);
     } catch (err) {
+      console.error('❌ [RESEND-OTP] Error:', err);
       setError(err.message || 'Gửi lại OTP thất bại');
     } finally {
       setLoading(false);
     }
   };
 
-  // ================== render ==================
+  // ================== Render ==================
   return (
     <div className="modal-backdrop">
       <div className="login-modal" ref={modalRef}>
@@ -204,68 +219,24 @@ export default function RegisterModal({ isOpen, onClose, onSwitchToLogin, onRegi
         {step === 1 && (
           <form className="login-form" onSubmit={handleSendOtp}>
             <div className="form-group">
-              <label htmlFor="reg-fullName">Họ và tên</label>
-              <input
-                type="text"
-                id="reg-fullName"
-                name="fullName"
-                placeholder="Nhập họ và tên"
-                required
-                value={regForm.fullName}
-                onChange={handleChange}
-              />
+              <label>Họ và tên</label>
+              <input name="fullName" value={regForm.fullName} onChange={handleChange} placeholder="Nhập họ và tên" required />
             </div>
-
             <div className="form-group">
-              <label htmlFor="reg-phone">Số điện thoại</label>
-              <input
-                type="text"
-                id="reg-phone"
-                name="phone"
-                placeholder="Nhập số điện thoại"
-                required
-                value={regForm.phone}
-                onChange={handleChange}
-              />
+              <label>Số điện thoại</label>
+              <input name="phone" value={regForm.phone} onChange={handleChange} placeholder="Nhập số điện thoại" required />
             </div>
-
             <div className="form-group">
-              <label htmlFor="reg-email">Email</label>
-              <input
-                type="email"
-                id="reg-email"
-                name="email"
-                placeholder="Nhập email"
-                required
-                value={regForm.email}
-                onChange={handleChange}
-              />
+              <label>Email</label>
+              <input type="email" name="email" value={regForm.email} onChange={handleChange} placeholder="Nhập email" required />
             </div>
-
             <div className="form-group">
-              <label htmlFor="reg-password">Mật khẩu</label>
-              <input
-                type="password"
-                id="reg-password"
-                name="password"
-                placeholder="Nhập mật khẩu"
-                required
-                value={regForm.password}
-                onChange={handleChange}
-              />
+              <label>Mật khẩu</label>
+              <input type="password" name="password" value={regForm.password} onChange={handleChange} placeholder="Nhập mật khẩu" required />
             </div>
-
             <div className="form-group">
-              <label htmlFor="reg-confirm">Xác nhận mật khẩu</label>
-              <input
-                type="password"
-                id="reg-confirm"
-                name="confirm"
-                placeholder="Nhập lại mật khẩu"
-                required
-                value={regForm.confirm}
-                onChange={handleChange}
-              />
+              <label>Xác nhận mật khẩu</label>
+              <input type="password" name="confirm" value={regForm.confirm} onChange={handleChange} placeholder="Nhập lại mật khẩu" required />
             </div>
 
             {error && <p className="error-message">{error}</p>}
@@ -274,22 +245,6 @@ export default function RegisterModal({ isOpen, onClose, onSwitchToLogin, onRegi
             <button type="submit" className="login-button" disabled={loading}>
               {loading ? 'Đang gửi...' : 'Gửi OTP'}
             </button>
-
-            <div className="form-options" style={{ marginTop: 12 }}>
-              <a href="#" className="forgot-password">Quên mật khẩu?</a>
-            </div>
-
-            <p className="signup-link">
-              Đã có tài khoản?{' '}
-              <button
-                type="button"
-                className="register-link"
-                style={{ background: 'none', border: 'none', color: '#1976d2', textDecoration: 'underline', cursor: 'pointer', padding: 0, font: 'inherit' }}
-                onClick={onSwitchToLogin}
-              >
-                Đăng nhập
-              </button>
-            </p>
           </form>
         )}
 
@@ -299,17 +254,9 @@ export default function RegisterModal({ isOpen, onClose, onSwitchToLogin, onRegi
               <label>Email</label>
               <input type="text" value={regForm.email} disabled />
             </div>
-
             <div className="form-group">
-              <label htmlFor="reg-otp">Mã OTP</label>
-              <input
-                type="text"
-                id="reg-otp"
-                placeholder="Nhập OTP 6 chữ số"
-                value={otp}
-                onChange={(e) => setOtp(e.target.value)}
-                autoFocus
-              />
+              <label>Mã OTP</label>
+              <input type="text" value={otp} onChange={(e) => setOtp(e.target.value)} placeholder="Nhập OTP 6 chữ số" autoFocus />
             </div>
 
             {error && <p className="error-message">{error}</p>}
@@ -319,26 +266,17 @@ export default function RegisterModal({ isOpen, onClose, onSwitchToLogin, onRegi
               {loading ? 'Đang xác thực...' : 'Xác thực & Tạo tài khoản'}
             </button>
 
-            <div className="form-options" style={{ marginTop: 12, display: 'flex', gap: 12, alignItems: 'center' }}>
+            <div className="form-options" style={{ marginTop: 12, display: 'flex', gap: 12 }}>
+              <button type="button" onClick={() => setStep(1)} disabled={loading}>← Sửa thông tin</button>
               <button
                 type="button"
-                className="secondary-button"
-                onClick={() => setStep(1)}
-                disabled={loading}
-              >
-                ← Sửa thông tin
-              </button>
-
-              <button
-                type="button"
-                className="secondary-button"
                 onClick={handleResend}
                 disabled={loading || resendCooldown > 0 || resendCount >= MAX_RESEND}
                 title={resendCooldown > 0 ? `Chờ ${resendCooldown}s để gửi lại` : undefined}
               >
                 {resendCooldown > 0
                   ? `Gửi lại OTP (${resendCooldown}s)`
-                  : (resendCount >= MAX_RESEND ? 'Đã hết lượt gửi lại' : 'Gửi lại OTP')}
+                  : resendCount >= MAX_RESEND ? 'Đã hết lượt gửi lại' : 'Gửi lại OTP'}
               </button>
             </div>
           </form>

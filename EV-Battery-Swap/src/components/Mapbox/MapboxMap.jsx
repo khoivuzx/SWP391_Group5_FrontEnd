@@ -5,16 +5,6 @@ import API_BASE_URL from '../../config';
 import reactLogo from '../../assets/react.svg';
 import { createMapManager } from '../../utils/mapManager';
 
-/**
- * MapboxMap component
- * @param {string} token - Mapbox access token
- * @param {Array} stations - Array of station objects [{ name, lat, lng, ... }]
- * @param {string} selectedStation - Name of selected station
- * @param {function} setSelectedStation - Setter for selected station
- * @param {object} [routeGeoJSON] - GeoJSON for route (optional)
- * @param {function} [onFindPath] - Handler for finding path (optional)
- * @param {boolean} [showPopup] - Whether to show popup on marker click
- */
 export default function MapboxMap({
   token,
   stations = [],
@@ -33,7 +23,6 @@ export default function MapboxMap({
   const [internalError, setInternalError] = useState(null);
   const mapContainer = useRef(null);
   const map = useRef(null);
-  const markerRefs = useRef({});
   const popupRefs = useRef({});
   const batteryCacheRef = useRef({});
   const mapManagerRef = useRef(null);
@@ -48,259 +37,160 @@ export default function MapboxMap({
         center: stations.length ? [stations[0].lng, stations[0].lat] : [106.7, 10.8],
         zoom: 12,
       });
-      try { mapManagerRef.current = createMapManager(map.current); } catch (e) { mapManagerRef.current = null; }
+      try { mapManagerRef.current = createMapManager(map.current); } catch { mapManagerRef.current = null; }
     }
-    return () => {
-      if (map.current) {
-        map.current.remove();
-        map.current = null;
-      }
-    };
+    return () => { if (map.current) { map.current.remove(); map.current = null; } };
   }, [token]);
 
   useEffect(() => {
     if (!map.current) return;
     const stationsToUse = Array.isArray(stations) && stations.length ? stations : (Array.isArray(internalStations) ? internalStations : null);
     if (!stationsToUse) return;
-    // We'll use a Mapbox GeoJSON source + layer for station click handling
-    // Build popup objects for each station (so popup DOMs and battery loading remain the same)
+
     popupRefs.current = {};
     const features = [];
     stationsToUse.forEach(station => {
       let lat = station.lat ?? station.latitude;
       let lng = station.lng ?? station.longitude;
-      if ((lat === undefined || lng === undefined) && Array.isArray(station.coords)) {
-        lng = station.coords[0];
-        lat = station.coords[1];
-      }
-      if (typeof lat !== 'number' || typeof lng !== 'number' || isNaN(lat) || isNaN(lng)) return;
-      // create popup DOM content and popup instance
+      if ((lat === undefined || lng === undefined) && Array.isArray(station.coords)) { lng = station.coords[0]; lat = station.coords[1]; }
+      if (![lat, lng].every(n => typeof n === 'number' && !Number.isNaN(n))) return;
+
       if (showPopup) {
         const popup = new mapboxgl.Popup({ offset: 25, closeButton: true, closeOnClick: false });
         const content = document.createElement('div');
-        const title = document.createElement('strong');
-        title.textContent = station.name;
-        const body = document.createElement('div');
-        body.className = 'popup-body';
-        body.textContent = 'Click marker to load battery info';
-        const actions = document.createElement('div');
-        actions.style.marginTop = '8px';
+        const title = document.createElement('strong'); title.textContent = station.name;
+        const body = document.createElement('div'); body.className = 'popup-body'; body.textContent = 'Click marker to load battery info';
+        const actions = document.createElement('div'); actions.style.marginTop = '8px';
         const bookBtn = document.createElement('button');
         bookBtn.textContent = 'Book Now';
-        bookBtn.style.padding = '6px 10px';
-        bookBtn.style.background = '#1976d2';
-        bookBtn.style.color = 'white';
-        bookBtn.style.border = 'none';
-        bookBtn.style.borderRadius = '6px';
-        bookBtn.style.cursor = 'pointer';
+        Object.assign(bookBtn.style, { padding: '6px 10px', background: '#1976d2', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer' });
         actions.appendChild(bookBtn);
-        content.appendChild(title);
-        content.appendChild(body);
-        content.appendChild(actions);
+        content.appendChild(title); content.appendChild(body); content.appendChild(actions);
 
-  popup.setDOMContent(content);
-  popup.setLngLat([lng, lat]);
-  popupRefs.current[station.name] = { popup, body, loadBattery: null, coords: [lng, lat] };
+        popup.setDOMContent(content);
+        popup.setLngLat([lng, lat]);
+        popupRefs.current[station.name] = { popup, body, loadBattery: null, coords: [lng, lat] };
 
         const loadBattery = async () => {
           try {
             body.textContent = 'Loading battery info...';
-            const cache = batteryCacheRef.current || {};
-            if (cache[station.name]) {
-              body.innerHTML = renderBatteryHtmlInner(station.name, cache[station.name]);
+            const cacheKey = String(station.id ?? station.stationId ?? station.name);
+            if (batteryCacheRef.current[cacheKey]) {
+              body.innerHTML = renderBatteryTable(station.name, batteryCacheRef.current[cacheKey]);
               return;
             }
-            const url = (API_BASE_URL || '') + '/webAPI/api/getStationBatteryReportGuest';
+
+            // Build URL (stationId nếu có; nếu không lấy tất cả rồi filter theo tên)
+            const stationId = station.id ?? station.stationId ?? station.Station_ID ?? station.StationId ?? null;
+            const qs = stationId != null ? `?stationId=${encodeURIComponent(stationId)}` : '';
+            const url = (API_BASE_URL || '') + '/webAPI/api/getStationBatteryReportGuest' + qs;
+
             const res = await fetch(url, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'ngrok-skip-browser-warning': '1',
-              },
-              body: JSON.stringify({ stationName: station.name }),
+              method: 'GET',
+              headers: { Accept: 'application/json', 'ngrok-skip-browser-warning': '1' },
+              credentials: 'include',
             });
             if (!res.ok) throw new Error('Failed to fetch battery report');
             const json = await res.json();
-            batteryCacheRef.current = { ...batteryCacheRef.current, [station.name]: json };
-            body.innerHTML = renderBatteryHtmlInner(station.name, json);
+
+            // Chuẩn hoá: tạo mảng các dòng thuộc đúng trạm
+            const rowsAll = Array.isArray(json?.data) ? json.data : [];
+            const rows = stationId != null
+              ? rowsAll.filter(r => String(r.stationId) === String(stationId))
+              : rowsAll.filter(r => (r.stationName || '').trim() === (station.name || '').trim());
+
+            batteryCacheRef.current[cacheKey] = rows;
+            body.innerHTML = renderBatteryTable(station.name, rows);
           } catch (err) {
             body.textContent = 'Failed to load battery info';
           }
         };
 
         popupRefs.current[station.name].loadBattery = loadBattery;
-        bookBtn.addEventListener('click', (e) => {
-          try { e.stopPropagation(); } catch (err) {}
-          if (typeof onBookStation === 'function') onBookStation(station);
-        });
+        bookBtn.addEventListener('click', (e) => { try { e.stopPropagation(); } catch {} if (typeof onBookStation === 'function') onBookStation(station); });
       }
 
-      features.push({
-        type: 'Feature',
-        geometry: { type: 'Point', coordinates: [lng, lat] },
-        properties: { name: station.name },
-      });
+      features.push({ type: 'Feature', geometry: { type: 'Point', coordinates: [lng, lat] }, properties: { name: station.name } });
     });
 
-    // add or update the stations source & layer
     const sourceId = 'stations-source';
     const layerId = 'stations-layer';
     const geojson = { type: 'FeatureCollection', features };
-    if (map.current.getSource(sourceId)) {
-      try { map.current.getSource(sourceId).setData(geojson); } catch (e) {}
-    } else {
+    if (map.current.getSource(sourceId)) { try { map.current.getSource(sourceId).setData(geojson); } catch {} }
+    else {
       map.current.addSource(sourceId, { type: 'geojson', data: geojson });
-  // Attempt to load a marker image (use react.svg for now) and use a symbol layer.
-      const markerImageUrl = reactLogo;
-      // Use an HTMLImageElement with crossOrigin to avoid loadImage/CORS issues
-      const imgEl = new Image();
-      imgEl.crossOrigin = 'anonymous';
+
+      const imgEl = new Image(); imgEl.crossOrigin = 'anonymous'; imgEl.src = reactLogo;
       imgEl.onload = () => {
+        try { if (!map.current.hasImage('gogoro-marker')) map.current.addImage('gogoro-marker', imgEl); } catch {}
         try {
-          if (!map.current.hasImage('gogoro-marker')) {
-            // map.addImage accepts an HTMLImageElement directly
-            map.current.addImage('gogoro-marker', imgEl);
-          }
-        } catch (e) {
-          // ignore addImage failures
-        }
-
-        // add symbol layer using the image (if registered) otherwise fall back to circle
-        try {
-          const imageExists = map.current.hasImage && map.current.hasImage('gogoro-marker');
-          if (imageExists) {
-            map.current.addLayer({
-              id: layerId,
-              type: 'symbol',
-              source: sourceId,
-              layout: {
-                'icon-image': 'gogoro-marker',
-                'icon-size': 1.2,
-                'icon-allow-overlap': true,
-                'icon-ignore-placement': true,
-              },
-            });
+          const hasImg = map.current.hasImage && map.current.hasImage('gogoro-marker');
+          if (hasImg) {
+            map.current.addLayer({ id: layerId, type: 'symbol', source: sourceId, layout: { 'icon-image': 'gogoro-marker', 'icon-size': 1.2, 'icon-allow-overlap': true, 'icon-ignore-placement': true } });
           } else {
-            map.current.addLayer({
-              id: layerId,
-              type: 'circle',
-              source: sourceId,
-              paint: {
-                'circle-radius': 14,
-                'circle-color': '#1976d2',
-                'circle-stroke-color': '#fff',
-                'circle-stroke-width': 2,
-              },
-            });
+            map.current.addLayer({ id: layerId, type: 'circle', source: sourceId, paint: { 'circle-radius': 14, 'circle-color': '#1976d2', 'circle-stroke-color': '#fff', 'circle-stroke-width': 2 } });
           }
-        } catch (e) {
-          // if adding layer with image fails, add circle layer as fallback
-          try {
-            map.current.addLayer({
-              id: layerId,
-              type: 'circle',
-              source: sourceId,
-              paint: {
-                'circle-radius': 14,
-                'circle-color': '#1976d2',
-                'circle-stroke-color': '#fff',
-                'circle-stroke-width': 2,
-              },
-            });
-          } catch (err) {}
+        } catch {
+          try { map.current.addLayer({ id: layerId, type: 'circle', source: sourceId, paint: { 'circle-radius': 14, 'circle-color': '#1976d2', 'circle-stroke-color': '#fff', 'circle-stroke-width': 2 } }); } catch {}
         }
 
-        // common handlers: cursor and click
-        try { map.current.on('mouseenter', layerId, () => { map.current.getCanvas().style.cursor = 'pointer'; }); } catch (e) {}
-        try { map.current.on('mouseleave', layerId, () => { map.current.getCanvas().style.cursor = ''; }); } catch (e) {}
+        try { map.current.on('mouseenter', layerId, () => { map.current.getCanvas().style.cursor = 'pointer'; }); } catch {}
+        try { map.current.on('mouseleave', layerId, () => { map.current.getCanvas().style.cursor = ''; }); } catch {}
         try { map.current.on('click', layerId, (e) => {
-          const feat = e.features && e.features[0];
-          if (!feat) return;
-          const name = feat.properties && feat.properties.name;
-          if (!name) return;
+          const feat = e.features && e.features[0]; if (!feat) return;
+          const name = feat.properties && feat.properties.name; if (!name) return;
           const popupObj = popupRefs.current && popupRefs.current[name];
-          try { if (openPopupRef.current && openPopupRef.current !== (popupObj && popupObj.popup)) { openPopupRef.current.remove(); } } catch (e) {}
+          try { if (openPopupRef.current && openPopupRef.current !== (popupObj && popupObj.popup)) { openPopupRef.current.remove(); } } catch {}
           if (popupObj) {
             try {
-              const scrollX = window.scrollX || window.pageXOffset;
-              const scrollY = window.scrollY || window.pageYOffset;
-              popupObj.popup.addTo(map.current);
-              openPopupRef.current = popupObj.popup;
-              try { const el = popupObj.popup.getElement(); if (el && typeof el.blur === 'function') el.blur(); } catch (ee) {}
-              try { window.scrollTo(scrollX, scrollY); } catch (ee) {}
-              try { setTimeout(() => { try { window.scrollTo(scrollX, scrollY); } catch (e) {} }, 50); } catch (ee) {}
-              try { setTimeout(() => { try { window.scrollTo(scrollX, scrollY); } catch (e) {} }, 300); } catch (ee) {}
-            } catch (e) {}
-            try { map.current.once('click', () => { try { popupObj.popup.remove(); } catch (e){}; if (openPopupRef.current === popupObj.popup) openPopupRef.current = null; }); } catch (e) {}
-            try { setSelectedStation && setSelectedStation(name); } catch (e) {}
-            try { popupObj.loadBattery && popupObj.loadBattery(); } catch (e) {}
+              const sx = window.scrollX || window.pageXOffset; const sy = window.scrollY || window.pageYOffset;
+              popupObj.popup.addTo(map.current); openPopupRef.current = popupObj.popup;
+              try { const el = popupObj.popup.getElement(); if (el?.blur) el.blur(); } catch {}
+              try { window.scrollTo(sx, sy); } catch {}
+              try { setTimeout(() => { try { window.scrollTo(sx, sy); } catch {} }, 50); } catch {}
+              try { setTimeout(() => { try { window.scrollTo(sx, sy); } catch {} }, 300); } catch {}
+            } catch {}
+            try { map.current.once('click', () => { try { popupObj.popup.remove(); } catch {}; if (openPopupRef.current === popupObj.popup) openPopupRef.current = null; }); } catch {}
+            try { setSelectedStation && setSelectedStation(name); } catch {}
+            try { popupObj.loadBattery && popupObj.loadBattery(); } catch {}
           }
-        }); } catch (e) {}
+        }); } catch {}
       };
       imgEl.onerror = () => {
-        // image failed to load: add fallback circle layer and handlers
-        try {
-          map.current.addLayer({
-            id: layerId,
-            type: 'circle',
-            source: sourceId,
-            paint: {
-              'circle-radius': 14,
-              'circle-color': '#1976d2',
-              'circle-stroke-color': '#fff',
-              'circle-stroke-width': 2,
-            },
-          });
-        } catch (err) {}
-        try { map.current.on('mouseenter', layerId, () => { map.current.getCanvas().style.cursor = 'pointer'; }); } catch (e) {}
-        try { map.current.on('mouseleave', layerId, () => { map.current.getCanvas().style.cursor = ''; }); } catch (e) {}
+        try { map.current.addLayer({ id: layerId, type: 'circle', source: sourceId, paint: { 'circle-radius': 14, 'circle-color': '#1976d2', 'circle-stroke-color': '#fff', 'circle-stroke-width': 2 } }); } catch {}
+        try { map.current.on('mouseenter', layerId, () => { map.current.getCanvas().style.cursor = 'pointer'; }); } catch {}
+        try { map.current.on('mouseleave', layerId, () => { map.current.getCanvas().style.cursor = ''; }); } catch {}
         try { map.current.on('click', layerId, (e) => {
-          const feat = e.features && e.features[0];
-          if (!feat) return;
-          const name = feat.properties && feat.properties.name;
-          if (!name) return;
+          const feat = e.features && e.features[0]; if (!feat) return;
+          const name = feat.properties && feat.properties.name; if (!name) return;
           const popupObj = popupRefs.current && popupRefs.current[name];
-          try { if (openPopupRef.current && openPopupRef.current !== (popupObj && popupObj.popup)) { openPopupRef.current.remove(); } } catch (e) {}
+          try { if (openPopupRef.current && openPopupRef.current !== (popupObj && popupObj.popup)) { openPopupRef.current.remove(); } } catch {}
           if (popupObj) {
             try {
-              const scrollX = window.scrollX || window.pageXOffset;
-              const scrollY = window.scrollY || window.pageYOffset;
-              popupObj.popup.addTo(map.current);
-              openPopupRef.current = popupObj.popup;
-              try { const el = popupObj.popup.getElement(); if (el && typeof el.blur === 'function') el.blur(); } catch (ee) {}
-              try { window.scrollTo(scrollX, scrollY); } catch (ee) {}
-              try { setTimeout(() => { try { window.scrollTo(scrollX, scrollY); } catch (e) {} }, 50); } catch (ee) {}
-              try { setTimeout(() => { try { window.scrollTo(scrollX, scrollY); } catch (e) {} }, 300); } catch (ee) {}
-            } catch (e) {}
-            try { map.current.once('click', () => { try { popupObj.popup.remove(); } catch (e){}; if (openPopupRef.current === popupObj.popup) openPopupRef.current = null; }); } catch (e) {}
-            try { setSelectedStation && setSelectedStation(name); } catch (e) {}
-            try { popupObj.loadBattery && popupObj.loadBattery(); } catch (e) {}
+              const sx = window.scrollX || window.pageXOffset; const sy = window.scrollY || window.pageYOffset;
+              popupObj.popup.addTo(map.current); openPopupRef.current = popupObj.popup;
+              try { const el = popupObj.popup.getElement(); if (el?.blur) el.blur(); } catch {}
+              try { window.scrollTo(sx, sy); } catch {}
+              try { setTimeout(() => { try { window.scrollTo(sx, sy); } catch {} }, 50); } catch {}
+              try { setTimeout(() => { try { window.scrollTo(sx, sy); } catch {} }, 300); } catch {}
+            } catch {}
+            try { map.current.once('click', () => { try { popupObj.popup.remove(); } catch {}; if (openPopupRef.current === popupObj.popup) openPopupRef.current = null; }); } catch {}
+            try { setSelectedStation && setSelectedStation(name); } catch {}
+            try { popupObj.loadBattery && popupObj.loadBattery(); } catch {}
           }
-        }); } catch (e) {}
+        }); } catch {}
       };
-      // finally set the src to start loading
-      try { imgEl.src = markerImageUrl; } catch (e) { imgEl.onerror && imgEl.onerror(); }
     }
   }, [stations, showPopup, setSelectedStation]);
 
-  // load stations.json if parent didn't provide stations
   useEffect(() => {
     if (Array.isArray(stations) && stations.length) return;
     let mounted = true;
     setInternalLoading(true);
     fetch('/src/data/stations.json')
       .then(r => { if (!r.ok) throw new Error('failed'); return r.json(); })
-      .then(data => {
-        if (!mounted) return;
-        setInternalStations(data);
-        setInternalLoading(false);
-        if (typeof onStationsLoaded === 'function') onStationsLoaded(data);
-      })
-      .catch(err => {
-        if (!mounted) return;
-        setInternalError(err.message || 'failed');
-        setInternalLoading(false);
-      });
+      .then(data => { if (!mounted) return; setInternalStations(data); setInternalLoading(false); if (typeof onStationsLoaded === 'function') onStationsLoaded(data); })
+      .catch(err => { if (!mounted) return; setInternalError(err.message || 'failed'); setInternalLoading(false); });
     return () => { mounted = false; };
   }, [stations]);
 
@@ -308,95 +198,99 @@ export default function MapboxMap({
     if (!map.current || !selectedStation) return;
     const popupObj = popupRefs.current && popupRefs.current[selectedStation];
     if (!popupObj) return;
-    // fly to the station coords
+    try { if (Array.isArray(popupObj.coords) && popupObj.coords.length === 2) map.current.flyTo({ center: popupObj.coords, zoom: 14 }); } catch {}
+    try { if (openPopupRef.current && openPopupRef.current !== popupObj.popup) openPopupRef.current.remove(); } catch {}
     try {
-      if (Array.isArray(popupObj.coords) && popupObj.coords.length === 2) {
-        map.current.flyTo({ center: popupObj.coords, zoom: 14 });
-      }
-    } catch (e) {}
-    // close previous popup if any
-    try { if (openPopupRef.current && openPopupRef.current !== popupObj.popup) { openPopupRef.current.remove(); } } catch (e) {}
-    // open the popup while preserving/restoring page scroll to avoid jumps
-    try {
-      const scrollX = window.scrollX || window.pageXOffset;
-      const scrollY = window.scrollY || window.pageYOffset;
-      popupObj.popup.addTo(map.current);
-      openPopupRef.current = popupObj.popup;
-      // Blur the popup element to reduce browser auto-scroll on focus
-      try { const el = popupObj.popup.getElement(); if (el && typeof el.blur === 'function') el.blur(); } catch (ee) {}
-      // immediate restore
-      try { window.scrollTo(scrollX, scrollY); } catch (ee) {}
-      // schedule a couple of delayed restores in case Mapbox focuses after a short delay
-      try { setTimeout(() => { try { window.scrollTo(scrollX, scrollY); } catch (e) {} }, 50); } catch (ee) {}
-      try { setTimeout(() => { try { window.scrollTo(scrollX, scrollY); } catch (e) {} }, 300); } catch (ee) {}
-    } catch (e) {}
-    // ensure clicking elsewhere closes it
-    try { map.current.once('click', () => { try { popupObj.popup.remove(); } catch (e) {}; if (openPopupRef.current === popupObj.popup) openPopupRef.current = null; }); } catch (e) {}
-    // load battery info for popup
-    try { popupObj.loadBattery && popupObj.loadBattery(); } catch (e) {}
+      const sx = window.scrollX || window.pageXOffset; const sy = window.scrollY || window.pageYOffset;
+      popupObj.popup.addTo(map.current); openPopupRef.current = popupObj.popup;
+      try { const el = popupObj.popup.getElement(); if (el?.blur) el.blur(); } catch {}
+      try { window.scrollTo(sx, sy); } catch {}
+      try { setTimeout(() => { try { window.scrollTo(sx, sy); } catch {} }, 50); } catch {}
+      try { setTimeout(() => { try { window.scrollTo(sx, sy); } catch {} }, 300); } catch {}
+    } catch {}
+    try { map.current.once('click', () => { try { popupObj.popup.remove(); } catch {}; if (openPopupRef.current === popupObj.popup) openPopupRef.current = null; }); } catch {}
+    try { popupObj.loadBattery && popupObj.loadBattery(); } catch {}
   }, [selectedStation, showPopup]);
 
   useEffect(() => {
     if (!map.current) return;
-    // Remove old route layer
-    if (map.current.getSource('route')) {
-      map.current.removeLayer('route');
-      map.current.removeSource('route');
-    }
+    if (map.current.getSource('route')) { map.current.removeLayer('route'); map.current.removeSource('route'); }
     if (routeGeoJSON) {
-      map.current.addSource('route', {
-        type: 'geojson',
-        data: routeGeoJSON,
-      });
-      map.current.addLayer({
-        id: 'route',
-        type: 'line',
-        source: 'route',
-        layout: { 'line-join': 'round', 'line-cap': 'round' },
-        paint: { 'line-color': '#1976d2', 'line-width': 5 },
-      });
+      map.current.addSource('route', { type: 'geojson', data: routeGeoJSON });
+      map.current.addLayer({ id: 'route', type: 'line', source: 'route', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#1976d2', 'line-width': 5 } });
     }
   }, [routeGeoJSON]);
 
-  // Delegate user location marker to centralized mapManager
   useEffect(() => {
     if (!mapManagerRef.current) return;
-    if (!userLocation || !Array.isArray(userLocation) || userLocation.length !== 2) {
-      try { mapManagerRef.current.clearUserLocation && mapManagerRef.current.clearUserLocation(); } catch (e) {}
-      return;
-    }
-    try { mapManagerRef.current.setUserLocation && mapManagerRef.current.setUserLocation(userLocation); } catch (e) {}
+    if (!userLocation || !Array.isArray(userLocation) || userLocation.length !== 2) { try { mapManagerRef.current.clearUserLocation?.(); } catch {} return; }
+    try { mapManagerRef.current.setUserLocation?.(userLocation); } catch {}
   }, [userLocation]);
 
-  // Ensure the map container allows pointer events and has a baseline z-index
   const mergedStyle = { pointerEvents: 'auto', zIndex: 900, ...style };
   return <div ref={mapContainer} style={mergedStyle} />;
 }
 
-// Helper to render battery report into HTML for popup content
-function renderBatteryHtml(name, report) {
-  // Defensive accessors; adapt to your API shape
-  const total = report?.total ?? report?.length ?? 'N/A';
-  const available = report?.available ?? report?.availableCount ?? 'N/A';
-  const batteries = Array.isArray(report?.batteries) ? report.batteries : report?.items || [];
-  const details = batteries.length
-    ? `<ul style="margin:6px 0 0 0;padding-left:16px;max-height:120px;overflow:auto;">${batteries
-        .map(b => `<li>${escapeHtml(b.id ?? b.serial ?? 'id')}: ${escapeHtml(b.state ?? b.status ?? JSON.stringify(b))}</li>`)
-        .join('')}</ul>`
-    : '';
-  return `<strong>${escapeHtml(name)}</strong>
-    <div class="popup-body">
-      <div>Total: ${escapeHtml(String(total))}</div>
-      <div>Available: ${escapeHtml(String(available))}</div>
-      ${details}
-    </div>`;
+/** Render 2 loại pin + Good/Average/Weak/Below75/Total cho mỗi loại */
+/** Render 2 loại pin + Tốt/Khá/Yếu/Dưới 75%/Tổng cho mỗi loại */
+function renderBatteryTable(_stationName, rows) {
+  // rows: [{stationId, stationName, batteryType, Good, Average, Weak, Below75, Total}, ...]
+  const grouped = (Array.isArray(rows) ? rows : []).reduce((acc, r) => {
+    const key = String(r.batteryType || 'Unknown');
+    acc[key] = acc[key] || { Good: 0, Average: 0, Weak: 0, Below75: 0, Total: 0 };
+    acc[key].Good    += Number(r.Good || 0);
+    acc[key].Average += Number(r.Average || 0);
+    acc[key].Weak    += Number(r.Weak || 0);
+    acc[key].Below75 += Number(r.Below75 || 0);
+    acc[key].Total   += Number(r.Total || 0);
+    return acc;
+  }, {});
+
+  const COLOR = {
+    good:  '#2e7d32', // Tốt - xanh
+    avg:   '#f9a825', // Khá - vàng
+    weak:  '#d32f2f', // Yếu - đỏ
+    lt75:  '#000000', // Dưới 75% - đen
+    total: '#37474f'
+  };
+
+  const dot = (c) => `
+    <span style="display:inline-block;width:8px;height:8px;border-radius:50%;
+                 background:${c};margin-right:6px;transform:translateY(-1px);"></span>`;
+
+  const sections = Object.entries(grouped).map(([type, v]) => `
+    <div style="margin-top:8px;">
+      <div style="font-weight:600">${escapeHtml(type)}</div>
+      <table style="width:100%; border-collapse:collapse; font-size:13px; margin-top:6px;">
+        <tbody>
+          <tr>
+            <td style="padding:2px 0;">${dot(COLOR.good)}Tốt</td>
+            <td style="text-align:right; color:${COLOR.good}; padding:2px 0;">${escapeHtml(String(v.Good))}</td>
+            <td style="padding:2px 0 2px 12px;">${dot(COLOR.avg)}Khá</td>
+            <td style="text-align:right; color:${COLOR.avg}; padding:2px 0;">${escapeHtml(String(v.Average))}</td>
+          </tr>
+          <tr>
+            <td style="padding:2px 0;">${dot(COLOR.weak)}Yếu</td>
+            <td style="text-align:right; color:${COLOR.weak}; padding:2px 0;">${escapeHtml(String(v.Weak))}</td>
+            <td style="padding:2px 0 2px 12px;">${dot(COLOR.lt75)}Dưới 75%</td>
+            <td style="text-align:right; color:${COLOR.lt75}; padding:2px 0;">${escapeHtml(String(v.Below75))}</td>
+          </tr>
+          <tr>
+            <td style="padding-top:4px; font-weight:600; color:${COLOR.total}">Tổng</td>
+            <td style="text-align:right; font-weight:600; color:${COLOR.total}; padding-top:4px">${escapeHtml(String(v.Total))}</td>
+            <td></td><td></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  `).join('') || '<div style="margin-top:6px;">Không có dữ liệu</div>';
+
+  // ⚠️ Không render tên trạm ở đây để tránh trùng với <strong> ở phần title popup
+  return `<div style="margin-top:6px;">${sections}</div>`;
 }
 
 function escapeHtml(str) {
   return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }

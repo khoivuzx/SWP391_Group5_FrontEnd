@@ -1,3 +1,22 @@
+// DEBUG: log mọi lần gọi fetch để biết URL + method + nơi khởi tạo
+if (typeof window !== 'undefined' && !window.__FETCH_SPY__) {
+  window.__FETCH_SPY__ = true;
+  const _fetch = window.fetch;
+  window.fetch = function (...args) {
+    const [input, init] = args;
+    const url = typeof input === 'string' ? input : input?.url;
+    const method = (init?.method || 'GET').toUpperCase();
+    if (url?.includes('/webAPI/api/getStationBatteryReportGuest')) {
+      console.group('[FETCH getStationBatteryReportGuest]');
+      console.log('Method:', method);
+      console.log('URL:', url);
+      console.log('Init:', init);
+      console.trace('Initiator stack');
+      console.groupEnd();
+    }
+    return _fetch.apply(this, args);
+  };
+}
 
 import React, { useState, useEffect, useRef } from 'react';
 import ReservationForm from '../../components/ReserveForm/ReservationForm';
@@ -43,7 +62,7 @@ export default function Home() {
     const [lon1, lat1] = a; const [lon2, lat2] = b;
     const R = 6371000;
     const dLat = toRad(lat2 - lat1);
-    const dLon = toRad(lon2 - lon1);
+    const dLon = toRad(lat2 - lat1) ? toRad(lon2 - lon1) : toRad(lon2 - lon1); // keep function body unchanged in spirit
     const lat1r = toRad(lat1); const lat2r = toRad(lat2);
     const aHarv = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1r) * Math.cos(lat2r) * Math.sin(dLon/2) * Math.sin(dLon/2);
     const c = 2 * Math.atan2(Math.sqrt(aHarv), Math.sqrt(1-aHarv));
@@ -53,63 +72,88 @@ export default function Home() {
   const [foundStations, setFoundStations] = useState([]);
 
   // Find stations that have batteries of the given chemistry. This flow requests location permission first.
-  const handleFindBattery = async (chemistry) => {
-    setFoundStations([]);
-    if (!chemistry) return setRouteError('Please select a battery chemistry');
-    setRouteError('');
-    // Request user location via the geolocation hook
-    const perm = await checkPermission();
-    if (perm === 'denied') {
-      setRouteError('Location access blocked. Please enable location permission.');
+ // Find stations that have batteries of the given chemistry. This flow requests location permission first.
+const handleFindBattery = async (chemistry) => {
+  setFoundStations([]);
+  if (!chemistry) return setRouteError('Please select a battery chemistry');
+  setRouteError('');
+
+  // Request user location via the geolocation hook
+  const perm = await checkPermission();
+  if (perm === 'denied') {
+    setRouteError('Location access blocked. Please enable location permission.');
+    return;
+  }
+  if (perm === 'prompt') {
+    setShowPrePerm(true);
+    const resp = await new Promise(resolve => { prePermResolveRef.current = resolve; });
+    setShowPrePerm(false);
+    prePermResolveRef.current = null;
+    if (!resp) {
+      setRouteError('Location permission required to find nearest stations.');
       return;
     }
-    // If prompt, show the pre-permission modal
-    if (perm === 'prompt') {
-      setShowPrePerm(true);
-      const resp = await new Promise(resolve => { prePermResolveRef.current = resolve; });
-      setShowPrePerm(false);
-      prePermResolveRef.current = null;
-      if (!resp) {
-        setRouteError('Location permission required to find nearest stations.');
-        return;
-      }
-    }
-    let pos;
-    try {
-      pos = await getCurrentPositionAsync({ enableHighAccuracy: true, timeout: 10000 });
-      const userCoords = [pos.coords.longitude, pos.coords.latitude];
-      setUserLocation(userCoords);
-      // fetch battery reports for each station (sequential to be gentle)
-      const results = [];
-      for (const st of stations) {
-        try {
-          const url = (API_BASE_URL || '') + '/webAPI/api/getStationBatteryReportGuest';
-          const res = await fetch(url, {
-            method: 'POST', headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': '1' },
-            body: JSON.stringify({ stationName: st.name }),
-          });
-          if (!res.ok) continue;
-          const json = await res.json();
-          // Determine if desired chemistry exists in station report
-          const items = Array.isArray(json?.batteries) ? json.batteries : (json?.items || []);
-          const has = items.some(b => (b.chemistry || b.type || '').toLowerCase().includes(chemistry.toLowerCase()));
-          if (has) {
-            const dist = distanceMeters(userCoords, st.coords);
-            results.push({ name: st.name, station: st, distanceMeters: dist });
-          }
-        } catch (e) {
-          continue;
+  }
+
+  let pos;
+  try {
+    pos = await getCurrentPositionAsync({ enableHighAccuracy: true, timeout: 10000 });
+    const userCoords = [pos.coords.longitude, pos.coords.latitude];
+    setUserLocation(userCoords);
+
+    // fetch battery reports for each station (sequential to be gentle)
+    const results = [];
+    for (const st of stations) {
+      try {
+        // ✅ BE chỉ hỗ trợ GET; ưu tiên truyền stationId nếu có
+        const qs = (st.id != null) ? `?stationId=${encodeURIComponent(st.id)}` : '';
+        const url = (API_BASE_URL || '') + '/webAPI/api/getStationBatteryReportGuest' + qs;
+
+        const res = await fetch(url, {
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+            'Accept': 'application/json',
+            'ngrok-skip-browser-warning': '1',
+          },
+        });
+        if (!res.ok) continue;
+
+        const payload = await res.json();
+        // BE thường trả { status, data: [...] }
+        const arr = Array.isArray(payload?.data) ? payload.data
+                  : (Array.isArray(payload) ? payload : []);
+        const rep = arr[0] || payload;
+
+        const items =
+          Array.isArray(rep?.batteries) ? rep.batteries :
+          Array.isArray(rep?.items) ? rep.items :
+          Array.isArray(rep?.detail) ? rep.detail : [];
+
+        const has = items.some(b =>
+          String(b.chemistry || b.type || b.Battery_Type || '')
+            .toLowerCase()
+            .includes(chemistry.toLowerCase())
+        );
+
+        if (has) {
+          const dist = distanceMeters(userCoords, st.coords);
+          results.push({ name: st.name, station: st, distanceMeters: dist });
         }
+      } catch (e) {
+        continue;
       }
-      results.sort((a,b) => a.distanceMeters - b.distanceMeters);
-      const mapped = results.map(r => ({ name: r.name, distanceMeters: r.distanceMeters, coords: r.station.coords }));
-      setFoundStations(mapped);
-      return mapped;
-    } catch (err) {
-      setRouteError('Could not get location.');
-      return [];
     }
-  };
+
+    results.sort((a,b) => a.distanceMeters - b.distanceMeters);
+    const mapped = results.map(r => ({ name: r.name, distanceMeters: r.distanceMeters, coords: r.station.coords }));
+    setFoundStations(mapped);
+    return mapped;
+  } catch (err) {
+    setRouteError('Could not get location.');
+    return [];
+  }
+};
 
   const handleFindPath = async () => {
     setRouteError("");
@@ -147,9 +191,9 @@ export default function Home() {
         }
       }
       const pos = await getCurrentPositionAsync({ enableHighAccuracy: true, timeout: 10000 });
-  start = [pos.coords.longitude, pos.coords.latitude];
-  // store the user's location so the map can render a marker
-  try { setUserLocation(start); } catch (e) {}
+      start = [pos.coords.longitude, pos.coords.latitude];
+      // store the user's location so the map can render a marker
+      try { setUserLocation(start); } catch (e) {}
     } catch (err) {
       // If the user denies or an error occurs, show a helpful message and fall back to default coords
       if (err && err.code === 1) setRouteError('Location permission denied. Using default location.');

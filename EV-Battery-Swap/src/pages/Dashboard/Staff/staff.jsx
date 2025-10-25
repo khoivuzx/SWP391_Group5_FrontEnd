@@ -1,251 +1,733 @@
-
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import './staff.css';
-
-const batterySummary = [
-	{ label: 'Pin đầy', value: 5, sub: 'Sẵn sàng sử dụng', icon: '🟢' },
-	{ label: 'Đang sạc', value: 2, sub: 'Đang nạp điện', icon: '🔌' },
-	{ label: 'Bảo dưỡng', value: 1, sub: 'Cần kiểm tra', icon: '⚠️' },
-	{ label: 'Giao dịch hôm nay', value: 24, sub: '+8% so với hôm qua', icon: '⏱️' },
-];
-
-const batteryList = [
-	{ id: 'BAT001', type: '48V 30Ah', status: 'Đầy', soh: 98, location: 'Kệ A1', lastCharge: '10 phút trước', action: 'Chi tiết' },
-	{ id: 'BAT002', type: '48V 30Ah', status: 'Đầy', soh: 95, location: 'Kệ A2', lastCharge: '25 phút trước', action: 'Chi tiết' },
-	{ id: 'BAT003', type: '60V 40Ah', status: 'Đang sạc', soh: 88, location: 'Sạc B1', lastCharge: '2 giờ trước', action: 'Chi tiết' },
-	{ id: 'BAT004', type: '48V 30Ah', status: 'Đầy', soh: 92, location: 'Kệ A3', lastCharge: '1 giờ trước', action: 'Chi tiết' },
-	{ id: 'BAT005', type: '60V 40Ah', status: 'Bảo dưỡng', soh: 75, location: 'Khu vực sửa chữa', lastCharge: '1 ngày trước', action: 'Chi tiết' },
-	{ id: 'BAT006', type: '48V 30Ah', status: 'Đang sạc', soh: 90, location: 'Sạc B2', lastCharge: '3 giờ trước', action: 'Chi tiết' },
-	{ id: 'BAT007', type: '60V 40Ah', status: 'Đầy', soh: 97, location: 'Kệ C1', lastCharge: '15 phút trước', action: 'Chi tiết' },
-	{ id: 'BAT008', type: '48V 30Ah', status: 'Đầy', soh: 85, location: 'Kệ A4', lastCharge: '45 phút trước', action: 'Chi tiết' },
-];
-
-const transactionList = [
-	{ id: 'SW001', time: '14:30', customer: 'Nguyễn Văn A', vehicle: 'VN123456', pinReturn: 'BAT015', pinReceive: 'BAT001', payment: '25,000 đ' },
-	{ id: 'SW002', time: '14:15', customer: 'Trần Thị B', vehicle: 'VN789012', pinReturn: 'BAT016', pinReceive: 'BAT002', payment: '25,000 đ' },
-	{ id: 'SW003', time: '13:45', customer: 'Lê Văn C', vehicle: 'VN345678', pinReturn: 'BAT017', pinReceive: 'BAT004', payment: '30,000 đ' },
-	{ id: 'SW004', time: '13:20', customer: 'Phạm Thị D', vehicle: 'VN901234', pinReturn: 'BAT018', pinReceive: 'BAT007', payment: '30,000 đ' },
-];
+import API_BASE_URL from '../../../config';
 
 const tabs = [
-	{ label: 'Tồn kho pin', value: 'inventory' },
-	{ label: 'Giao dịch đổi pin', value: 'transaction' },
+  { label: 'Tồn kho pin', value: 'inventory' },
+  { label: 'Check In', value: 'checkin' },
+  { label: 'Tạo Booking', value: 'create' },
 ];
 
+/* ========= MessageBox (modal hộp trắng, icon + animation) ========= */
+function MessageBox({ open, title, children, onClose, tone = 'info' }) {
+  if (!open) return null;
 
+  const ICON = { success: '✅', error: '⚠️', info: 'ℹ️' }[tone] || 'ℹ️';
 
-
-
-
-
-// Pin station mockup - phong cách tối giản, pin hình tròn, nền sáng, hiệu ứng glow
-function PinStationMockup({ batteries }) {
-	const [selected, setSelected] = useState(null);
-	const totalSlots = 30;
-	const filled = batteries.slice(0, totalSlots);
-	const emptySlots = totalSlots - filled.length;
-	const allSlots = [
-		...filled,
-		...Array.from({ length: emptySlots }, (_, i) => ({
-			id: `EMPTY${i+1}`,
-			type: 'Chưa có pin',
-			status: 'Trống',
-			soh: 0,
-			location: '-',
-			lastCharge: '-',
-			empty: true
-		}))
-	];
-	const fullCount = filled.length;
-	return (
-		
-		<div className="station-mockup-minimal">
-			<div className="station-mockup-minimal-inner">
-				<div className="station-mockup-minimal-screen">
-			</div>
-				<div className="station-mockup-minimal-grid">
-					{allSlots.map((b, i) => (
-						<div
-							key={b.id}
-							className={"station-mockup-minimal-battery" + (selected === i ? " selected" : "") + (b.empty ? " empty" : "")}
-							onClick={() => setSelected(i)}
-							title={b.id}
-							style={{ cursor: 'pointer' }}
-						>
-							<span className="station-mockup-minimal-dot" style={{
-								background: b.empty ? '#e5e7eb' : '#6be445',
-								boxShadow: b.empty ? 'none' : '0 0 16px 4px #6be44588, 0 2px 8px #b6e4b6',
-								border: b.empty ? '2px solid #bbb' : '2.5px solid #6be445',
-								opacity: b.empty ? 0.5 : 1
-							}}></span>
-						</div>
-					))}
-				</div>
-			</div>
-			{selected !== null && (
-				<div className="station-popup">
-					{allSlots[selected].empty ? (
-						<>
-							<strong>{allSlots[selected].id}</strong> - <em>Ô trống</em><br />
-							<span>Hiện tại chưa có pin trong ô này.</span><br />
-							<span>Vị trí: <b>{allSlots[selected].location || '-'}</b></span><br />
-						</>
-					) : (
-						<>
-							<strong>{allSlots[selected].id}</strong> - {allSlots[selected].type}<br />
-							<span>Trạng thái: <b>{allSlots[selected].status}</b></span><br />
-							<span>Sức khỏe: <b>{allSlots[selected].soh}%</b></span><br />
-							<span>Vị trí: <b>{allSlots[selected].location}</b></span><br />
-							<span>Sạc lần cuối: <b>{allSlots[selected].lastCharge}</b></span><br />
-						</>
-					)}
-					<button className="station-popup-close" onClick={() => setSelected(null)}>Đóng</button>
-				</div>
-			)}
-		</div>
-		
-	);
+  return (
+    <div className="msgbox-backdrop" role="dialog" aria-modal="true" onClick={onClose}>
+      <div className={`msgbox ${tone}`} onClick={(e) => e.stopPropagation()} tabIndex={-1}>
+        <div className="msgbox-header">
+          <span className="msgbox-icon" aria-hidden>{ICON}</span>
+          <h3 className="msgbox-title">{title}</h3>
+        </div>
+        <div className="msgbox-body">{children}</div>
+        <div className="msgbox-actions">
+          <button className="detail-btn" onClick={onClose}>Đóng</button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
-export default function StaffDashboard({ user, onLoginClick }) {
-	const [activeTab, setActiveTab] = useState('inventory');
-	const [showStationModal, setShowStationModal] = useState(false);
-	const openStationModal = () => setShowStationModal(true);
-	const closeStationModal = () => setShowStationModal(false);
-	return (
-		<div className="staff-dashboard-wrap">
+/* ====== Component mockup trụ (giữ nguyên giao diện) ====== */
+function PinStationMockup({ batteries }) {
+  const [selected, setSelected] = useState(null);
+  const totalSlots = 30;
+  const filled = (batteries || []).slice(0, totalSlots);
+  const emptySlots = totalSlots - filled.length;
+  const allSlots = [
+    ...filled,
+    ...Array.from({ length: Math.max(0, emptySlots) }, (_, i) => ({
+      id: `EMPTY${i + 1}`,
+      type: 'Chưa có pin',
+      status: 'Trống',
+      state: 'Empty',
+      condition: '-',
+      soh: 0,
+      location: '-',
+      lastCharge: '-',
+      empty: true,
+      code: '-',
+    })),
+  ];
 
-			{/* Right side image panel (moved to top) */}
-			<div className="staff-right-panel">
-				<img src="/ping.jpg" alt="Ping" className="staff-right-image" onClick={openStationModal} style={{ cursor: 'pointer' }} />
-			</div>
+  return (
+    <div className="station-mockup-minimal">
+      <div className="station-mockup-minimal-inner">
+        <div className="station-mockup-minimal-screen"></div>
+        <div className="station-mockup-minimal-grid">
+          {allSlots.map((b, i) => {
+            const st = String(b.state || '').toLowerCase();
+            const cd = String(b.condition || '').toLowerCase();
 
-			{/* Main dashboard card below the top row */}
-			<div className="staff-dashboard-card">
-				<h2 className="staff-dashboard-title">Dashboard Nhân viên Trạm</h2>
-				<div className="staff-dashboard-subtitle">Quản lý tồn kho pin và giao dịch đổi pin</div>
-				{/* Summary cards */}
-				<div className="staff-dashboard-summary">
-					{batterySummary.map((c, i) => (
-						<div key={i} className="staff-dashboard-summary-card">
-							<div className="staff-dashboard-summary-icon">{c.icon}</div>
-							<div className="staff-dashboard-summary-value">{c.value}</div>
-							<div className="staff-dashboard-summary-label">{c.label}</div>
-							<div className="staff-dashboard-summary-sub">{c.sub}</div>
-						</div>
-					))}
-				</div>
-				{/* Tabs */}
-				<div className="staff-dashboard-tabs">
-					{tabs.map(tab => (
-						<button
-							key={tab.value}
-							onClick={() => setActiveTab(tab.value)}
-							className={"staff-dashboard-tab-btn" + (activeTab === tab.value ? " active" : "")}
-						>
-							{tab.label}
-						</button>
-					))}
-				</div>
-				{/* Tab content */}
-				<div>
-					{activeTab === 'inventory' && (
-						<div className="staff-inventory-section">
-							<div className="staff-inventory-title">Quản lý tồn kho pin</div>
-							<div className="staff-inventory-desc">Theo dõi trạng thái và sức khỏe của từng viên pin</div>
-							<div className="staff-inventory-table-wrap">
-								<table className="staff-inventory-table">
-									<thead>
-										<tr>
-											<th>Mã pin</th>
-											<th>Loại pin</th>
-											<th>Trạng thái</th>
-											<th>Sức khỏe (SoH)</th>
-											<th>Vị trí</th>
-											<th>Sạc lần cuối</th>
-											<th>Hành động</th>
-										</tr>
-									</thead>
-									<tbody>
-										{batteryList.map((b, i) => (
-											<tr key={b.id}>
-												<td>{b.id}</td>
-												<td>{b.type}</td>
-												<td>
-													<span className={
-														b.status === 'Đầy' ? 'badge badge-full' :
-														b.status === 'Đang sạc' ? 'badge badge-charging' :
-														b.status === 'Bảo dưỡng' ? 'badge badge-maintain' : ''
-													}>{b.status}</span>
-												</td>
-												<td>
-													<div className="soh-bar-wrap">
-														<div className="soh-bar" style={{ width: b.soh + '%', background: b.soh > 90 ? '#1976d2' : b.soh > 80 ? '#f59e42' : '#ef4444' }}></div>
-														<span className="soh-label">{b.soh}%</span>
-													</div>
-												</td>
-												<td>{b.location}</td>
-												<td>{b.lastCharge}</td>
-												<td><button className="detail-btn">{b.action}</button></td>
-											</tr>
-										))}
-									</tbody>
-								</table>
-							</div>
-						</div>
-					)}
-					{activeTab === 'transaction' && (
-						<div className="staff-transaction-section">
-							<div className="staff-transaction-title">Giao dịch đổi pin gần đây</div>
-							<div className="staff-transaction-desc">Lịch sử đổi pin trong ngày hôm nay</div>
-							<div className="staff-transaction-table-wrap">
-								<table className="staff-transaction-table">
-									<thead>
-										<tr>
-											<th>Mã GD</th>
-											<th>Thời gian</th>
-											<th>Khách hàng</th>
-											<th>Phương tiện</th>
-											<th>Pin trả</th>
-											<th>Pin nhận</th>
-											<th>Thanh toán</th>
-											<th>Hành động</th>
-										</tr>
-									</thead>
-									<tbody>
-										{transactionList.map((t, i) => (
-											<tr key={t.id}>
-												<td>{t.id}</td>
-												<td>{t.time}</td>
-												<td>{t.customer}</td>
-												<td>{t.vehicle}</td>
-												<td><span className="badge badge-return">{t.pinReturn}</span></td>
-												<td><span className="badge badge-receive">{t.pinReceive}</span></td>
-												<td>{t.payment}</td>
-												<td><span className="action-done">✔</span></td>
-											</tr>
-										))}
-									</tbody>
-								</table>
-							</div>
-						</div>
-					)}
-				</div>
-			</div>
+            const color =
+              b.empty ? '#e5e7eb' :
+              cd === 'damage' || cd === 'damaged' ? '#000000' :
+              cd === 'weak' || st === 'charging' ? '#ef4444' :
+              st === 'reserved' || st === 'reversed' ? '#fbbf24' :
+              (st === 'occupied' && cd === 'good') ? '#22c55e' :
+              '#d1d5db';
 
+            return (
+              <div
+                key={b.id}
+                className={
+                  'station-mockup-minimal-battery' +
+                  (selected === i ? ' selected' : '') +
+                  (b.empty ? ' empty' : '')
+                }
+                onClick={() => setSelected(i)}
+                title={b.id}
+                style={{ cursor: 'pointer' }}
+              >
+                <span
+                  className="station-mockup-minimal-dot"
+                  style={{
+                    background: color,
+                    border: `2.5px solid ${color}`,
+                    boxShadow:
+                      b.empty || color === '#000000'
+                        ? 'none'
+                        : `0 0 14px 3px ${color}55`,
+                    opacity: b.empty ? 0.6 : 1,
+                  }}
+                />
+              </div>
+            );
+          })}
+        </div>
+      </div>
 
-			{/* Station modal (opens when clicking the image) */}
-			{showStationModal && (
-				<div className="station-modal-backdrop" onClick={closeStationModal}>
-					<div className="station-modal" onClick={(e) => e.stopPropagation()}>
-						{/* reuse the same mockup component inside the modal so clicking a slot shows the popup */}
-						<PinStationMockup batteries={batteryList} />
-						<div style={{ textAlign: 'right', marginTop: 12 }}>
-							<button className="detail-btn" onClick={closeStationModal}>Đóng</button>
-						</div>
-					</div>
-				</div>
-			)}
-		</div>
-	);
+      {selected !== null && (
+        <div className="station-popup">
+          {allSlots[selected].empty ? (
+            <>
+              <strong>{allSlots[selected].id}</strong> - <em>Ô trống</em><br />
+              <span>Hiện tại chưa có pin trong ô này.</span><br />
+              <span>Vị trí: <b>{allSlots[selected].location || '-'}</b></span><br />
+            </>
+          ) : (
+            <>
+              <strong>{allSlots[selected].id}</strong> - {allSlots[selected].type}<br />
+              <span>Trạng thái: <b>{allSlots[selected].status}</b></span><br />
+              <span>Sức khỏe: <b>{allSlots[selected].soh}%</b></span><br />
+              <span>Vị trí: <b>{allSlots[selected].location}</b></span><br />
+              <span>Mã slot: <b>{allSlots[selected].code || '-'}</b></span><br />
+              <span>Sạc lần cuối: <b>{allSlots[selected].lastCharge}</b></span><br />
+            </>
+          )}
+          <button className="station-popup-close" onClick={() => setSelected(null)}>Đóng</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ====== TRANG CHÍNH ====== */
+export default function StaffDashboard() {
+  const [activeTab, setActiveTab] = useState('inventory');
+
+  // API state
+  const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState(null);
+  const [slots, setSlots] = useState([]);
+
+  // ====== State cho "Tạo Booking" ======
+  const [stations, setStations] = useState([]);
+  const [stationsLoading, setStationsLoading] = useState(false);
+  const [stationsErr, setStationsErr] = useState(null);
+
+  const [email, setEmail] = useState('');
+  const [vehicles, setVehicles] = useState([]);
+  const [selectedVehicle, setSelectedVehicle] = useState('');
+  const [selectedStation, setSelectedStation] = useState('');
+  const [loadingVehicles, setLoadingVehicles] = useState(false);
+  const [creatingBooking, setCreatingBooking] = useState(false);
+
+  // Fetch + normalize slot status + load stations
+  useEffect(() => {
+    let mounted = true;
+
+    (async () => {
+      try {
+        setLoading(true);
+        setErr(null);
+        if (!API_BASE_URL) throw new Error('Missing API_BASE_URL');
+
+        const token = localStorage.getItem('authToken') || '';
+        const res = await fetch(`${API_BASE_URL}/webAPI/api/secure/viewBatterySlotStatus`, {
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+            Accept: 'application/json',
+            'ngrok-skip-browser-warning': '1',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+        });
+        if (!mounted) return;
+        if (!res.ok) throw new Error(`HTTP ${res.status} - ${await res.text()}`);
+
+        const data = await res.json();
+        if (!Array.isArray(data)) throw new Error('Unexpected payload');
+
+        const normalized = data.map((x, i) => {
+          const firstDefined = (...vals) => vals.find(v => v !== undefined && v !== null);
+          return {
+            slotId: firstDefined(x.Slot_ID, x.slot_ID, x.slotId, i + 1),
+            code: firstDefined(x.Slot_Code, x.slot_Code, x.slotCode, `S${i + 1}`),
+            state: String(firstDefined(x.State, x.state, '')).trim(),
+            condition: String(firstDefined(x.Condition, x.condition, '')).trim(),
+            door: String(firstDefined(x.Door_State, x.door_State, x.doorState, '')).trim(),
+            batteryId: firstDefined(x.Battery_ID, x.battery_ID, x.batteryId, null),
+            soh: firstDefined(x.BatterySoH, x.batterySoH, x.batterySoH, x.soh, 0),
+            serial: firstDefined(x.BatterySerial, x.batterySerial, x.batterySerial, x.serial, null),
+            stationId: firstDefined(x.Station_ID, x.station_ID, x.stationId, null),
+            chargingStationId: firstDefined(x.ChargingStation_ID, x.chargingStation_ID, x.chargingStationId, null),
+            chargingSlotType: firstDefined(x.ChargingSlotType, x.chargingSlotType, x.slot_Type, ''),
+            chargingStationName: firstDefined(x.ChargingStationName, x.chargingStationName, 'Station'),
+            lastUpdate: firstDefined(x.Last_Update, x.last_Update, x.lastUpdate, ''),
+          };
+        });
+
+        setSlots(normalized);
+      } catch (e) {
+        setErr(e.message || 'Failed to load slots');
+        setSlots([]);
+      } finally {
+        setLoading(false);
+      }
+    })();
+
+    (async () => {
+      try {
+        setStationsLoading(true);
+        setStationsErr(null);
+        const token = localStorage.getItem('authToken') || '';
+        const res = await fetch(`${API_BASE_URL}/webAPI/api/getstations`, {
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+            Accept: 'application/json',
+            'ngrok-skip-browser-warning': '1',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+        });
+
+        const ct = res.headers.get('content-type') || '';
+        let payload = {};
+        if (ct.includes('application/json')) payload = await res.json().catch(() => ({}));
+        else {
+          const t = await res.text();
+          payload = { status: 'error', message: t };
+        }
+
+        if (!res.ok) throw new Error(payload.message || `HTTP ${res.status}`);
+        if (payload.status !== 'success') throw new Error(payload.message || 'Không lấy được danh sách trạm');
+
+        const list = Array.isArray(payload.data) ? payload.data : [];
+        setStations(list);
+
+        // >>> Set mặc định theo Name của bản ghi đầu tiên
+        if (list.length && !selectedStation) {
+          const firstName =
+            list[0].Name ??
+            list[0].station_Name ??
+            list[0].Station_Name ??
+            list[0].name ??
+            '';
+          setSelectedStation(firstName || '');
+        }
+      } catch (e) {
+        setStationsErr(e.message || 'Không tải được danh sách trạm');
+        setStations([]);
+      } finally {
+        setStationsLoading(false);
+      }
+    })();
+
+    return () => { mounted = false; };
+  }, []); // eslint-disable-line
+
+  // Suy đoán loại pin
+  const getChemFromChargingStationId = (id) => {
+    if (!id) return 'unknown';
+    if (id === 11) return 'lfp';
+    if (id === 12) return 'li';
+    if (id % 2 === 1) return 'li';
+    if (id % 2 === 0) return 'lfp';
+    return 'unknown';
+  };
+
+  // Map UI trụ
+  const toUiBattery = (s) => ({
+    id: s.serial || s.code || `S${s.slotId}`,
+    type: s.chargingSlotType || '—',
+    status: s.state || '-',
+    state: s.state || '-',
+    condition: s.condition || '-',
+    soh: Number(s.soh || 0),
+    location: s.chargingStationName || s.code || '-',
+    lastCharge: s.lastUpdate || '-',
+    code: s.code || '-',
+    action: 'Chi tiết',
+  });
+
+  const lithiumFromApi = useMemo(
+    () =>
+      slots
+        .filter((s) => {
+          const txt = String(s.chargingSlotType || '').toLowerCase();
+          if (txt.includes('lithium')) return true;
+          if (txt.includes('li-ion') || txt.includes('li ion')) return true;
+          return getChemFromChargingStationId(s.chargingStationId) === 'li';
+        })
+        .map(toUiBattery),
+    [slots]
+  );
+
+  const lfpFromApi = useMemo(
+    () =>
+      slots
+        .filter((s) => {
+          const txt = String(s.chargingSlotType || '').toLowerCase();
+          if (txt.includes('lfp')) return true;
+          return getChemFromChargingStationId(s.chargingStationId) === 'lfp';
+        })
+        .map(toUiBattery),
+    [slots]
+  );
+
+  // === KPI từ API ===
+  const summary = useMemo(() => {
+    let full = 0, charging = 0, maintenance = 0, reserved = 0;
+    for (const s of slots) {
+      const st = String(s.state || '').trim().toLowerCase();
+      const cd = String(s.condition || '').trim().toLowerCase();
+      const isReserved    = (st === 'reserved' || st === 'reversed');
+      const isFull        = (st === 'occupied' && cd === 'good');
+      const isCharging    = (st === 'charging' || cd === 'weak' || cd === 'charging');
+      const isMaintenance = (cd === 'damage' || cd === 'damaged');
+      if (isReserved) reserved++;
+      else if (isMaintenance) maintenance++;
+      else if (isCharging) charging++;
+      else if (isFull) full++;
+    }
+    return { full, charging, maintenance, reserved };
+  }, [slots]);
+
+  const kpis = [
+    { icon: '🟢', label: 'Pin đầy',   value: summary.full,        sub: 'Sẵn sàng sử dụng' },
+    { icon: '🔌', label: 'Đang sạc',  value: summary.charging,    sub: 'Đang nạp điện / Weak' },
+    { icon: '⚠️', label: 'Bảo dưỡng', value: summary.maintenance, sub: 'Damaged' },
+    { icon: '🟡', label: 'Đặt trước', value: summary.reserved,    sub: 'Reserved/Reversed' },
+  ];
+
+  // Modal xem trụ
+  const [showStationModal, setShowStationModal] = useState(false);
+  const [showStationModalLFP, setShowStationModalLFP] = useState(false);
+
+  // ====== Check-in ======
+  const [bookingId, setBookingId] = useState('');
+  const [checkingIn, setCheckingIn] = useState(false);
+  const [checkinPopup, setCheckinPopup] = useState(null); // {title, body}
+
+  const handleCheckIn = async (e) => {
+    e.preventDefault();
+    const id = bookingId.trim();
+    if (!id) return;
+
+    try {
+      setCheckingIn(true);
+      const token = localStorage.getItem('authToken') || '';
+      const headers = {
+        Accept: 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+        'ngrok-skip-browser-warning': '1',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      };
+      const body = new URLSearchParams({ bookingId: id });
+
+      const res = await fetch(`${API_BASE_URL}/webAPI/api/checkin`, {
+        method: 'POST',
+        credentials: 'include',
+        headers,
+        body,
+      });
+
+      let data = {};
+      const ct = res.headers.get('content-type') || '';
+      if (ct.includes('application/json')) data = await res.json().catch(() => ({}));
+      else {
+        const text = await res.text();
+        data = { error: text || `HTTP ${res.status}` };
+      }
+
+      if (!res.ok || data.error) {
+        setCheckinPopup({ title: 'Check In thất bại', body: data.error || `HTTP ${res.status}` });
+        return;
+      }
+
+      if (data.paymentUrl) {
+        setCheckinPopup({
+          title: 'Cần thanh toán trước khi đổi pin',
+          body: (
+            <>
+              <div>Mã thanh toán: <b>{data.txnRef || '—'}</b></div>
+              <div>Số tiền: <b>{Number(data.fee || 0).toLocaleString('vi-VN')} đ</b></div>
+              <div style={{ marginTop: 8 }}>
+                <a href={data.paymentUrl} target="_blank" rel="noreferrer" className="detail-btn">Mở VNPay</a>
+              </div>
+            </>
+          ),
+        });
+        return;
+      }
+
+      setCheckinPopup({ title: 'Check In thành công', body: data.message || 'Đã xác nhận check-in.' });
+    } catch (err) {
+      setCheckinPopup({ title: 'Lỗi kết nối', body: String(err?.message || err) });
+    } finally {
+      setCheckingIn(false);
+    }
+  };
+
+  // ====== Tạo Booking ======
+  const [createPopup, setCreatePopup] = useState(null); // {title, body}
+
+  const fetchVehiclesByEmail = async () => {
+    const mail = email.trim();
+    if (!mail) return;
+    try {
+      setLoadingVehicles(true);
+      const token = localStorage.getItem('authToken') || '';
+      const qs = new URLSearchParams({ email: mail, station: selectedStation || '' }).toString();
+      const res = await fetch(`${API_BASE_URL}/webAPI/api/secure/staffBooking?${qs}`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          Accept: 'application/json',
+          'ngrok-skip-browser-warning': '1',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data.error) throw new Error(data.error || `HTTP ${res.status}`);
+      const vs = Array.isArray(data.vehicles) ? data.vehicles : [];
+      setVehicles(vs);
+      if (vs.length > 0) setSelectedVehicle(String(vs[0].vehicleId));
+      else setSelectedVehicle('');
+      setCreatePopup({
+        title: 'Đã tải danh sách xe',
+        body: vs.length ? `Tìm thấy ${vs.length} xe. Hãy chọn 1 xe để tạo booking.` : 'Không có xe nào cho email này.',
+      });
+    } catch (e) {
+      setVehicles([]);
+      setSelectedVehicle('');
+      setCreatePopup({ title: 'Lỗi', body: e.message || 'Không tải được xe' });
+    } finally {
+      setLoadingVehicles(false);
+    }
+  };
+
+  const handleCreateBooking = async () => {
+    const mail = email.trim();
+    if (!mail || !selectedStation || !selectedVehicle) {
+      setCreatePopup({
+        title: 'Thiếu thông tin',
+        body: 'Vui lòng nhập Email, chọn Trạm và chọn Xe trước khi tạo booking.',
+      });
+      return;
+    }
+    try {
+      setCreatingBooking(true);
+      const token = localStorage.getItem('authToken') || '';
+      const res = await fetch(`${API_BASE_URL}/webAPI/api/secure/staffBooking`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json;charset=UTF-8',
+          'ngrok-skip-browser-warning': '1',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          email: mail,
+          stationName: selectedStation,    // gửi theo Name
+          vehicleId: Number(selectedVehicle)
+        }),
+      });
+
+      // an toàn khi BE trả text/html
+      let data = {};
+      const ct = res.headers.get('content-type') || '';
+      if (ct.includes('application/json')) {
+        data = await res.json().catch(() => ({}));
+      } else {
+        const t = await res.text();
+        data = { error: t || `HTTP ${res.status}` };
+      }
+
+      if (!res.ok || data.error) throw new Error(data.error || `HTTP ${res.status}`);
+
+      setCreatePopup({
+        title: 'Tạo booking thành công',
+        body: (
+          <div>
+            <div>Booking ID: <b>{data.bookingId}</b></div>
+            <div>Trạng thái: <b>{data.status}</b></div>
+            <div>Hết hạn: <b>{data.expiredTime}</b></div>
+            {data.qrCode && (
+              <div style={{ marginTop: 8 }}>
+                <img alt="QR" src={`data:image/png;base64,${data.qrCode}`} style={{ maxWidth: 180 }} />
+              </div>
+            )}
+          </div>
+        ),
+      });
+    } catch (e) {
+      setCreatePopup({ title: 'Tạo booking thất bại', body: e.message || 'Không tạo được booking' });
+    } finally {
+      setCreatingBooking(false);
+    }
+  };
+
+  return (
+    <div className="staff-dashboard-wrap">
+      {/* Panel ảnh 2 trụ */}
+      <div className="staff-right-panel" style={{ display: 'flex', gap: 16 }}>
+        <div style={{ textAlign: 'center' }}>
+          <img
+            src="/ping.jpg"
+            alt="Trụ Li-ion"
+            className="staff-right-image"
+            onClick={() => setShowStationModal(true)}
+            style={{ cursor: 'pointer' }}
+          />
+          <div style={{ marginTop: 8, fontWeight: 600 }}>Trụ Li-ion</div>
+        </div>
+
+        <div style={{ textAlign: 'center' }}>
+          <img
+            src="/ping.jpg"
+            alt="Trụ LFP"
+            className="staff-right-image"
+            onClick={() => setShowStationModalLFP(true)}
+            style={{ cursor: 'pointer' }}
+          />
+          <div style={{ marginTop: 8, fontWeight: 600 }}>Trụ LFP</div>
+        </div>
+      </div>
+
+      {/* Card dashboard */}
+      <div className="staff-dashboard-card">
+        <h2 className="staff-dashboard-title">Dashboard Nhân viên Trạm</h2>
+        <div className="staff-dashboard-subtitle">Quản lý tồn kho pin và Check In</div>
+
+        {/* KPI từ API */}
+        <div className="staff-dashboard-summary">
+          {kpis.map((c, i) => (
+            <div key={i} className="staff-dashboard-summary-card">
+              <div className="staff-dashboard-summary-icon">{c.icon}</div>
+              <div className="staff-dashboard-summary-value">{c.value}</div>
+              <div className="staff-dashboard-summary-label">{c.label}</div>
+              <div className="staff-dashboard-summary-sub">{c.sub}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Tabs */}
+        <div className="staff-dashboard-tabs">
+          {tabs.map(tab => (
+            <button
+              key={tab.value}
+              onClick={() => setActiveTab(tab.value)}
+              className={'staff-dashboard-tab-btn' + (activeTab === tab.value ? ' active' : '')}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Nội dung tab */}
+        <div>
+          {activeTab === 'inventory' && (
+            <div className="staff-inventory-section">
+              <div className="staff-inventory-title">Tình trạng trụ</div>
+              <div className="staff-inventory-desc">Nhấn vào ảnh trụ ở trên để xem sơ đồ ô.</div>
+              {err && <div style={{ color: '#ef4444', marginTop: 8 }}>{err}</div>}
+              {loading && <div style={{ marginTop: 8 }}>Đang tải dữ liệu…</div>}
+            </div>
+          )}
+
+          {activeTab === 'checkin' && (
+            <div className="staff-transaction-section">
+              <div className="staff-transaction-title">Check In</div>
+              <div className="staff-transaction-desc">Nhập Booking ID của khách để tiến hành Check In.</div>
+
+              <form onSubmit={handleCheckIn} className="checkin-form">
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="Nhập Booking ID"
+                  value={bookingId}
+                  onChange={(e) => setBookingId(e.target.value)}
+                  className="input"
+                  style={{ maxWidth: 280, marginRight: 12 }}
+                />
+                <button type="submit" className="detail-btn" disabled={checkingIn || !bookingId.trim()}>
+                  {checkingIn ? 'Đang xử lý…' : 'Check In'}
+                </button>
+              </form>
+            </div>
+          )}
+
+          {activeTab === 'create' && (
+            <div className="staff-transaction-section">
+              <div className="staff-transaction-title">Tạo Booking</div>
+              <div className="staff-transaction-desc">
+                Nhập <b>Email</b> khách hàng, chọn <b>Trạm</b> & <b>Xe</b> để tạo booking.
+              </div>
+
+              {/* Email + Lấy xe */}
+              <div className="row">
+                <label className="lbl">Email khách hàng</label>
+                <div className="row-inline">
+                  <input
+                    type="email"
+                    placeholder="vd: khach@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="input grow"
+                  />
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    onClick={fetchVehiclesByEmail}
+                    disabled={!email.trim() || loadingVehicles}
+                    title="Tải xe theo email"
+                  >
+                    {loadingVehicles ? 'Đang tải…' : 'Lấy xe'}
+                  </button>
+                </div>
+              </div>
+
+              {/* Trạm */}
+              <div className="row">
+                <label className="lbl">Chọn trạm</label>
+                <select
+                  className="input"
+                  value={selectedStation}
+                  onChange={(e) => setSelectedStation(e.target.value)}
+                >
+                  {stationsLoading && <option>Đang tải trạm…</option>}
+                  {!stationsLoading && stations.length === 0 && <option value="">Không có dữ liệu trạm</option>}
+
+                  {/* Hiển thị theo dữ liệu thực tế: Station_ID + Name */}
+                  {!stationsLoading && stations.map((s) => {
+                    const key = s.Station_ID ?? s.station_ID ?? s.id;
+                    const label = s.Name ?? s.station_Name ?? s.Station_Name ?? s.name ?? `Station #${key ?? ''}`;
+                    return (
+                      <option key={key} value={label}>
+                        {label}
+                      </option>
+                    );
+                  })}
+                </select>
+                {stationsErr && <small className="hint error">{stationsErr}</small>}
+              </div>
+
+              {/* Xe */}
+              <div className="row">
+                <label className="lbl">Chọn xe</label>
+                <select
+                  className="input"
+                  value={selectedVehicle}
+                  onChange={(e) => setSelectedVehicle(e.target.value)}
+                  disabled={vehicles.length === 0}
+                >
+                  {vehicles.length === 0 && <option value="">Chưa có xe — hãy “Lấy xe”</option>}
+                  {vehicles.map((v) => (
+                    <option key={v.vehicleId} value={v.vehicleId}>
+                      #{v.vehicleId} — {v.modelName || v.brand || 'Xe'} ({v.batteryType || '—'})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Nút tạo */}
+              <div className="row">
+                <button
+                  type="button"
+                  className="detail-btn"
+                  onClick={handleCreateBooking}
+                  disabled={creatingBooking || !email.trim() || !selectedStation || !selectedVehicle}
+                >
+                  {creatingBooking ? 'Đang tạo…' : 'Tạo Booking'}
+                </button>
+                <small className="hint">Hệ thống sẽ tự giữ pin phù hợp tại trạm trong 1 giờ.</small>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Modal trụ Li-ion */}
+      {showStationModal && (
+        <div className="station-modal-backdrop" onClick={() => setShowStationModal(false)}>
+          <div className="station-modal" onClick={(e) => e.stopPropagation()}>
+            {loading && <div>Đang tải dữ liệu…</div>}
+            {err && <div style={{ color: '#ef4444' }}>{err}</div>}
+            {!loading && <PinStationMockup batteries={lithiumFromApi} />}
+            <div style={{ textAlign: 'right', marginTop: 12 }}>
+              <button className="detail-btn" onClick={() => setShowStationModal(false)}>Đóng</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal trụ LFP */}
+      {showStationModalLFP && (
+        <div className="station-modal-backdrop" onClick={() => setShowStationModalLFP(false)}>
+          <div className="station-modal" onClick={(e) => e.stopPropagation()}>
+            {loading && <div>Đang tải dữ liệu…</div>}
+            {err && <div style={{ color: '#ef4444' }}>{err}</div>}
+            {!loading && <PinStationMockup batteries={lfpFromApi} />}
+            <div style={{ textAlign: 'right', marginTop: 12 }}>
+              <button className="detail-btn" onClick={() => setShowStationModalLFP(false)}>Đóng</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Popup thông báo Check In */}
+      <MessageBox
+        open={!!checkinPopup}
+        title={checkinPopup?.title || ''}
+        onClose={() => setCheckinPopup(null)}
+        tone={
+          checkinPopup?.title?.toLowerCase().includes('thất bại') ? 'error' :
+          checkinPopup?.title?.toLowerCase().includes('thành công') ? 'success' :
+          'info'
+        }
+      >
+        <div className="msgbox-content">{checkinPopup?.body}</div>
+      </MessageBox>
+
+      {/* Popup thông báo Tạo Booking */}
+      <MessageBox
+        open={!!createPopup}
+        title={createPopup?.title || ''}
+        onClose={() => setCreatePopup(null)}
+        tone={
+          createPopup?.title?.toLowerCase().includes('thành công') ? 'success' :
+          createPopup?.title?.toLowerCase().includes('lỗi') ? 'error' :
+          createPopup?.title?.toLowerCase().includes('thất bại') ? 'error' :
+          'info'
+        }
+      >
+        <div className="msgbox-content">{createPopup?.body}</div>
+      </MessageBox>
+    </div>
+  );
 }

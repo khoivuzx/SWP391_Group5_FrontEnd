@@ -14,6 +14,16 @@ export default function TransactionHistory() {
   const [packageItems, setPackageItems] = useState([]);
   const [error, setError] = useState("");
 
+  // ====== Comment UI state ======
+  const [cOpen, setCOpen] = useState(false);
+  const [cSwap, setCSwap] = useState(null);              // swap row object
+  const [cText, setCText] = useState("");                // comment content
+  const [cLoading, setCLoading] = useState(false);
+  const [cError, setCError] = useState("");
+  const [cSuccess, setCSuccess] = useState("");
+  // cache: swapId -> true (đã có comment)
+  const [commentedMap, setCommentedMap] = useState({});  
+
   // Build query string từ from/to
   const params = useMemo(() => {
     const p = new URLSearchParams();
@@ -30,7 +40,7 @@ export default function TransactionHistory() {
     throw new Error(`HTTP ${res.status} – ${text.slice(0, 200)}`);
   };
 
-  // ✅ Chuẩn hoá dữ liệu swap — KHÔNG CÒN paymentMethod
+  // ✅ Chuẩn hoá dữ liệu swap — thêm status và swapId
   const normalizeSwap = (s) => ({
     id: s.swapId ?? s.id ?? s.ID,
     station: s.station ?? s.Station ?? "-",
@@ -39,6 +49,9 @@ export default function TransactionHistory() {
     sohOld: s.sohOld ?? s.SoH_Old ?? null,
     sohNew: s.sohNew ?? s.SoH_New ?? null,
     fee: s.fee ?? s.Fee ?? null,
+    // status/description phục vụ hiển thị & điều kiện nhận xét
+    status:
+      s.status ?? s.Status ?? s.description ?? s.Description ?? s["Mô tả"] ?? "-",
     description:
       s.description ?? s.Description ?? s["Mô tả"] ?? s.status ?? s.Status ?? "-",
     time:
@@ -50,12 +63,47 @@ export default function TransactionHistory() {
     id: x.id != null ? x.id : x.ID,
     userId: x.userId != null ? x.userId : x.User_ID,
     stationId: x.stationId != null ? x.stationId : x.Station_ID,
-    packageId: x.packageId != null ? x.packageId : x.Package_ID,
+    // map tên gói từ BE
+    packageName:
+      x.packageName ??
+      x.Package_Name ??
+      x.name ??
+      x.Name ??
+      (x.packageId != null
+        ? String(x.packageId)
+        : x.Package_ID != null
+        ? String(x.Package_ID)
+        : "-"),
     amount: x.amount != null ? x.amount : x.Amount,
     paymentMethod: x.paymentMethod ?? x.Payment_Method ?? "-",
     description: x.description ?? x.Description ?? "-",
     transactionTime: x.transactionTime ?? x.Transaction_Time,
   });
+
+  // --------- API: kiểm tra đã comment cho một swap ----------
+  const checkCommented = async (swapId) => {
+    if (!jwt || !swapId) return false;
+    try {
+      const res = await fetch(
+        `${API_BASE_URL}/webAPI/api/secure/comments?swapId=${encodeURIComponent(
+          swapId
+        )}`,
+        {
+          method: "GET",
+          credentials: "include",
+          headers: {
+            Authorization: `Bearer ${jwt}`,
+            "ngrok-skip-browser-warning": "true",
+          },
+        }
+      );
+      const data = await safeJson(res);
+      // BE trả list comments; nếu có phần tử => đã nhận xét
+      return Array.isArray(data) && data.length > 0;
+    } catch {
+      return false;
+    }
+  };
 
   // Gọi API swap history
   const fetchSwaps = async () => {
@@ -67,8 +115,6 @@ export default function TransactionHistory() {
     setError("");
 
     const url = `${API_BASE_URL}/webAPI/api/secure/my-swaps${params}`;
-    console.log("🌐 GET", url);
-
     try {
       const res = await fetch(url, {
         method: "GET",
@@ -86,7 +132,18 @@ export default function TransactionHistory() {
       }
 
       const arr = Array.isArray(data) ? data : [];
-      setSwapItems(arr.map(normalizeSwap));
+      const normalized = arr.map(normalizeSwap);
+      setSwapItems(normalized);
+
+      // Preload trạng thái đã comment cho các swap hiển thị
+      const map = {};
+      await Promise.all(
+        normalized.map(async (r) => {
+          const ok = await checkCommented(r.id);
+          if (ok) map[r.id] = true;
+        })
+      );
+      setCommentedMap(map);
     } catch (e) {
       console.error("❌ Fetch swaps error:", e);
       setError(e.message || "Có lỗi xảy ra khi tải dữ liệu.");
@@ -106,8 +163,6 @@ export default function TransactionHistory() {
     setError("");
 
     const url = `${API_BASE_URL}/webAPI/api/secure/my-package-history${params}`;
-    console.log("🌐 GET", url);
-
     try {
       const res = await fetch(url, {
         method: "GET",
@@ -174,6 +229,57 @@ export default function TransactionHistory() {
     </div>
   );
 
+  // ====== Open modal nhận xét ======
+  const openComment = async (row) => {
+    setCError("");
+    setCSuccess("");
+    setCText("");
+    setCSwap(row);
+    setCOpen(true);
+  };
+
+  // ====== Submit comment ======
+  const submitComment = async () => {
+    if (!cSwap?.id || !cText.trim()) {
+      setCError("Vui lòng nhập nội dung nhận xét.");
+      return;
+    }
+    setCLoading(true);
+    setCError("");
+    setCSuccess("");
+    try {
+      const res = await fetch(`${API_BASE_URL}/webAPI/api/secure/comments`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+          "Content-Type": "application/json",
+          "ngrok-skip-browser-warning": "true",
+        },
+        body: JSON.stringify({ swapId: cSwap.id, content: cText.trim() }),
+      });
+      const data = await safeJson(res);
+      if (!res.ok) {
+        throw new Error(data?.message || "Không gửi được nhận xét.");
+      }
+      setCSuccess("Đã gửi nhận xét. Cảm ơn bạn!");
+      setCommentedMap((m) => ({ ...m, [cSwap.id]: true }));
+      setTimeout(() => {
+        setCOpen(false);
+      }, 800);
+    } catch (e) {
+      setCError(e.message || "Có lỗi khi gửi nhận xét.");
+    } finally {
+      setCLoading(false);
+    }
+  };
+
+  // Chỉ khi trạng thái đúng Completed mới cho nhận xét
+  const canComment = (row) => {
+    const s = (row?.status ?? "").toString().trim().toLowerCase();
+    return s === "completed";
+  };
+
   return (
     <div className="th-page">
       <div className="th-card">
@@ -239,23 +345,44 @@ export default function TransactionHistory() {
                       <th>Phí</th>
                       <th>Mô tả</th>
                       <th>Thời gian</th>
+                      <th style={{ width: 140 }}>Nhận xét</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {swapItems.map((r) => (
-                      <tr key={r.id}>
-                        <td>{r.id}</td>
-                        <td>{r.station ?? "-"}</td>
-                        <td>{r.chargingStation ?? "-"}</td>
-                        <td>
-                          {r.sohOld != null ? r.sohOld : "-"} →{" "}
-                          <b>{r.sohNew != null ? r.sohNew : "-"}</b>
-                        </td>
-                        <td>{currency(r.fee)}</td>
-                        <td>{r.description ?? "-"}</td>
-                        <td>{dateTime(r.time)}</td>
-                      </tr>
-                    ))}
+                    {swapItems.map((r) => {
+                      const already = !!commentedMap[r.id];
+                      const allow = canComment(r);
+                      return (
+                        <tr key={r.id}>
+                          <td>{r.id}</td>
+                          <td>{r.station ?? "-"}</td>
+                          <td>{r.chargingStation ?? "-"}</td>
+                          <td>
+                            {r.sohOld != null ? r.sohOld : "-"} →{" "}
+                            <b>{r.sohNew != null ? r.sohNew : "-"}</b>
+                          </td>
+                          <td>{currency(r.fee)}</td>
+                          <td>{r.description ?? "-"}</td>
+                          <td>{dateTime(r.time)}</td>
+                          <td>
+                            {already ? (
+                              <span className="th-badge th-badge-success">
+                                Đã nhận xét
+                              </span>
+                            ) : allow ? (
+                              <button
+                                className="th-btn th-btn-secondary"
+                                onClick={() => openComment(r)}
+                              >
+                                Nhận xét
+                              </button>
+                            ) : (
+                              <span>—</span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -263,7 +390,7 @@ export default function TransactionHistory() {
           </>
         )}
 
-        {/* Bảng Gói pin (GIỮ NGUYÊN) */}
+        {/* Bảng Gói pin */}
         {!loading && activeTab === "package" && (
           <>
             {packageItems.length === 0 ? (
@@ -285,7 +412,7 @@ export default function TransactionHistory() {
                     {packageItems.map((r) => (
                       <tr key={r.id}>
                         <td>{r.id}</td>
-                        <td>{r.packageId ?? "-"}</td>
+                        <td>{r.packageName ?? "-"}</td>
                         <td>{currency(r.amount)}</td>
                         <td>{r.paymentMethod ?? "-"}</td>
                         <td>{r.description ?? "-"}</td>
@@ -299,6 +426,67 @@ export default function TransactionHistory() {
           </>
         )}
       </div>
+
+      {/* ===== Message Box Nhận xét (UI mới, logic giữ nguyên) ===== */}
+      {cOpen && (
+        <div className="th-msgbox-backdrop" onClick={() => setCOpen(false)}>
+          <div
+            className="th-msgbox"
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
+            role="dialog"
+            aria-modal="true"
+          >
+            <div className="th-msgbox-header">
+              <span className="th-msgbox-icon" aria-hidden>
+                💬
+              </span>
+              <h3 className="th-msgbox-title">
+                Nhận xét cho swap #{cSwap?.id}
+              </h3>
+              <button
+                className="th-msgbox-close"
+                title="Đóng"
+                onClick={() => setCOpen(false)}
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="th-msgbox-body">
+              <textarea
+                className="th-input th-input-textarea"
+                rows={5}
+                placeholder="Nhập nhận xét của bạn về dịch vụ…"
+                value={cText}
+                onChange={(e) => setCText(e.target.value)}
+              />
+              {cError && <div className="th-alert">{cError}</div>}
+              {cSuccess && (
+                <div className="th-alert th-alert-success">{cSuccess}</div>
+              )}
+            </div>
+
+            <div className="th-msgbox-actions">
+              <button
+                className="th-btn"
+                onClick={() => setCOpen(false)}
+                disabled={cLoading}
+              >
+                Hủy
+              </button>
+              <button
+                className="th-btn th-btn-primary"
+                onClick={submitComment}
+                disabled={cLoading}
+              >
+                {cLoading ? "Đang gửi…" : "Gửi nhận xét"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

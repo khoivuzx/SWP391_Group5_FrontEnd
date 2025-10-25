@@ -1,10 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import "./polices.css";
-import API_BASE_URL from "../../config"; // đường dẫn gốc BE
+import API_BASE_URL from "../../config";
 import { GogoroPolicyModern } from "./policesGogoro.jsx";
 
-// ===================== SLIDE WORDS =====================
+/* ===================== SLIDE WORDS ===================== */
 const slideWords = [
   "Dễ dàng và tiện lợi",
   "Giá trị tốt cho tiền",
@@ -81,7 +80,7 @@ export default function Polices({ onLoginClick, user }) {
   );
 }
 
-// --- SVG Icon ---
+/* --- SVG Icon --- */
 const CheckIcon = ({ className }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -99,7 +98,7 @@ const CheckIcon = ({ className }) => (
   </svg>
 );
 
-// --- Button ---
+/* --- Button --- */
 const Button = ({
   size = "md",
   variant = "default",
@@ -115,12 +114,33 @@ const Button = ({
     </button>
   );
 };
-// ===================== MAIN: Lấy dữ liệu gói từ BE =====================
-export function PolicesPricingFAQ({ onLoginClick, user }) {
-  const isLoggedIn = !!(user && user.fullName);
-  const navigate = useNavigate();
 
-  const [message, setMessage] = useState("");
+/* ====== Fallback tĩnh nếu API lỗi (tối giản để không crash) ====== */
+const fallbackPackages = [
+  {
+    packageId: 1,
+    name: "Basic",
+    price: 199000,
+    description: "Gói cơ bản",
+    minSoH: 80,
+    maxSoH: 100,
+    requiredSoH: 80,
+  },
+  {
+    packageId: 2,
+    name: "Standard",
+    price: 299000,
+    description: "Gói tiêu chuẩn",
+    minSoH: 75,
+    maxSoH: 100,
+    requiredSoH: 75,
+  },
+];
+
+/* ===================== MAIN ===================== */
+export function PolicesPricingFAQ({ onLoginClick, user }) {
+  const isLoggedIn = !!(user && (user.fullName || user.fullname || user.name));
+
   const [loading, setLoading] = useState(true);
   const [tiers, setTiers] = useState([]);
   const [error, setError] = useState("");
@@ -133,10 +153,18 @@ export function PolicesPricingFAQ({ onLoginClick, user }) {
   };
   const isHighlighted = (name) => name === "Basic";
 
-  // Lấy dữ liệu gói pin: ưu tiên API, fallback sang dữ liệu tĩnh nếu lỗi
+  // Đọc JSON an toàn
+  const safeJson = async (res) => {
+    const ct = res.headers.get("content-type") || "";
+    if (ct.includes("application/json")) return await res.json();
+    const text = await res.text();
+    throw new Error(`HTTP ${res.status} – ${text.slice(0, 200)}`);
+  };
+
+  // Lấy dữ liệu gói pin
   useEffect(() => {
     let abort = false;
-    async function fetchPackages() {
+    (async () => {
       setLoading(true);
       setError("");
       try {
@@ -145,44 +173,61 @@ export function PolicesPricingFAQ({ onLoginClick, user }) {
           method: "GET",
           headers: { "ngrok-skip-browser-warning": "true" },
         });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const json = await res.json();
+        const json = await safeJson(res);
         if (abort) return;
-        if (json?.status === "success" && Array.isArray(json?.data)) {
-          const mapped = json.data.map((pkg) => ({
-            packageId: pkg.packageId,
-            nameVi: pkg.name,
-            price: pkg.price,
-            period: "VND/tháng",
-            description: pkg.description,
-            features: [
-              `Nhận pin trong khoảng SoH ${pkg.minSoH}–${pkg.maxSoH}%`,
-              `Pin trả ≥${pkg.requiredSoH}% thì miễn phí`,
-              `Yêu cầu SoH tối thiểu: ${pkg.requiredSoH}%`,
-              "Phù hợp cho nhu cầu di chuyển đa dạng",
-            ],
-            cta: `Chọn gói ${pkg.name}`,
-            highlighted: isHighlighted(pkg.name),
-            cardClass: cardClassByName[pkg.name] || "card--basic",
-          }));
-          setTiers(mapped);
-        } else {
-          throw new Error("Payload không hợp lệ");
-        }
+        if (!res.ok) throw new Error(json?.message || `HTTP ${res.status}`);
+
+        const data = Array.isArray(json?.data) ? json.data : [];
+        const mapped = data.map((pkg) => ({
+          packageId: pkg.packageId,
+          nameVi: pkg.name,
+          price: pkg.price,
+          period: "VND/tháng",
+          description: pkg.description,
+          features: [
+            `Nhận pin trong khoảng SoH ${pkg.minSoH}–${pkg.maxSoH}%`,
+            `Pin trả ≥${pkg.requiredSoH}% thì miễn phí`,
+            `Yêu cầu SoH tối thiểu: ${pkg.requiredSoH}%`,
+            "Phù hợp cho nhu cầu di chuyển đa dạng",
+          ],
+          cta: `Chọn gói ${pkg.name}`,
+          highlighted: isHighlighted(pkg.name),
+          cardClass: cardClassByName[pkg.name] || "card--basic",
+        }));
+
+        setTiers(mapped);
       } catch (e) {
-        // Nếu lỗi API, fallback sang dữ liệu tĩnh
-        setTiers(batteryPackages);
-        setError("");
+        console.error("⚠️ getpackages error:", e);
+        // Fallback để UI vẫn hiển thị
+        const mapped = fallbackPackages.map((pkg) => ({
+          packageId: pkg.packageId,
+          nameVi: pkg.name,
+          price: pkg.price,
+          period: "VND/tháng",
+          description: pkg.description,
+          features: [
+            `Nhận pin trong khoảng SoH ${pkg.minSoH}–${pkg.maxSoH}%`,
+            `Pin trả ≥${pkg.requiredSoH}% thì miễn phí`,
+            `Yêu cầu SoH tối thiểu: ${pkg.requiredSoH}%`,
+            "Phù hợp cho nhu cầu di chuyển đa dạng",
+          ],
+          cta: `Chọn gói ${pkg.name}`,
+          highlighted: isHighlighted(pkg.name),
+          cardClass: cardClassByName[pkg.name] || "card--basic",
+        }));
+        setTiers(mapped);
       } finally {
         if (!abort) setLoading(false);
       }
-    }
-    fetchPackages();
-    return () => { abort = true; };
+    })();
+    return () => {
+      abort = true;
+    };
   }, []);
 
-  // ======== Bổ sung hàm lấy userId ========
+  // Lấy userId FE (ưu tiên props.user, fallback localStorage)
   const getUserIdFE = () => {
+    if (user?.id) return String(user.id);
     try {
       const u = JSON.parse(localStorage.getItem("user") || "{}");
       if (u?.id) return String(u.id);
@@ -190,23 +235,19 @@ export function PolicesPricingFAQ({ onLoginClick, user }) {
     return "";
   };
 
-  // ======== MUA GÓI (THANH TOÁN VNPay) ========
+  /* ======== MUA GÓI (mở VNPay tab mới) ======== */
   const handleChoosePlan = (tier) => {
-    if (!isLoggedIn && onLoginClick) {
-      onLoginClick();
-      const isLoggedIn = !!(user && user.fullName);
-      return (
-        <>
-          <PolicesPricingFAQ onLoginClick={onLoginClick} user={user} />
-        </>
-      );
+    if (!tier || !tier.packageId) return;
+    if (!isLoggedIn) {
+      onLoginClick && onLoginClick();
+      return; // ❌ không hiện message đỏ
     }
 
-    // ...existing code...
-    setMessage("Không xác định được thông tin người dùng hoặc gói pin.");
-    return;
+    const userId = getUserIdFE();
+    const amount = typeof tier.price === "number" ? tier.price : 0;
+    const packageId = tier.packageId;
+    if (!userId) return;
 
-    // API thanh toán từ BE
     const params = new URLSearchParams({
       userId: String(userId),
       amount: String(amount),
@@ -215,117 +256,124 @@ export function PolicesPricingFAQ({ onLoginClick, user }) {
     });
 
     const payUrl = `${API_BASE_URL}/webAPI/api/payment?${params.toString()}`;
-    console.log("Redirecting to:", payUrl);
-    window.open(payUrl, "_blank", "noopener,noreferrer"); // mở VNPay ở tab mới
+    window.open(payUrl, "_blank", "noopener,noreferrer"); // ✅ mở VNPay tab mới
   };
 
-  // ===================== RENDER UI =====================
-return (
-  <>
-    <div className="polices-container">
-      <header className="page-header">
-        <div className="header-icon-wrapper">
-          <svg className="header-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        </div>
-        <h1 className="header-title">Gói cước dịch vụ đổi pin</h1>
-        <p className="header-subtitle">
-          Chọn gói cước phù hợp với nhu cầu di chuyển của bạn. Tất cả các gói đều có thể thay đổi bất kỳ lúc nào. Không có chi phí ẩn.
-        </p>
-      </header>
+  const currency = (v) =>
+    typeof v === "number"
+      ? v.toLocaleString("vi-VN", { style: "currency", currency: "VND" })
+      : "-";
 
-      <main className="pricing-section">
-        {message && (
-          <div className="api-message" style={{
-            marginBottom: 16,
-            color: message.includes("thành công") ? "green" : "red",
-          }}>
-            {message}
+  return (
+    <>
+      <div className="polices-container">
+        <header className="page-header">
+          <div className="header-icon-wrapper">
+            <svg className="header-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
           </div>
-        )}
+          <h1 className="header-title">Gói cước dịch vụ đổi pin</h1>
+          <p className="header-subtitle">
+            Chọn gói cước phù hợp với nhu cầu di chuyển của bạn. Tất cả các gói
+            đều có thể thay đổi bất kỳ lúc nào. Không có chi phí ẩn.
+          </p>
+        </header>
 
-        {loading ? (
-          <div className="pricing-grid">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="pricing-card card--basic">
-                <div className="card-content">
-                  <div className="skeleton skeleton-title" />
-                  <div className="skeleton skeleton-text" />
-                  <div className="card-price-wrapper">
-                    <div className="skeleton skeleton-price" />
+        <main className="pricing-section">
+          {loading ? (
+            <div className="pricing-grid">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="pricing-card card--basic">
+                  <div className="card-content">
+                    <div className="skeleton skeleton-title" />
+                    <div className="skeleton skeleton-text" />
+                    <div className="card-price-wrapper">
+                      <div className="skeleton skeleton-price" />
+                    </div>
+                    <ul className="card-features">
+                      {[1, 2, 3, 4].map((j) => (
+                        <li key={j} className="feature-item">
+                          <span className="skeleton skeleton-line" />
+                        </li>
+                      ))}
+                    </ul>
                   </div>
-                  <ul className="card-features">
-                    {[1, 2, 3, 4].map((j) => (
-                      <li key={j} className="feature-item">
-                        <span className="skeleton skeleton-line" />
-                      </li>
-                    ))}
-                  </ul>
+                  <div className="card-footer">
+                    <Button size="lg" className="w-full" disabled>
+                      Đang tải…
+                    </Button>
+                  </div>
                 </div>
-                <div className="card-footer">
-                  <Button size="lg" className="w-full" disabled>Đang tải…</Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : error ? (
-          <div className="api-message" style={{ color: "red" }}>{error}</div>
-        ) : (
-          <div className="pricing-grid">
-            {tiers.map((tier) => (
-              <div key={tier.packageId} className={`pricing-card ${tier.cardClass}`}>
-                {tier.highlighted && <div className="highlight-badge">Phổ biến nhất</div>}
+              ))}
+            </div>
+          ) : error ? (
+            <div className="api-message" style={{ color: "red" }}>
+              {error}
+            </div>
+          ) : (
+            <div className="pricing-grid">
+              {tiers.map((tier) => (
+                <div key={tier.packageId} className={`pricing-card ${tier.cardClass}`}>
+                  {tier.highlighted && <div className="highlight-badge">Phổ biến nhất</div>}
 
-                <div className="card-content">
-                  <h3 className="card-title">{tier.nameVi}</h3>
-<p className="card-description">{tier.description}</p>
+                  <div className="card-content">
+                    <h3 className="card-title">{tier.nameVi}</h3>
+                    <p className="card-description">{tier.description}</p>
 
-                  <div className="card-price-wrapper">
-                    {typeof tier.price === "number" && tier.price > 0 ? (
-                      <>
-                        <div className="card-price">
-                          {tier.price.toLocaleString("vi-VN")}
+                    <div className="card-price-wrapper">
+                      {typeof tier.price === "number" && tier.price > 0 ? (
+                        <>
+                          <div className="card-price">
+                            {tier.price.toLocaleString("vi-VN")}
+                          </div>
+                          <div className="card-period">VND/tháng</div>
+                        </>
+                      ) : (
+                        <div className="card-price-special">
+                          {tier.price === 0 ? "Miễn Phí" : currency(tier.price)}
                         </div>
-                        <div className="card-period">{tier.period}</div>
-                      </>
-                    ) : (
-                      <div className="card-price-special">
-                        {tier.price === 0 ? "Miễn Phí" : tier.price}
-                      </div>
-                    )}
+                      )}
+                    </div>
+
+                    <ul className="card-features">
+                      {tier.features.map((feature, index) => (
+                        <li key={index} className="feature-item">
+                          <CheckIcon className="feature-icon" />
+                          <span>{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
 
-                  <ul className="card-features">
-                    {tier.features.map((feature, index) => (
-                      <li key={index} className="feature-item">
-                        <CheckIcon className="feature-icon" />
-                        <span>{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
+                  <div className="card-footer">
+                    <Button
+                      size="lg"
+                      className="w-full"
+                      onClick={() => handleChoosePlan(tier)}
+                    >
+                      {tier.cta}
+                    </Button>
+                  </div>
                 </div>
+              ))}
+            </div>
+          )}
+        </main>
+      </div>
 
-                <div className="card-footer">
-                  <Button size="lg" className="w-full" onClick={() => handleChoosePlan(tier)}>
-                    {tier.cta}
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </main>
-    </div>
-  {/* ====== GOGORO POLICY MODERN DESIGN BÊN DƯỚI ====== */}
-  <GogoroPolicyModern />
-  </>
-);
+      {/* ====== GOGORO POLICY MODERN DESIGN BÊN DƯỚI ====== */}
+      <GogoroPolicyModern />
+    </>
+  );
 }
 
-// Component chỉ hiển thị phần gói pin (không header, không GogoroPolicyModern)
+/* Chỉ phần gói pin (re-use) */
 export function PolicesOnlyPricingFAQ({ onLoginClick, user }) {
   return <PolicesPricingFAQ onLoginClick={onLoginClick} user={user} />;
 }
-

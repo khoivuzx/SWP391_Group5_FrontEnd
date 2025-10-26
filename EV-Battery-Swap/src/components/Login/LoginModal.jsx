@@ -39,23 +39,21 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }) {
   };
 
   // ======== Map role -> dashboard path ========
-  const getDashboardPathByRole = (role) => {
-    switch ((role || '').toLowerCase()) {
-      case 'staff':
-        return '/dashboard/staff';
-      case 'manager':
-        return '/manager/dashboard';
-      case 'admin':
-        // Luôn trả về đúng hash route cho admin
-        return '/dashboard/admin';
-      case 'driver':
-        // Driver có thể vẫn muốn về trang trước (giữ logic cũ),
-        // nên không ép route ở đây. Trả null để dùng tiếp redirect cũ.
-        return null;
-      default:
-        return null; // Guest/khác: dùng redirect cũ
-    }
-  };
+const getDashboardPathByRole = (role) => {
+  switch ((role || '').toLowerCase()) {
+    case 'staff':
+      return '/dashboard/staff';
+    case 'manager':
+      // ✅ Manager cũng dùng chung trang staff
+      return '/dashboard/staff';
+    case 'admin':
+      return '/dashboard/admin';
+    case 'driver':
+      return null; // giữ logic cũ cho driver
+    default:
+      return null;
+  }
+};
 
   // Đóng modal khi click ra ngoài
   useEffect(() => {

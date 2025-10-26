@@ -1,10 +1,17 @@
 import React, { useState } from 'react';
-import { HashRouter as Router, Routes, Route, useLocation } from 'react-router-dom'; // 👈 Dùng HashRouter cho đúng URL dạng #/
+import {
+  HashRouter as Router,
+  Routes,
+  Route,
+  useLocation,
+  Navigate,            // 👈 thêm Navigate để redirect
+} from 'react-router-dom';
+
 import Header from './components/Header/Header';
 import Footer from './components/Footer/Footer';
 import LoginModal from './components/Login/LoginModal';
 
-// Components Trang
+// Pages
 import Home from './pages/Home/Home';
 import Battery from './pages/Battery Electric/Battery';
 import BatteryPin from './pages/Battery Electric/BatteryPin';
@@ -29,8 +36,6 @@ function App() {
 
   const handleOpenModal = () => setIsLoginModalOpen(true);
   const handleCloseModal = () => setIsLoginModalOpen(false);
-  
-  // Khi đăng nhập thành công, cập nhật user và đóng modal
   const handleLoginSuccess = (userObj) => {
     setUser(userObj);
     setIsLoginModalOpen(false);
@@ -46,7 +51,7 @@ function App() {
         onLoginSuccess={handleLoginSuccess}
       />
     </Router>
-  )
+  );
 }
 
 function AppContent({ user, isLoginModalOpen, onOpenModal, onCloseModal, onLoginSuccess }) {
@@ -57,24 +62,33 @@ function AppContent({ user, isLoginModalOpen, onOpenModal, onCloseModal, onLogin
     <>
       <Header onLoginClick={onOpenModal} user={user} />
       <main> 
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/battery" element={<Battery />} /> 
-            <Route path="/battery-pin" element={<BatteryPin />} />
-            <Route path="/polices" element={<Polices onLoginClick={onOpenModal} user={user} />} />
-            <Route path="/dashboard/admin" element={<AdminDashboard user={user} onLoginClick={onOpenModal} />} />
-            <Route path="/dashboard/staff" element={<StaffDashboard user={user} onLoginClick={onOpenModal} />} />
-            <Route path="/dashboard/driver" element={<DriverDashboard />} />
-            <Route path="/dashboard/driver/booking" element={<Booking />} />
-            <Route path="/driver/booking-history" element={<BookingHistory />} />
-            <Route path="/vehicle-link" element={<VehicleLink />} />
-            <Route path="/forgot-pass" element={<ForgotPass />} />
-            <Route path="/user/info" element={<UserInfo />} />
-            <Route path="/user/transactions" element={<TransactionHistory />} />
-            {/* <Route path="/payment" element={<Payment />} /> */}
-          </Routes>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/battery" element={<Battery />} /> 
+          <Route path="/battery-pin" element={<BatteryPin />} />
+          <Route path="/polices" element={<Polices onLoginClick={onOpenModal} user={user} />} />
+
+          <Route path="/dashboard/admin" element={<AdminDashboard user={user} onLoginClick={onOpenModal} />} />
+          <Route path="/dashboard/staff" element={<StaffDashboard user={user} onLoginClick={onOpenModal} />} />
+          {/* ✅ Alias: nếu truy cập /manager/dashboard thì chuyển về /dashboard/staff */}
+          <Route path="/manager/dashboard" element={<Navigate to="/dashboard/staff" replace />} />
+
+          <Route path="/dashboard/driver" element={<DriverDashboard />} />
+          <Route path="/dashboard/driver/booking" element={<Booking />} />
+          <Route path="/driver/booking-history" element={<BookingHistory />} />
+          <Route path="/vehicle-link" element={<VehicleLink />} />
+          <Route path="/forgot-pass" element={<ForgotPass />} />
+          <Route path="/reset-pass" element={<ResetPass />} />
+          <Route path="/user/info" element={<UserInfo />} />
+          <Route path="/user/transactions" element={<TransactionHistory />} />
+
+          {/* Fallback */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
       </main>
+
       {!isStaffDashboard && <Footer />}
+
       <LoginModal
         isOpen={isLoginModalOpen}
         onClose={onCloseModal}

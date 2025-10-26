@@ -1,11 +1,10 @@
 import { useEffect, useState, useRef } from "react";
-import { FaUserCircle } from 'react-icons/fa';
+import { FaUserCircle } from "react-icons/fa";
 import logo from "../../assets/react.svg";
 import "./Header.css";
-import { useNavigate } from "react-router-dom";
-import { Link, useLocation } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from "react-router-dom";
 
-// Component Brand
+/* ---------------- Brand ---------------- */
 function Brand() {
   return (
     <a className="brand" href="/" aria-label="home">
@@ -15,31 +14,33 @@ function Brand() {
   );
 }
 
-// Component Dropdown cho Battery Electric
+/* ---------------- Battery dropdown ---------------- */
 function BatteryDropdown({ show, onEnter, onLeave, isActive }) {
   return (
-    <div 
-      className="nav-dropdown"
-      onMouseEnter={onEnter}
-      onMouseLeave={onLeave}
-    >
-      <span className={`nav-link dropdown-trigger ${isActive ? 'active' : ''}`}>
+    <div className="nav-dropdown" onMouseEnter={onEnter} onMouseLeave={onLeave}>
+      <span className={`nav-link dropdown-trigger ${isActive ? "active" : ""}`}>
         Pin và Trạm đổi pin
         <svg className="dropdown-arrow" viewBox="0 0 20 20" fill="currentColor">
-          <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+          <path
+            fillRule="evenodd"
+            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+            clipRule="evenodd"
+          />
         </svg>
       </span>
       {show && (
         <div className="dropdown-menu">
-          <Link 
-            to="/battery" 
-            className={`dropdown-item ${isActive === '/battery' ? 'active' : ''}`}
+          <Link
+            to="/battery"
+            className={`dropdown-item ${isActive === "/battery" ? "active" : ""}`}
           >
             Trạm đổi pin
           </Link>
-          <Link 
-            to="/battery-pin" 
-            className={`dropdown-item ${isActive === '/battery-pin' ? 'active' : ''}`}
+          <Link
+            to="/battery-pin"
+            className={`dropdown-item ${
+              isActive === "/battery-pin" ? "active" : ""
+            }`}
           >
             Công nghệ pin
           </Link>
@@ -49,95 +50,70 @@ function BatteryDropdown({ show, onEnter, onLeave, isActive }) {
   );
 }
 
-// Component Navigation
-function Navigation({ isActive, isBatteryActive, showBatteryDropdown, setShowBatteryDropdown, hideService, user }) {
+/* ---------------- Navigation ---------------- */
+function Navigation({
+  isActive,
+  isBatteryActive,
+  showBatteryDropdown,
+  setShowBatteryDropdown,
+  hideService,
+  user,
+  isStaffPage,
+}) {
+  const role = user?.role?.toLowerCase() || "";
+
   return (
     <nav className="main-nav" aria-label="Primary">
-      <Link 
-        to="/" 
-        className={`nav-link ${isActive('/') ? 'active' : ''}`}
-      >
+      <Link to="/" className={`nav-link ${isActive("/") ? "active" : ""}`}>
         Trang Chủ
       </Link>
-      {/* Chỉ hiển thị 'Tìm trạm' khi đã đăng nhập */}
+
       {user && (
-        <Link 
-          to="/dashboard/driver" 
-          className={`nav-link ${isActive('/dashboard/driver') ? 'active' : ''}`}
+        <Link
+          to="/dashboard/driver"
+          className={`nav-link ${isActive("/dashboard/driver") ? "active" : ""}`}
         >
           Tìm trạm
         </Link>
       )}
-      <BatteryDropdown 
+
+      <BatteryDropdown
         show={showBatteryDropdown}
         onEnter={() => setShowBatteryDropdown(true)}
         onLeave={() => setShowBatteryDropdown(false)}
         isActive={isBatteryActive()}
       />
+
       {!hideService && (
-        <Link 
-          to="/polices" 
-          className={`nav-link ${isActive('/polices') ? 'active' : ''}`}
+        <Link
+          to="/polices"
+          className={`nav-link ${isActive("/polices") ? "active" : ""}`}
         >
           Gói dịch vụ
         </Link>
+      )}
+
+      {/* 👇 Chỉ hiển thị “Điều phối pin” nếu đang ở trang staff + role = manager */}
+      {isStaffPage && role === "manager" && (
+       <Link to="/dashboard/staff?tab=dispatch" className="nav-link admin-only">
+  Điều phối pin
+	</Link>
+
       )}
     </nav>
   );
 }
 
-// Component con cho nút Login
-function LoginButton({ onLoginClick }) {
-  return (
-    <a 
-      href="#" 
-      className="cta login" 
-      onClick={(e) => { 
-        e.preventDefault(); 
-        onLoginClick();
-      }}
-    >
-      Đăng Nhập
-    </a>
-  );
-}
-
-// Component con cho các action của user (Logout, Liên kết xe)
-function UserActions({ role, isDashboard, onLogout }) {
-  // driver on dashboard: show vehicle-link and logout
-  if (role === 'driver' && isDashboard) {
-    return (
-      <>
-        <Link to="/vehicle-link" className="cta vehicle-link">Liên kết xe</Link>
-        <button className="cta logout-btn" style={{ marginLeft: 12 }} onClick={onLogout}>Logout</button>
-      </>
-    );
-  }
-  // staff/admin on dashboard: only logout
-  if ((role === 'staff' || role === 'admin') && isDashboard) {
-    return <button className="cta logout-btn" onClick={onLogout}>Logout</button>;
-  }
-  // not dashboard but driver: show vehicle-link + logout
-  if (role === 'driver') {
-    return (
-      <>
-        <Link to="/vehicle-link" className="cta vehicle-link">Liên kết xe</Link>
-        <button className="cta logout-btn" style={{ marginLeft: 12 }} onClick={onLogout}>Logout</button>
-      </>
-    );
-  }
-  // other logged in users: logout
-  return <button className="cta logout-btn" onClick={onLogout}>Logout</button>;
-}
-
-// CHỈNH SỬA: Nhận prop onLoginClick từ App.jsx
-export default function Header({ onLoginClick, user }) { 
+/* ---------------- Header chính ---------------- */
+export default function Header({ onLoginClick, user }) {
   const [scrolled, setScrolled] = useState(false);
   const [hovered, setHovered] = useState(false);
   const [showBatteryDropdown, setShowBatteryDropdown] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const userMenuRef = useRef();
   const location = useLocation();
+  const navigate = useNavigate();
 
-  // LOGIC CUỘN CHUỘT: Thêm class 'scrolled' khi cuộn quá 20px
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", onScroll);
@@ -145,27 +121,18 @@ export default function Header({ onLoginClick, user }) {
   }, []);
 
   const isActive = (path) => location.pathname === path;
-  const isBatteryActive = () => location.pathname === '/battery' || location.pathname === '/battery-pin';
+  const isBatteryActive = () =>
+    location.pathname === "/battery" || location.pathname === "/battery-pin";
 
-  // Nếu là driver/staff/admin và đang ở dashboard tương ứng thì chỉ hiện Logout (và link riêng nếu cần)
-  const role = user && user.role ? user.role.toLowerCase() : '';
-  const isDriverDashboard = role === 'driver' && location.pathname === '/dashboard/driver';
-  const isStaffDashboard = role === 'staff' && location.pathname === '/dashboard/staff';
-  const isAdminDashboard = role === 'admin' && location.pathname === '/dashboard/admin';
+  const role = user?.role?.toLowerCase() || "";
+  const isStaffPage = location.pathname.startsWith("/dashboard/staff");
 
   const handleLogout = () => {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('user');
-    window.location.href = '/';
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("user");
+    window.location.href = "/";
   };
 
-  // State cho menu user
-  const [showUserMenu, setShowUserMenu] = useState(false);
-  const [showDriverMenu, setShowDriverMenu] = useState(false);
-  const navigate = useNavigate();
-  const userMenuRef = useRef();
-
-  // Đóng menu khi click ra ngoài
   useEffect(() => {
     if (!showUserMenu) return;
     const handleClick = (e) => {
@@ -173,8 +140,8 @@ export default function Header({ onLoginClick, user }) {
         setShowUserMenu(false);
       }
     };
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
   }, [showUserMenu]);
 
   return (
@@ -186,76 +153,71 @@ export default function Header({ onLoginClick, user }) {
       <div className="header-inner">
         <Brand />
 
-        {/* Nav cho driver dashboard */}
         <Navigation
           isActive={isActive}
           isBatteryActive={isBatteryActive}
           showBatteryDropdown={showBatteryDropdown}
           setShowBatteryDropdown={setShowBatteryDropdown}
-          hideService={role === 'driver'}
+          hideService={role === "driver"}
           user={user}
+          isStaffPage={isStaffPage}
         />
 
-
         <div className="actions">
-          {user && user.fullName && (
-            <>
-              <div className="user-menu-wrap" ref={userMenuRef}>
-                <button
-                  className="user-menu-trigger"
-                  onClick={() => setShowUserMenu((v) => !v)}
-                  aria-label="User menu"
-                >
-                  <FaUserCircle className="user-menu-icon" />
-                </button>
-                <span className="user-menu-name">{user.fullName}</span>
-                {showUserMenu && (
-                  <div className="user-menu-dropdown">
-                    <button
-                      className="user-menu-btn"
-                      onClick={() => {
-                        setShowUserMenu(false);
-                        navigate("/user/info");
-                      }}
-                    >
-                      Thông tin người dùng
-                    </button>
-                    <button
-                      className="user-menu-btn"
-                      onClick={() => {
-                        setShowUserMenu(false);
-                        navigate("/user/transactions");
-                      }}
-                    >
-                      Lịch sử giao dịch
-                    </button>
-                    {role === 'driver' && (
-                      <button
-                        className="user-menu-btn"
-                        onClick={() => {
-                          setShowUserMenu(false);
-                          navigate("/vehicle-link");
-                        }}
-                      >
-                        Liên kết xe
-                      </button>
-                    )}
-                    <button
-                      className="user-menu-btn logout"
-                      onClick={() => {
-                        setShowUserMenu(false);
-                        handleLogout();
-                      }}
-                    >
-                      Đăng xuất
-                    </button>
-                  </div>
-                )}
-              </div>
-              {/* Ẩn liên kết xe bên phải user icon khi ở dashboard driver */}
-            </>
+          {user && user.fullName ? (
+            <div className="user-menu-wrap" ref={userMenuRef}>
+              <button
+                className="user-menu-trigger"
+                onClick={() => setShowUserMenu((v) => !v)}
+                aria-label="User menu"
+              >
+                <FaUserCircle className="user-menu-icon" />
+              </button>
+              <span className="user-menu-name">{user.fullName}</span>
+              {showUserMenu && (
+                <div className="user-menu-dropdown">
+                  <button
+                    className="user-menu-btn"
+                    onClick={() => {
+                      setShowUserMenu(false);
+                      navigate("/user/info");
+                    }}
+                  >
+                    Thông tin người dùng
+                  </button>
+                  <button
+                    className="user-menu-btn"
+                    onClick={() => {
+                      setShowUserMenu(false);
+                      navigate("/user/transactions");
+                    }}
+                  >
+                    Lịch sử giao dịch
+                  </button>
+                  <button
+                    className="user-menu-btn logout"
+                    onClick={() => {
+                      setShowUserMenu(false);
+                      handleLogout();
+                    }}
+                  >
+                    Đăng xuất
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <a
+              href="#"
+              className="cta login"
+              onClick={(e) => {
+                e.preventDefault();
+                onLoginClick();
+              }}
+            >
+              Đăng Nhập
+            </a>
           )}
-          {!user && <LoginButton onLoginClick={onLoginClick} />}
         </div>
       </div>
     </header>

@@ -1,6 +1,9 @@
+// src/pages/Dashboard/Staff/staff.jsx
 import React, { useEffect, useMemo, useState } from 'react';
+import { useSearchParams, Navigate } from 'react-router-dom';
 import './staff.css';
 import API_BASE_URL from '../../../config';
+import DispatchPanel from './Dispatch/DispatchPanel';
 
 const tabs = [
   { label: 'Tồn kho pin', value: 'inventory' },
@@ -8,12 +11,10 @@ const tabs = [
   { label: 'Tạo Booking', value: 'create' },
 ];
 
-/* ========= MessageBox (modal hộp trắng, icon + animation) ========= */
+/* ========= MessageBox ========= */
 function MessageBox({ open, title, children, onClose, tone = 'info' }) {
   if (!open) return null;
-
   const ICON = { success: '✅', error: '⚠️', info: 'ℹ️' }[tone] || 'ℹ️';
-
   return (
     <div className="msgbox-backdrop" role="dialog" aria-modal="true" onClick={onClose}>
       <div className={`msgbox ${tone}`} onClick={(e) => e.stopPropagation()} tabIndex={-1}>
@@ -30,7 +31,7 @@ function MessageBox({ open, title, children, onClose, tone = 'info' }) {
   );
 }
 
-/* ====== Component mockup trụ (giữ nguyên giao diện) ====== */
+/* ====== Mockup trụ ====== */
 function PinStationMockup({ batteries }) {
   const [selected, setSelected] = useState(null);
   const totalSlots = 30;
@@ -60,7 +61,6 @@ function PinStationMockup({ batteries }) {
           {allSlots.map((b, i) => {
             const st = String(b.state || '').toLowerCase();
             const cd = String(b.condition || '').toLowerCase();
-
             const color =
               b.empty ? '#e5e7eb' :
               cd === 'damage' || cd === 'damaged' ? '#000000' :
@@ -68,7 +68,6 @@ function PinStationMockup({ batteries }) {
               st === 'reserved' || st === 'reversed' ? '#fbbf24' :
               (st === 'occupied' && cd === 'good') ? '#22c55e' :
               '#d1d5db';
-
             return (
               <div
                 key={b.id}
@@ -125,15 +124,27 @@ function PinStationMockup({ batteries }) {
 }
 
 /* ====== TRANG CHÍNH ====== */
-export default function StaffDashboard() {
+export default function StaffDashboard({ user }) {
   const [activeTab, setActiveTab] = useState('inventory');
 
-  // API state
+  // Query param tab (để hiển thị Dispatch)
+  const [searchParams] = useSearchParams();
+  const tab = searchParams.get('tab'); // 'dispatch' | null
+  const role = (user?.role || '').toLowerCase();
+  const isManager = role === 'manager';
+
+  // Nếu truy cập /dashboard/staff?tab=dispatch → chỉ manager được dùng
+  if (tab === 'dispatch') {
+    if (!isManager) return <Navigate to="/dashboard/staff" replace />;
+    return <DispatchPanel user={user} />; // Trang Điều phối pin cho manager
+  }
+
+  // ====== State API dashboard staff ======
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState(null);
   const [slots, setSlots] = useState([]);
 
-  // ====== State cho "Tạo Booking" ======
+  // Tạo Booking
   const [stations, setStations] = useState([]);
   const [stationsLoading, setStationsLoading] = useState(false);
   const [stationsErr, setStationsErr] = useState(null);
@@ -145,16 +156,21 @@ export default function StaffDashboard() {
   const [loadingVehicles, setLoadingVehicles] = useState(false);
   const [creatingBooking, setCreatingBooking] = useState(false);
 
-  // Fetch + normalize slot status + load stations
+  // Modal trụ
+  const [showStationModal, setShowStationModal] = useState(false);
+  const [showStationModalLFP, setShowStationModalLFP] = useState(false);
+
+  // Popup
+  const [checkinPopup, setCheckinPopup] = useState(null);
+  const [createPopup, setCreatePopup] = useState(null);
+
+  // ====== Fetch slots ======
   useEffect(() => {
     let mounted = true;
-
     (async () => {
       try {
         setLoading(true);
         setErr(null);
-        if (!API_BASE_URL) throw new Error('Missing API_BASE_URL');
-
         const token = localStorage.getItem('authToken') || '';
         const res = await fetch(`${API_BASE_URL}/webAPI/api/secure/viewBatterySlotStatus`, {
           method: 'GET',
@@ -167,7 +183,6 @@ export default function StaffDashboard() {
         });
         if (!mounted) return;
         if (!res.ok) throw new Error(`HTTP ${res.status} - ${await res.text()}`);
-
         const data = await res.json();
         if (!Array.isArray(data)) throw new Error('Unexpected payload');
 
@@ -189,7 +204,6 @@ export default function StaffDashboard() {
             lastUpdate: firstDefined(x.Last_Update, x.last_Update, x.lastUpdate, ''),
           };
         });
-
         setSlots(normalized);
       } catch (e) {
         setErr(e.message || 'Failed to load slots');
@@ -199,6 +213,7 @@ export default function StaffDashboard() {
       }
     })();
 
+    // Fetch stations
     (async () => {
       try {
         setStationsLoading(true);
@@ -228,14 +243,9 @@ export default function StaffDashboard() {
         const list = Array.isArray(payload.data) ? payload.data : [];
         setStations(list);
 
-        // >>> Set mặc định theo Name của bản ghi đầu tiên
         if (list.length && !selectedStation) {
           const firstName =
-            list[0].Name ??
-            list[0].station_Name ??
-            list[0].Station_Name ??
-            list[0].name ??
-            '';
+            list[0].Name ?? list[0].station_Name ?? list[0].Station_Name ?? list[0].name ?? '';
           setSelectedStation(firstName || '');
         }
       } catch (e) {
@@ -249,7 +259,7 @@ export default function StaffDashboard() {
     return () => { mounted = false; };
   }, []); // eslint-disable-line
 
-  // Suy đoán loại pin
+  // ====== Helpers & KPI ======
   const getChemFromChargingStationId = (id) => {
     if (!id) return 'unknown';
     if (id === 11) return 'lfp';
@@ -259,7 +269,6 @@ export default function StaffDashboard() {
     return 'unknown';
   };
 
-  // Map UI trụ
   const toUiBattery = (s) => ({
     id: s.serial || s.code || `S${s.slotId}`,
     type: s.chargingSlotType || '—',
@@ -298,7 +307,6 @@ export default function StaffDashboard() {
     [slots]
   );
 
-  // === KPI từ API ===
   const summary = useMemo(() => {
     let full = 0, charging = 0, maintenance = 0, reserved = 0;
     for (const s of slots) {
@@ -323,14 +331,9 @@ export default function StaffDashboard() {
     { icon: '🟡', label: 'Đặt trước', value: summary.reserved,    sub: 'Reserved/Reversed' },
   ];
 
-  // Modal xem trụ
-  const [showStationModal, setShowStationModal] = useState(false);
-  const [showStationModalLFP, setShowStationModalLFP] = useState(false);
-
   // ====== Check-in ======
   const [bookingId, setBookingId] = useState('');
   const [checkingIn, setCheckingIn] = useState(false);
-  const [checkinPopup, setCheckinPopup] = useState(null); // {title, body}
 
   const handleCheckIn = async (e) => {
     e.preventDefault();
@@ -393,8 +396,6 @@ export default function StaffDashboard() {
   };
 
   // ====== Tạo Booking ======
-  const [createPopup, setCreatePopup] = useState(null); // {title, body}
-
   const fetchVehiclesByEmail = async () => {
     const mail = email.trim();
     if (!mail) return;
@@ -415,8 +416,7 @@ export default function StaffDashboard() {
       if (!res.ok || data.error) throw new Error(data.error || `HTTP ${res.status}`);
       const vs = Array.isArray(data.vehicles) ? data.vehicles : [];
       setVehicles(vs);
-      if (vs.length > 0) setSelectedVehicle(String(vs[0].vehicleId));
-      else setSelectedVehicle('');
+      setSelectedVehicle(vs.length > 0 ? String(vs[0].vehicleId) : '');
       setCreatePopup({
         title: 'Đã tải danh sách xe',
         body: vs.length ? `Tìm thấy ${vs.length} xe. Hãy chọn 1 xe để tạo booking.` : 'Không có xe nào cho email này.',
@@ -453,17 +453,15 @@ export default function StaffDashboard() {
         },
         body: JSON.stringify({
           email: mail,
-          stationName: selectedStation,    // gửi theo Name
+          stationName: selectedStation,
           vehicleId: Number(selectedVehicle)
         }),
       });
 
-      // an toàn khi BE trả text/html
       let data = {};
       const ct = res.headers.get('content-type') || '';
-      if (ct.includes('application/json')) {
-        data = await res.json().catch(() => ({}));
-      } else {
+      if (ct.includes('application/json')) data = await res.json().catch(() => ({}));
+      else {
         const t = await res.text();
         data = { error: t || `HTTP ${res.status}` };
       }
@@ -524,7 +522,7 @@ export default function StaffDashboard() {
         <h2 className="staff-dashboard-title">Dashboard Nhân viên Trạm</h2>
         <div className="staff-dashboard-subtitle">Quản lý tồn kho pin và Check In</div>
 
-        {/* KPI từ API */}
+        {/* KPI */}
         <div className="staff-dashboard-summary">
           {kpis.map((c, i) => (
             <div key={i} className="staff-dashboard-summary-card">
@@ -622,8 +620,6 @@ export default function StaffDashboard() {
                 >
                   {stationsLoading && <option>Đang tải trạm…</option>}
                   {!stationsLoading && stations.length === 0 && <option value="">Không có dữ liệu trạm</option>}
-
-                  {/* Hiển thị theo dữ liệu thực tế: Station_ID + Name */}
                   {!stationsLoading && stations.map((s) => {
                     const key = s.Station_ID ?? s.station_ID ?? s.id;
                     const label = s.Name ?? s.station_Name ?? s.Station_Name ?? s.name ?? `Station #${key ?? ''}`;
@@ -700,7 +696,7 @@ export default function StaffDashboard() {
         </div>
       )}
 
-      {/* Popup thông báo Check In */}
+      {/* Popup Check In */}
       <MessageBox
         open={!!checkinPopup}
         title={checkinPopup?.title || ''}
@@ -714,7 +710,7 @@ export default function StaffDashboard() {
         <div className="msgbox-content">{checkinPopup?.body}</div>
       </MessageBox>
 
-      {/* Popup thông báo Tạo Booking */}
+      {/* Popup Tạo Booking */}
       <MessageBox
         open={!!createPopup}
         title={createPopup?.title || ''}

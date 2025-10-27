@@ -348,7 +348,7 @@ export default function DriverDashboard() {
     <div>
       <div className="driver-header-img-wrap">
         <img src="/img-header-driver.jpg" alt="Driver Header" className="driver-header-img" />
-        <div className="driver-header-welcome">Welcome, {user?.fullName || 'Driver'}!</div>
+        <div className="driver-header-welcome">Xin chào, {user?.fullName || 'Driver'}!</div>
       </div>
       <div className="driver-main-wrap">
         <TabBar tabs={tabList} active={activeTab} onChange={setActiveTab} />

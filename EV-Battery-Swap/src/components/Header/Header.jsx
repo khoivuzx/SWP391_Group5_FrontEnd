@@ -62,6 +62,21 @@ function Navigation({
 }) {
   const role = user?.role?.toLowerCase() || "";
 
+  // Nếu là driver: chỉ hiện "Tìm trạm" duy nhất
+  if (role === "driver") {
+    return (
+      <nav className="main-nav" aria-label="Primary">
+        <Link
+          to="/dashboard/driver"
+          className={`nav-link ${isActive("/dashboard/driver") ? "active" : ""}`}
+        >
+          Tài xế
+        </Link>
+      </nav>
+    );
+  }
+
+  // ...existing code...
   return (
     <nav className="main-nav" aria-label="Primary">
       <Link to="/" className={`nav-link ${isActive("/") ? "active" : ""}`}>
@@ -93,7 +108,7 @@ function Navigation({
         </Link>
       )}
 
-      {/* 👇 Chỉ hiển thị “Điều phối pin” nếu đang ở trang staff + role = manager */}
+      {/*  Chỉ hiển thị “Điều phối pin” nếu đang ở trang staff + role = manager */}
       {isStaffPage && role === "manager" && (
        <Link to="/dashboard/staff?tab=dispatch" className="nav-link admin-only">
   Điều phối pin

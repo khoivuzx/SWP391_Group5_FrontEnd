@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   HashRouter as Router,
   Routes,
@@ -6,6 +6,7 @@ import {
   useLocation,
   Navigate,            // 👈 thêm Navigate để redirect
 } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 import Header from './components/Header/Header';
 import Footer from './components/Footer/Footer';
@@ -57,6 +58,17 @@ function App() {
 function AppContent({ user, isLoginModalOpen, onOpenModal, onCloseModal, onLoginSuccess }) {
   const location = useLocation();
   const isStaffDashboard = location.pathname === '/dashboard/staff';
+  const navigate = useNavigate();
+  const [prevUser, setPrevUser] = useState(null);
+
+  useEffect(() => {
+    // Chỉ redirect nếu user vừa đăng nhập (prevUser là null, user là driver)
+    if (!prevUser && user?.role?.toLowerCase() === 'driver' && location.pathname !== '/dashboard/driver') {
+      navigate('/'); // về home trước, sau đó navigate tới driver nếu cần
+      setTimeout(() => navigate('/dashboard/driver'), 0);
+    }
+    setPrevUser(user);
+  }, [user]);
 
   return (
     <>

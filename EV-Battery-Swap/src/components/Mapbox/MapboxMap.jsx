@@ -116,71 +116,85 @@ export default function MapboxMap({
     const sourceId = 'stations-source';
     const layerId = 'stations-layer';
     const geojson = { type: 'FeatureCollection', features };
-    if (map.current.getSource(sourceId)) { try { map.current.getSource(sourceId).setData(geojson); } catch {} }
-    else {
-      map.current.addSource(sourceId, { type: 'geojson', data: geojson });
+      const addGeoAndLayer = () => {
+        if (map.current.getSource(sourceId)) { try { map.current.getSource(sourceId).setData(geojson); } catch {} return; }
 
-      const imgEl = new Image(); imgEl.crossOrigin = 'anonymous'; imgEl.src = reactLogo;
-      imgEl.onload = () => {
-        try { if (!map.current.hasImage('gogoro-marker')) map.current.addImage('gogoro-marker', imgEl); } catch {}
-        try {
-          const hasImg = map.current.hasImage && map.current.hasImage('gogoro-marker');
-          if (hasImg) {
-            map.current.addLayer({ id: layerId, type: 'symbol', source: sourceId, layout: { 'icon-image': 'gogoro-marker', 'icon-size': 1.2, 'icon-allow-overlap': true, 'icon-ignore-placement': true } });
-          } else {
-            map.current.addLayer({ id: layerId, type: 'circle', source: sourceId, paint: { 'circle-radius': 14, 'circle-color': '#1976d2', 'circle-stroke-color': '#fff', 'circle-stroke-width': 2 } });
+        map.current.addSource(sourceId, { type: 'geojson', data: geojson });
+
+        const imgEl = new Image(); imgEl.crossOrigin = 'anonymous'; imgEl.src = reactLogo;
+        imgEl.onload = () => {
+          try { if (!map.current.hasImage('gogoro-marker')) map.current.addImage('gogoro-marker', imgEl); } catch {}
+          try {
+            const hasImg = map.current.hasImage && map.current.hasImage('gogoro-marker');
+            if (hasImg) {
+              map.current.addLayer({ id: layerId, type: 'symbol', source: sourceId, layout: { 'icon-image': 'gogoro-marker', 'icon-size': 1.2, 'icon-allow-overlap': true, 'icon-ignore-placement': true } });
+            } else {
+              map.current.addLayer({ id: layerId, type: 'circle', source: sourceId, paint: { 'circle-radius': 14, 'circle-color': '#1976d2', 'circle-stroke-color': '#fff', 'circle-stroke-width': 2 } });
+            }
+          } catch {
+            try { map.current.addLayer({ id: layerId, type: 'circle', source: sourceId, paint: { 'circle-radius': 14, 'circle-color': '#1976d2', 'circle-stroke-color': '#fff', 'circle-stroke-width': 2 } }); } catch {}
           }
-        } catch {
+
+          try { map.current.on('mouseenter', layerId, () => { map.current.getCanvas().style.cursor = 'pointer'; }); } catch {}
+          try { map.current.on('mouseleave', layerId, () => { map.current.getCanvas().style.cursor = ''; }); } catch {}
+          try { map.current.on('click', layerId, (e) => {
+            const feat = e.features && e.features[0]; if (!feat) return;
+            const name = feat.properties && feat.properties.name; if (!name) return;
+            const popupObj = popupRefs.current && popupRefs.current[name];
+            try { if (openPopupRef.current && openPopupRef.current !== (popupObj && popupObj.popup)) { openPopupRef.current.remove(); } } catch {}
+            if (popupObj) {
+              try {
+                const sx = window.scrollX || window.pageXOffset; const sy = window.scrollY || window.pageYOffset;
+                popupObj.popup.addTo(map.current); openPopupRef.current = popupObj.popup;
+                try { const el = popupObj.popup.getElement(); if (el?.blur) el.blur(); } catch {}
+                try { window.scrollTo(sx, sy); } catch {}
+                try { setTimeout(() => { try { window.scrollTo(sx, sy); } catch {} }, 50); } catch {}
+                try { setTimeout(() => { try { window.scrollTo(sx, sy); } catch {} }, 300); } catch {}
+              } catch {}
+              try { map.current.once('click', () => { try { popupObj.popup.remove(); } catch {}; if (openPopupRef.current === popupObj.popup) openPopupRef.current = null; }); } catch {}
+              try { setSelectedStation && setSelectedStation(name); } catch {}
+              try { popupObj.loadBattery && popupObj.loadBattery(); } catch {}
+            }
+          }); } catch {}
+        };
+        imgEl.onerror = () => {
           try { map.current.addLayer({ id: layerId, type: 'circle', source: sourceId, paint: { 'circle-radius': 14, 'circle-color': '#1976d2', 'circle-stroke-color': '#fff', 'circle-stroke-width': 2 } }); } catch {}
-        }
+          try { map.current.on('mouseenter', layerId, () => { map.current.getCanvas().style.cursor = 'pointer'; }); } catch {}
+          try { map.current.on('mouseleave', layerId, () => { map.current.getCanvas().style.cursor = ''; }); } catch {}
+          try { map.current.on('click', layerId, (e) => {
+            const feat = e.features && e.features[0]; if (!feat) return;
+            const name = feat.properties && feat.properties.name; if (!name) return;
+            const popupObj = popupRefs.current && popupRefs.current[name];
+            try { if (openPopupRef.current && openPopupRef.current !== (popupObj && popupObj.popup)) { openPopupRef.current.remove(); } } catch {}
+            if (popupObj) {
+              try {
+                const sx = window.scrollX || window.pageXOffset; const sy = window.scrollY || window.pageYOffset;
+                popupObj.popup.addTo(map.current); openPopupRef.current = popupObj.popup;
+                try { const el = popupObj.popup.getElement(); if (el?.blur) el.blur(); } catch {}
+                try { window.scrollTo(sx, sy); } catch {}
+                try { setTimeout(() => { try { window.scrollTo(sx, sy); } catch {} }, 50); } catch {}
+                try { setTimeout(() => { try { window.scrollTo(sx, sy); } catch {} }, 300); } catch {}
+              } catch {}
+              try { map.current.once('click', () => { try { popupObj.popup.remove(); } catch {}; if (openPopupRef.current === popupObj.popup) openPopupRef.current = null; }); } catch {}
+              try { setSelectedStation && setSelectedStation(name); } catch {}
+              try { popupObj.loadBattery && popupObj.loadBattery(); } catch {}
+            }
+          }); } catch {}
+        };
+      };
 
-        try { map.current.on('mouseenter', layerId, () => { map.current.getCanvas().style.cursor = 'pointer'; }); } catch {}
-        try { map.current.on('mouseleave', layerId, () => { map.current.getCanvas().style.cursor = ''; }); } catch {}
-        try { map.current.on('click', layerId, (e) => {
-          const feat = e.features && e.features[0]; if (!feat) return;
-          const name = feat.properties && feat.properties.name; if (!name) return;
-          const popupObj = popupRefs.current && popupRefs.current[name];
-          try { if (openPopupRef.current && openPopupRef.current !== (popupObj && popupObj.popup)) { openPopupRef.current.remove(); } } catch {}
-          if (popupObj) {
-            try {
-              const sx = window.scrollX || window.pageXOffset; const sy = window.scrollY || window.pageYOffset;
-              popupObj.popup.addTo(map.current); openPopupRef.current = popupObj.popup;
-              try { const el = popupObj.popup.getElement(); if (el?.blur) el.blur(); } catch {}
-              try { window.scrollTo(sx, sy); } catch {}
-              try { setTimeout(() => { try { window.scrollTo(sx, sy); } catch {} }, 50); } catch {}
-              try { setTimeout(() => { try { window.scrollTo(sx, sy); } catch {} }, 300); } catch {}
-            } catch {}
-            try { map.current.once('click', () => { try { popupObj.popup.remove(); } catch {}; if (openPopupRef.current === popupObj.popup) openPopupRef.current = null; }); } catch {}
-            try { setSelectedStation && setSelectedStation(name); } catch {}
-            try { popupObj.loadBattery && popupObj.loadBattery(); } catch {}
-          }
-        }); } catch {}
-      };
-      imgEl.onerror = () => {
-        try { map.current.addLayer({ id: layerId, type: 'circle', source: sourceId, paint: { 'circle-radius': 14, 'circle-color': '#1976d2', 'circle-stroke-color': '#fff', 'circle-stroke-width': 2 } }); } catch {}
-        try { map.current.on('mouseenter', layerId, () => { map.current.getCanvas().style.cursor = 'pointer'; }); } catch {}
-        try { map.current.on('mouseleave', layerId, () => { map.current.getCanvas().style.cursor = ''; }); } catch {}
-        try { map.current.on('click', layerId, (e) => {
-          const feat = e.features && e.features[0]; if (!feat) return;
-          const name = feat.properties && feat.properties.name; if (!name) return;
-          const popupObj = popupRefs.current && popupRefs.current[name];
-          try { if (openPopupRef.current && openPopupRef.current !== (popupObj && popupObj.popup)) { openPopupRef.current.remove(); } } catch {}
-          if (popupObj) {
-            try {
-              const sx = window.scrollX || window.pageXOffset; const sy = window.scrollY || window.pageYOffset;
-              popupObj.popup.addTo(map.current); openPopupRef.current = popupObj.popup;
-              try { const el = popupObj.popup.getElement(); if (el?.blur) el.blur(); } catch {}
-              try { window.scrollTo(sx, sy); } catch {}
-              try { setTimeout(() => { try { window.scrollTo(sx, sy); } catch {} }, 50); } catch {}
-              try { setTimeout(() => { try { window.scrollTo(sx, sy); } catch {} }, 300); } catch {}
-            } catch {}
-            try { map.current.once('click', () => { try { popupObj.popup.remove(); } catch {}; if (openPopupRef.current === popupObj.popup) openPopupRef.current = null; }); } catch {}
-            try { setSelectedStation && setSelectedStation(name); } catch {}
-            try { popupObj.loadBattery && popupObj.loadBattery(); } catch {}
-          }
-        }); } catch {}
-      };
-    }
+      // Ensure the map style is loaded before adding sources/layers
+      try {
+        const isStyleLoaded = typeof map.current.isStyleLoaded === 'function' ? map.current.isStyleLoaded() : true;
+        if (!isStyleLoaded) {
+          map.current.once('load', addGeoAndLayer);
+        } else {
+          addGeoAndLayer();
+        }
+      } catch (err) {
+        // Fallback: try to add immediately
+        try { addGeoAndLayer(); } catch (e) {}
+      }
   }, [stations, showPopup, setSelectedStation]);
 
   useEffect(() => {

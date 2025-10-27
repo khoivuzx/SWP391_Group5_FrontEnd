@@ -74,6 +74,155 @@ const tabs = [
   { label: 'Phân tích', value: 'analytics' },
 ];
 
+/* ================== Panel Xem điều phối pin (trong cùng file) ================== */
+function AdminDispatchPanel() {
+  const [rows, setRows] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState('');
+
+  const token =
+    localStorage.getItem('authToken') ||
+    localStorage.getItem('jwt_token') ||
+    '';
+
+  const fetchPending = async () => {
+    try {
+      setLoading(true);
+      setErr('');
+      const res = await fetch(`${API_BASE_URL}/webAPI/api/secure/admindispatchPending`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          Accept: 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          'ngrok-skip-browser-warning': '1',
+        },
+      });
+      const text = await res.text();
+      let data = [];
+      try { data = text ? JSON.parse(text) : []; } catch { data = []; }
+      if (!res.ok) throw new Error(data?.message || `HTTP ${res.status}`);
+      setRows(Array.isArray(data) ? data : []);
+    } catch (e) {
+      setErr(e.message || 'Không tải được danh sách yêu cầu.');
+      setRows([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { fetchPending(); }, []);
+
+  const doAction = async (requestId, action) => {
+    try {
+      if (!token) throw new Error('Bạn chưa đăng nhập Admin.');
+      let body = new URLSearchParams();
+      body.set('requestId', String(requestId));
+      body.set('action', action);
+
+      if (action === 'approve') {
+        const name = window.prompt('Nhập tên trạm xuất pin (stationRespondName):');
+        if (!name) return;
+        body.set('stationRespondName', name.trim());
+      }
+
+      const res = await fetch(`${API_BASE_URL}/webAPI/api/secure/dispatchApprove`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          'ngrok-skip-browser-warning': '1',
+        },
+        body: body.toString(),
+      });
+
+      const text = await res.text();
+      let data = {};
+      try { data = text ? JSON.parse(text) : {}; } catch { data = {}; }
+
+      if (!res.ok || data?.success === false) {
+        throw new Error(data?.message || `HTTP ${res.status}`);
+      }
+
+      await fetchPending();
+      alert(action === 'approve' ? 'Đã chuyển yêu cầu sang PREPARING.' : 'Đã hủy yêu cầu.');
+    } catch (e) {
+      alert(e.message || 'Xử lý thất bại.');
+    }
+  };
+
+  const table = {
+    width: '100%',
+    borderCollapse: 'separate',
+    borderSpacing: 0,
+    boxShadow: '0 0 0 1px #e5e7eb',
+    borderRadius: 10,
+    overflow: 'hidden',
+  };
+  const boxInfo = { padding: 12, borderRadius: 10, background: '#f7fafc', color: '#475569' };
+  const boxError = { padding: 12, borderRadius: 10, background: '#fef2f2', color: '#b91c1c' };
+  const badge = { background: '#eff6ff', color: '#1d4ed8', padding: '2px 8px', borderRadius: 6, fontSize: 12 };
+  const baseBtn = { padding: '8px 10px', borderRadius: 8, border: '1px solid #e2e8f0', cursor: 'pointer', fontWeight: 600 };
+  const btnApprove = { ...baseBtn, background: '#16a34a', color: '#fff', borderColor: '#16a34a' };
+  const btnCancel  = { ...baseBtn, background: '#fff', color: '#b91c1c', borderColor: '#fca5a5' };
+  const btnRefresh = { ...baseBtn, background: '#fff', color: '#0f172a' };
+
+  return (
+    <div style={{ marginTop: 24, background: '#fff', borderRadius: 12, padding: 18, boxShadow: '0 1px 4px rgba(33,150,243,0.06)' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+        <div style={{ fontWeight: 700, fontSize: 16 }}>📦 Xem điều phối pin (yêu cầu đang chờ)</div>
+        <button onClick={fetchPending} style={btnRefresh}>Làm mới</button>
+      </div>
+
+      {loading && <div style={boxInfo}>Đang tải danh sách…</div>}
+      {!loading && err && <div style={boxError}>{err}</div>}
+      {!loading && !err && rows.length === 0 && <div style={boxInfo}>Không có yêu cầu nào đang chờ.</div>}
+
+      {!loading && !err && rows.length > 0 && (
+        <div style={{ overflowX: 'auto' }}>
+          <table style={table}>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Trạm yêu cầu</th>
+                <th>Loại pin</th>
+                <th>Tốt</th>
+                <th>Trung bình</th>
+                <th>Xấu</th>
+                <th>Trạng thái</th>
+                <th>Thời gian</th>
+                <th>Hành động</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((r, i) => (
+                <tr key={r.requestId ?? i}>
+                  <td>{r.requestId}</td>
+                  <td>{r.stationRequestName}</td>
+                  <td>{r.batteryName}</td>
+                  <td>{r.qtyGood}</td>
+                  <td>{r.qtyAverage}</td>
+                  <td>{r.qtyBad}</td>
+                  <td><span style={badge}>{r.status}</span></td>
+                  <td>{r.requestTime}</td>
+                  <td>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <button onClick={() => doAction(r.requestId, 'approve')} style={btnApprove}>Chấp nhận</button>
+                      <button onClick={() => doAction(r.requestId, 'cancel')} style={btnCancel}>Hủy</button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+/* ================== /Panel Xem điều phối pin ================== */
+
 export default function AdminDashboard({ user, onLoginClick }) {
   const [activeTab, setActiveTab] = useState('overview');
 
@@ -490,6 +639,9 @@ export default function AdminDashboard({ user, onLoginClick }) {
                     </div>
                   </div>
                 </div>
+
+                {/* ======== Panel Xem điều phối pin ======== */}
+                <AdminDispatchPanel />
               </>
             )}
 

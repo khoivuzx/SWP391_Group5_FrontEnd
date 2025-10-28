@@ -61,7 +61,7 @@ function Battery() {
   // Nội dung cho project-card-1 dạng slide
   const projectCard1Contents = [
     {
-      img: 'img-network-feature-1.jpg',
+      img: '/img-network-feature-1.jpg',
       title: 'Pin thông minh - Đổi pin siêu tốc',
       subtitle: 'Chỉ vài giây, tiếp năng lượng cho hành trình mới.',
       desc: 'Không còn chờ đợi sạc. Đổi pin nhanh, sạch, tiện lợi. Công nghệ pin hiện đại giúp bạn luôn sẵn sàng di chuyển, tiết kiệm thời gian và bảo vệ môi trường.'

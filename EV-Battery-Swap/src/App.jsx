@@ -61,7 +61,13 @@ function AppContent({ user, isLoginModalOpen, onOpenModal, onCloseModal, onLogin
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (user?.role?.toLowerCase() === 'driver' && location.pathname !== '/dashboard/driver') {
+    // Only auto-redirect drivers to their dashboard when they're at the root
+    // (prevents forced redirect when they intentionally navigate to other pages
+    // like /vehicle-link or /dashboard/driver/booking)
+    if (
+      user?.role?.toLowerCase() === 'driver' &&
+      (location.pathname === '/' || location.pathname === '' )
+    ) {
       navigate('/dashboard/driver');
     }
   }, [user, navigate, location.pathname]);

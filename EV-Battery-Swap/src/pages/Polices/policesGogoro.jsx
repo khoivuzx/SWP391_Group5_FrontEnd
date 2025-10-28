@@ -135,10 +135,9 @@ export function renderListGogoro(list) {
   );
 }
 
-export function GogoroPolicyModern({ onLoginClick, user }) {
+export function GogoroPolicyModern() {
   const [tab, setTab] = React.useState(0);
   const data = tabDataGogoro[tab];
-  const isLoggedIn = !!(user && (user.fullName || user.fullname || user.name));
   return (
     <div className="gogoro-policy-modern polices-container">
       <h1>Chính sách thuê pin Gogoro</h1>
@@ -190,31 +189,10 @@ export function GogoroPolicyModern({ onLoginClick, user }) {
 
       {/* Action buttons */}
       <div className="gogoro-actions">
-        <button
-          className="btn btn--secondary"
-          onClick={() => {
-            /* show more details - could open modal */
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          }}
-        >
+        <button className="btn btn--secondary" onClick={() => { /* show more details - could open modal */ window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
           Xem chi tiết
         </button>
-        <button
-          className="btn btn--primary"
-          onClick={() => {
-            // If not logged in, save intended redirect and open login modal
-            if (!isLoggedIn) {
-              try {
-                localStorage.setItem('redirectAfterLogin', '/dashboard/driver/booking');
-              } catch (e) {}
-              onLoginClick && onLoginClick();
-              return;
-            }
-            // Already logged in — navigate to driver booking page
-            // Use hash route to stay in single tab SPA
-            window.location.hash = '#/dashboard/driver/booking';
-          }}
-        >
+        <button className="btn btn--primary" onClick={() => { window.open('/dashboard/driver/booking', '_self'); }}>
           Đăng ký ngay
         </button>
         <button className="btn btn--outline" onClick={() => { window.location.href = 'tel:1900232389'; }}>

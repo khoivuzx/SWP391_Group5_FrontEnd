@@ -49,8 +49,6 @@
   background: linear-gradient(90deg, #f44336, #e57373);
   font-weight: 700;
   margin-top: 8px;
-  border: none;
-  border-radius: 8px;
   padding: 12px 22px;
   cursor: pointer;
   transition: background 0.18s, color 0.18s;
@@ -168,6 +166,18 @@
   text-decoration:none;
   font-weight:700;
   box-shadow: 0 6px 18px rgba(52,211,153,0.12);
+}
+
+/* vehicle link CTA (driver quick action) */
+.cta.vehicle-link{
+  background: linear-gradient(90deg,#ffd54f,#ffb300);
+  color:#071019;
+  padding:8px 12px;
+  border-radius:10px;
+  text-decoration:none;
+  font-weight:700;
+  box-shadow: 0 6px 18px rgba(255,181,0,0.08);
+  margin-right: 20px;
 }
 
 /* ========== DROPDOWN STYLES - THÊM VÀO CUỐI FILE ========== */

@@ -66,12 +66,7 @@ function Navigation({
   if (role === "driver") {
     return (
       <nav className="main-nav" aria-label="Primary">
-        <Link
-          to="/dashboard/driver"
-          className={`nav-link ${isActive("/dashboard/driver") ? "active" : ""}`}
-        >
-          Tài xế
-        </Link>
+        {/* Không hiển thị Trang Chủ cho driver */}
       </nav>
     );
   }
@@ -179,6 +174,11 @@ export default function Header({ onLoginClick, user }) {
         />
 
         <div className="actions">
+          {role === "driver" && (
+            <Link to="/vehicle-link" className="cta vehicle-link">
+              Liên kết xe
+            </Link>
+          )}
           {user && user.fullName ? (
             <div className="user-menu-wrap" ref={userMenuRef}>
               <button
@@ -200,15 +200,7 @@ export default function Header({ onLoginClick, user }) {
                   >
                     Thông tin người dùng
                   </button>
-                  <button
-                    className="user-menu-btn"
-                    onClick={() => {
-                      setShowUserMenu(false);
-                      navigate("/user/transactions");
-                    }}
-                  >
-                    Lịch sử giao dịch
-                  </button>
+
                   <button
                     className="user-menu-btn logout"
                     onClick={() => {

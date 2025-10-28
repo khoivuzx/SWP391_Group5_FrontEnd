@@ -27,7 +27,16 @@ export default function DriverDashboard() {
   const [userLocation, setUserLocation] = useState(null);
   const [foundStations, setFoundStations] = useState([]);
 
-  const [activeTab, setActiveTab] = useState('find');
+  // Đọc tab từ localStorage khi khởi tạo
+  const [activeTab, setActiveTab] = useState(() => {
+    return localStorage.getItem('driverDashboardTab') || 'find';
+  });
+
+  // Lưu tab vào localStorage mỗi khi đổi tab
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    localStorage.setItem('driverDashboardTab', tab);
+  };
 
   // modal state
   const [bookingOpen, setBookingOpen] = useState(false);
@@ -193,7 +202,7 @@ export default function DriverDashboard() {
       </div>
 
       <div className="driver-main-wrap">
-        <TabBar tabs={tabList} active={activeTab} onChange={setActiveTab} />
+  <TabBar tabs={tabList} active={activeTab} onChange={handleTabChange} />
 
         {activeTab === 'find' && (
           <>

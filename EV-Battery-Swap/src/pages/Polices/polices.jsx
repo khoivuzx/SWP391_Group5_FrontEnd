@@ -367,8 +367,8 @@ export function PolicesPricingFAQ({ onLoginClick, user }) {
         </main>
       </div>
 
-      {/* ====== GOGORO POLICY MODERN DESIGN BÊN DƯỚI ====== */}
-      <GogoroPolicyModern />
+  {/* ====== GOGORO POLICY MODERN DESIGN BÊN DƯỚI ====== */}
+  <GogoroPolicyModern onLoginClick={onLoginClick} user={user} />
     </>
   );
 }

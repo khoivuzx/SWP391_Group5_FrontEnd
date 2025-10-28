@@ -1,12 +1,32 @@
 
 import React from "react";
 import "./policesGogoro.css";
+import "./policesGogoro.css";
+
+// Small helper to render technical terms with tooltip
+function Term({ children, title }) {
+  return (
+    <abbr className="term-tooltip" title={title} aria-label={title}>
+      {children}
+    </abbr>
+  );
+}
+
+function renderTextWithTerms(text) {
+  if (typeof text !== 'string') return text;
+  // Replace common terms like SoH with tooltip component
+  if (text.includes('SoH')) {
+    const parts = text.split(/(SoH)/g);
+    return parts.map((p, i) => (p === 'SoH' ? <Term key={i} title={'State of Health — tỉ lệ phần trăm cho biết độ bền còn lại của pin'}>SoH</Term> : p));
+  }
+  return text;
+}
 
 // ===================== GOGORO POLICY MODERN DESIGN =====================
 export const tabDataGogoro = [
   {
     label: "Chính sách thuê Pin",
-    leftTitle: "Áp dụng cho các dòng xe Gogoro Viva, Gogoro S2, Gogoro CrossOver S, v.v.",
+    leftTitle: "Áp dụng cho các dòng xe GogoRo (ví dụ: Ludo, Theon, Vento) và các mẫu tương thích",
     left: [
       "Đặt cọc pin: 1.200.000 VNĐ/pin",
       "Khách hàng sẽ được hoàn trả khoản cọc khi thanh lý hợp đồng thuê pin.",
@@ -16,27 +36,27 @@ export const tabDataGogoro = [
       [
         "Chu kỳ tính cước: Tròn tháng, tính từ ngày đầu tiên của tháng tới ngày cuối cùng của tháng.",
         "Phí thuê bao pin được thu trước ngày 01 của tháng. Khách hàng có thể đóng 1 tháng hoặc nhiều tháng một lúc.",
-        "Lịch sử thanh toán: Thanh toán tại đại lý/ứng dụng Gogoro."
+    "Lịch sử thanh toán: Thanh toán tại đại lý/ứng dụng của nhà cung cấp (VinFast) hoặc các đại lý ủy quyền."
       ]
     ],
     rightTitle: "Phí thuê pin hàng tháng",
-    rightNote: "Khách hàng có nhu cầu chuyển đổi gói thuê pin tháng vui lòng liên hệ Hotline 1900 23 23 89 hoặc đại lý Gogoro.",
+    rightNote: "Liên hệ hotline hoặc đại lý để chuyển đổi gói. Giá bên dưới mang tính tham khảo theo gói hiện hành.",
     plans: [
       {
-        name: "GÓI TIÊU CHUẨN - TỪ 220.000 VNĐ/THÁNG",
+        name: "GÓI CƠ BẢN",
         price: [
-          { pin: 1, value: 220000 },
-          { pin: 2, value: 350000 }
+          { Basic: 1, value: 200000 },
+          { Eco: 1, value: 300000 }
         ],
-        note: "Không giới hạn quãng đường đi. Một số dòng xe chỉ áp dụng gói Tiêu chuẩn 2 pin."
+        note: "Phù hợp người dùng di chuyển trung bình. Đã bao gồm dịch vụ hỗ trợ và đổi pin theo chu kỳ."
       },
       {
-        name: "GÓI SIÊU TIẾT KIỆM - TỪ 149.000 VNĐ/THÁNG",
+        name: "GÓI TIÊU CHUẨN",
         price: [
-          { pin: 1, value: 149000 },
-          { pin: 2, value: 299000 }
+          { Standard: 1, value: 400000 },
+          { Premium: 2, value: 800000 }
         ],
-        note: "Giới hạn đi không quá 300 km/tháng. Nếu vượt quá sẽ tính giá theo gói Tiêu chuẩn."
+        note: "Gói phổ biến cho người dùng thường xuyên. Không giới hạn quãng đường."
       }
     ]
   },
@@ -61,7 +81,18 @@ export const tabDataGogoro = [
           "Pin không có chỗ nào có vết nứt, vỡ có thể dễ dàng quan sát bằng mắt thường.",
           "Pin không có chỗ nào rỉ, sét, ố do bị ngấm nước hoặc tiếp xúc với hóa chất.",
           "Pin không có vết xước nào có độ sâu trên 01 mm.",
-          "Khách hàng tuân thủ quy định về sử dụng và bảo quản pin mà Gogoro đã ban hành."
+          "Khách hàng tuân thủ quy định về sử dụng và bảo quản pin mà nhà cung cấp (VinFast) đã ban hành."
+        ]
+      }
+      ,
+      {
+        section: "Quy định đền bù pin",
+        items: [
+          "Trường hợp phải đền bù (một trong các điều kiện): Khách hàng làm mất pin; khách hàng đã tháo vỏ pin hoặc các bộ phận của pin; khách hàng làm vỏ pin bị biến dạng dẫn tới pin không hoạt động; khách hàng làm mất Zplug trên phần vỏ nắp pin.",
+          "Đền nguyên giá pin (khi pin bị mất hoặc hỏng nặng): 8.600.000 VNĐ / pin (Bao gồm VAT).",
+          "Trường hợp vỏ pin bị biến dạng ở phần nắp, thân hoặc đế nhưng pin vẫn còn hoạt động: bồi thường theo bộ phận vỏ bị biến dạng — 770.000 VNĐ / bộ phận (Bao gồm VAT).",
+          "Trường hợp pin không hoạt động do khách hàng không tuân thủ Quy định về sử dụng và bảo quản: mức đền bù tùy theo mức độ thiệt hại (đơn vị cung cấp sẽ thẩm định).",
+          "Nếu vỏ pin không bị biến dạng và khách hàng đã tuân thủ Quy định về sử dụng và bảo quản nhưng pin vẫn không hoạt động khi đổi/trả hợp lệ: khách hàng không phải đền bù.",
         ]
       }
     ],
@@ -82,7 +113,7 @@ export function renderListGogoro(list) {
             <div className="section-title">{section.section}</div>
             <ul>
               {section.items.map((item, i) => (
-                <li key={i}>{item}</li>
+                <li key={i}>{renderTextWithTerms(item)}</li>
               ))}
             </ul>
           </div>
@@ -97,7 +128,7 @@ export function renderListGogoro(list) {
         Array.isArray(item) ? (
           <ul key={idx} className="gogoro-nested-list">{renderListGogoro(item)}</ul>
         ) : (
-          <li key={idx}>{item}</li>
+          <li key={idx}>{renderTextWithTerms(item)}</li>
         )
       )}
     </ul>
@@ -140,8 +171,33 @@ export function GogoroPolicyModern() {
               <div className="plan-note">{plan.note}</div>
             </div>
           ))}
-          <div className="vat">Giá đã bao gồm VAT</div>
+          {/* Only show VAT and image when NOT viewing the rental policy tab */}
+          {data.label !== 'Chính sách thuê Pin' && (
+            <>
+              {/* Hình minh họa pin Gogoro */}
+              <div className="gogoro-image-wrap">
+                <img
+                  src="/batterypin3-Photoroom.png"
+                  alt="Gogoro battery"
+                  className="gogoro-policy-image"
+                />
+              </div>
+            </>
+          )}
         </div>
+      </div>
+
+      {/* Action buttons */}
+      <div className="gogoro-actions">
+        <button className="btn btn--secondary" onClick={() => { /* show more details - could open modal */ window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
+          Xem chi tiết
+        </button>
+        <button className="btn btn--primary" onClick={() => { window.open('/dashboard/driver/booking', '_self'); }}>
+          Đăng ký ngay
+        </button>
+        <button className="btn btn--outline" onClick={() => { window.location.href = 'tel:1900232389'; }}>
+          Liên hệ hỗ trợ
+        </button>
       </div>
     </div>
   );

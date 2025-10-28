@@ -9,10 +9,10 @@
   text-align: center;
   font-size: 2.5rem;
   font-weight: 600;
-  color: #3d9a3f;
+  color: #1be61e;
   margin-bottom: 24px;
 }
-.gogoro-tabs {
+.gogoro-tabs {  
   display: flex;
   justify-content: center;
   margin-bottom: 24px;
@@ -30,8 +30,8 @@
 }
 .gogoro-tab.active {
   font-weight: 700;
-  color: #02d306;
-  border-bottom: 3px solid #02d306;
+  color: #1be61e;
+  border-bottom: 3px solid #415541;
 }
 .gogoro-policy-content {
   display: flex;
@@ -46,10 +46,15 @@
   border-radius: 12px;
   padding: 24px;
 }
+/* Make left column scrollable to 'thu nhỏ' nội dung */
+.gogoro-policy-left{
+  max-height: 560px;
+  overflow-y: auto;
+  padding-right: 12px; /* space for scrollbar */
+}
 .gogoro-policy-left h2,
 .gogoro-policy-right h2 {
   font-size: 1.5rem;
-  color: #374151;
   font-weight: 600;
   margin-bottom: 16px;
 }
@@ -60,13 +65,11 @@
 .gogoro-policy-left li,
 .gogoro-policy-right li {
   font-size: 1rem;
-  color: #374151;
 }
 .gogoro-policy-left .section-title,
 .gogoro-policy-right .section-title {
   font-weight: 600;
   font-size: 1.25rem;
-  color: #374151;
   margin-bottom: 8px;
 }
 .gogoro-policy-right .plan {
@@ -84,11 +87,9 @@
   background: #fff;
   border-radius: 8px;
   padding: 8px 12px;
-  color: #374151;
   font-size: 0.95rem;
 }
 .gogoro-policy-right .vat {
-  color: #374151;
   font-size: 0.95rem;
   margin-top: 8px;
 }
@@ -97,3 +98,82 @@
   font-size: 1rem;
   margin-bottom: 12px;
 }
+
+/* Image under pricing */
+.gogoro-image-wrap{
+  display:flex;
+  justify-content:center;
+  margin-top:14px;
+}
+.gogoro-policy-image{
+  max-width:700px;
+  width:auto;
+  height:auto;
+  border-radius:10px;
+}
+
+/* Compensation cards shown in right column for quick view */
+.comp-grid{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  margin-top:8px;
+}
+.comp-card{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  background:#fff;
+  border-radius:10px;
+  padding:12px 14px;
+  box-shadow: 0 6px 18px rgba(2,6,23,0.04);
+  border:1px solid rgba(2,6,23,0.03);
+}
+.comp-card .label{color:#374151;font-weight:600}
+.comp-card .amount{background:#f3f9f3;color:#0b662b;padding:8px 10px;border-radius:8px;font-weight:700}
+
+
+/* Term tooltip */
+.term-tooltip{
+  border-bottom:1px dotted rgba(0,0,0,0.12);
+  cursor:help;
+  color:#0b3b6f;
+}
+.term-tooltip[title]{
+  position:relative;
+}
+.term-tooltip:hover::after{
+  content: attr(title);
+  position: absolute;
+  left: 0;
+  bottom: -40px;
+  background: rgba(2,6,23,0.9);
+  color: #fff;
+  padding: 6px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+  font-size: 0.85rem;
+  z-index: 40;
+}
+
+/* Rules list visual improvements */
+.gogoro-left-list ul,
+.gogoro-policy-left ul {
+  list-style-type: disc;
+  padding-left: 1.1rem;
+  line-height: 1.6;
+}
+
+/* Action buttons */
+.gogoro-actions{
+  display:flex;
+  gap:12px;
+  justify-content:flex-end;
+  margin-top:18px;
+  /* shift the action buttons slightly to the left */
+  margin-right: 60px;
+}
+.btn{padding:8px 12px;border-radius:8px;border:none;cursor:pointer;font-weight:700}
+.btn--primary{background:linear-gradient(90deg,#1976d2,#10b981);color:#fff}
+.btn--secondary{background:#fff;border:1px solid rgba(16,118,210,0.12);color:#0b3b6f}
+.btn--outline{background:transparent;border:1px dashed rgba(0,0,0,0.08);color:#0b3b6f}

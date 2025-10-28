@@ -59,16 +59,12 @@ function AppContent({ user, isLoginModalOpen, onOpenModal, onCloseModal, onLogin
   const location = useLocation();
   const isStaffDashboard = location.pathname === '/dashboard/staff';
   const navigate = useNavigate();
-  const [prevUser, setPrevUser] = useState(null);
 
   useEffect(() => {
-    // Chỉ redirect nếu user vừa đăng nhập (prevUser là null, user là driver)
-    if (!prevUser && user?.role?.toLowerCase() === 'driver' && location.pathname !== '/dashboard/driver') {
-      navigate('/'); // về home trước, sau đó navigate tới driver nếu cần
-      setTimeout(() => navigate('/dashboard/driver'), 0);
+    if (user?.role?.toLowerCase() === 'driver' && location.pathname !== '/dashboard/driver') {
+      navigate('/dashboard/driver');
     }
-    setPrevUser(user);
-  }, [user]);
+  }, [user, navigate, location.pathname]);
 
   return (
     <>

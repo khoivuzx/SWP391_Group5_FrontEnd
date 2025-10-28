@@ -19,6 +19,7 @@ if (typeof window !== 'undefined' && !window.__FETCH_SPY__) {
 }
 
 import React, { useState, useEffect, useRef } from 'react';
+import './Home.css';
 import SearchForm from '../../components/SearchForm/SearchForm';
 import MapboxMap from '../../components/Mapbox/MapboxMap';
 import API_BASE_URL from '../../config';
@@ -222,32 +223,35 @@ const handleFindBattery = async (chemistry) => {
 
   return (
     <>
-    <main style={{ padding: 0, margin: 0 }}>
+    <main className="home-main">
       <video
         autoPlay
         loop
         muted
         playsInline
         controls={false}
-        style={{
-          position: 'relative',
-          width: '100%',
-          height: '100%',
-          objectFit: 'cover',
-          display: 'block',
-        }}
+        className="home-video"
       >
         <source src="/promo.mp4" type="video/mp4" />
       </video>
-      <img
-        src="/homemap.jpg"
-        alt="Sơ đồ các trạm"
-        style={{ width: '100%', height: 'auto', display: 'block' }}
-      />
-      <div style={{ display: 'flex', height: '80vh', gap: '16px', padding: '24px' }}>
-        <div style={{ flex: 3 }}>
+      <div className="home-map-section">
+        <img
+          src="/homemap.jpg"
+          alt="Sơ đồ các trạm"
+          className="home-map-img"
+        />
+        {/* Nội dung overlay trên hình homemap */}
+        <div className="home-map-overlay">
+          Chào mừng bạn đến với hệ thống đổi pin thông minh!
+          <div className="home-map-desc">
+            Đổi pin nhanh chóng, tiện lợi, an toàn và tiết kiệm cho xe điện của bạn.
+          </div>
+        </div>
+      </div>
+      <div className="home-content-row">
+        <div className="home-content-left">
           {stationsLoading && <div>Loading stations...</div>}
-          {stationsError && <div style={{ color: 'red' }}>{stationsError}</div>}
+          {stationsError && <div className="home-error">{stationsError}</div>}
           {!stationsLoading && !stationsError && (
             <SearchForm
               stations={stations}
@@ -258,10 +262,10 @@ const handleFindBattery = async (chemistry) => {
               onFindBattery={handleFindBattery}
             />
           )}
-          {routeLoading && <div style={{ color: '#1976d2', marginTop: 8 }}>Finding route...</div>}
-          {routeError && <div style={{ color: 'red', marginTop: 8 }}>{routeError}</div>}
+          {routeLoading && <div className="home-info">Finding route...</div>}
+          {routeError && <div className="home-error">{routeError}</div>}
         </div>
-        <div style={{ flex: 7, height: '100%', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 4px 24px rgba(0,0,0,0.15)' }}>
+        <div className="home-content-right">
           <MapboxMap
             token={MAPBOX_TOKEN}
             selectedStation={selectedStation}

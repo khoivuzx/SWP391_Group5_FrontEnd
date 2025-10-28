@@ -1,0 +1,73 @@
+.home-main {
+	padding: 0;
+	margin: 0;
+}
+
+.home-video {
+	position: relative;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	display: block;
+}
+
+.home-map-section {
+	position: relative;
+	width: 100%;
+}
+
+.home-map-img {
+	width: 100%;
+	height: auto;
+	display: block;
+}
+
+.home-map-overlay {
+	position: absolute;
+	top: 10%;
+	left: 50%;
+	transform: translateX(-50%);
+	padding: 24px 32px;
+	text-align: center;
+	font-size: 2.2rem;
+	font-weight: bold;
+	color: #1976d2;
+	z-index: 2;
+	max-width: 80%;
+
+}
+
+.home-map-desc {
+	font-size: 1rem;
+	font-weight: normal;
+	color: #333;
+	margin-top: 8px;
+}
+
+.home-content-row {
+	display: flex;
+	height: 85vh;
+	gap: 16px;
+	padding: 24px;
+}
+
+.home-content-left {
+	flex: 3;
+}
+
+.home-content-right {
+	flex: 7;
+	height: 100%;
+	border-radius: 12px;
+	overflow: hidden;
+	box-shadow: 0 4px 24px rgba(0,0,0,0.15);
+}
+
+.home-error {
+	color: red;
+}
+
+.home-info {
+	color: #1976d2;
+	margin-top: 8px;
+}

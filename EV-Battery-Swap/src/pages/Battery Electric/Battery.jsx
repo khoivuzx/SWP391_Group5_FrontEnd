@@ -1,3 +1,5 @@
+
+
 import React, { useEffect, useRef, useState } from "react";
 import "./Battery.css";
 
@@ -46,6 +48,7 @@ function Battery() {
     }
   };
 
+
   // Card component
   const IntroCard = ({ img, title, desc, onClick }) => (
     <div className="card" onClick={onClick} style={{ cursor: 'pointer' }}>
@@ -54,6 +57,92 @@ function Battery() {
       <p>{desc}</p>
     </div>
   );
+
+  // Nội dung cho project-card-1 dạng slide
+  const projectCard1Contents = [
+    {
+      img: 'img-network-feature-1.jpg',
+      title: 'Pin thông minh - Đổi pin siêu tốc',
+      subtitle: 'Chỉ vài giây, tiếp năng lượng cho hành trình mới.',
+      desc: 'Không còn chờ đợi sạc. Đổi pin nhanh, sạch, tiện lợi. Công nghệ pin hiện đại giúp bạn luôn sẵn sàng di chuyển, tiết kiệm thời gian và bảo vệ môi trường.'
+    },
+    {
+      img: '/img-battery3.jpg',
+      title: 'Pin Lithium thế hệ mới',
+      subtitle: 'An toàn, tuổi thọ cao.',
+      desc: 'Pin Lithium với công nghệ quản lý thông minh, chống cháy nổ, tuổi thọ vượt trội, bảo vệ môi trường.'
+    },
+    {
+      img: '/img-battery2.jpg',
+      title: 'Đổi pin mọi lúc mọi nơi',
+      subtitle: 'Tiện lợi cho mọi hành trình.',
+      desc: 'Hệ thống trạm phủ rộng, đổi pin nhanh chóng, không lo hết năng lượng giữa đường.'
+    }
+  ];
+
+  const [card1Idx, setCard1Idx] = useState(0);
+  const [slide, setSlide] = useState(''); // '', 'left', 'right'
+  const handleNextCard1 = () => {
+    setSlide('left');
+    setTimeout(() => {
+      setCard1Idx((idx) => (idx === projectCard1Contents.length - 1 ? 0 : idx + 1));
+      setSlide('right');
+      setTimeout(() => setSlide(''), 300);
+    }, 300);
+  };
+    // Nội dung cho project-card-2 dạng slide
+  const projectCard2Contents = [
+    {
+      img: '/img-network-feature-2.jpg',
+      title: 'Trạm đổi pin tự động',
+      subtitle: 'Tiết kiệm thời gian, tối ưu chi phí.',
+      desc: 'Trạm đổi pin thông minh vận hành 24/7, lưu trữ năng lượng an toàn, hỗ trợ nhiều loại xe điện. Đảm bảo nguồn pin luôn sẵn sàng, giảm thiểu chi phí bảo trì và vận hành.'
+    },
+    {
+      img: '/img-battery4.jpg',
+      title: 'Trạm lưu trữ năng lượng',
+      subtitle: 'An toàn, hiện đại, thân thiện môi trường.',
+      desc: 'Trạm lưu trữ pin với công nghệ kiểm soát thông minh, tiết kiệm chi phí vận hành, bảo vệ môi trường.'
+    }
+  ];
+
+  const [card2Idx, setCard2Idx] = useState(0);
+  const [slide2, setSlide2] = useState('');
+  const handleNextCard2 = () => {
+    setSlide2('left');
+    setTimeout(() => {
+      setCard2Idx((idx) => (idx === projectCard2Contents.length - 1 ? 0 : idx + 1));
+      setSlide2('right');
+      setTimeout(() => setSlide2(''), 300);
+    }, 300);
+  };
+
+  // Nội dung cho project-card-3 dạng slide
+  const projectCard3Contents = [
+    {
+      img: '/img-network-feature-3.jpg',
+      title: 'Ứng dụng quản lý & kết nối',
+      subtitle: 'Kiểm soát pin, hành trình và thanh toán chỉ với một chạm.',
+      desc: 'Kết nối hệ sinh thái pin đổi nhanh, tra cứu trạm gần nhất, quản lý lịch sử sử dụng, thanh toán không tiền mặt, nhận thông báo bảo trì và hỗ trợ 24/7. Trải nghiệm di chuyển thông minh, an toàn, tiện lợi.'
+    },
+    {
+      img: '/img-battery2.jpg',
+      title: 'Quản lý thông minh',
+      subtitle: 'Theo dõi trạng thái pin và xe mọi lúc.',
+      desc: 'Ứng dụng di động giúp bạn kiểm tra trạng thái pin, lịch sử sử dụng, nhận thông báo bảo trì và hỗ trợ nhanh chóng.'
+    }
+  ];
+
+  const [card3Idx, setCard3Idx] = useState(0);
+  const [slide3, setSlide3] = useState('');
+  const handleNextCard3 = () => {
+    setSlide3('left');
+    setTimeout(() => {
+      setCard3Idx((idx) => (idx === projectCard3Contents.length - 1 ? 0 : idx + 1));
+      setSlide3('right');
+      setTimeout(() => setSlide3(''), 300);
+    }, 300);
+  };
 
   // ImageSwapper - crossfades between two images using CSS opacity transition
   const ImageSwapper = ({ srcA = '/pinswap/img-swap1.jpg', srcB = '/pinswap/img-swap2.jpg', interval = 4000, alt = '' }) => {
@@ -133,44 +222,75 @@ function Battery() {
       </section>
 
 
+
       {/* PROJECT SECTION - BỐ CỤC ẢNH 50% - TEXT 50% */}
-  <section className="project-section-single" id="project-section-single">
+      <section className="project-section-single" id="project-section-single">
         <h2>NỀN TẢNG NĂNG LƯỢNG TIÊN TIẾN NHẤT CHO XE ĐIỆN</h2>
 
         <div className="project-card-gogoro">
-          {/* THẺ DỰ ÁN 1: ẢNH TRÁI - TEXT PHẢI (Giống Gogoro Smart Batteries) */}
+          {/* THẺ DỰ ÁN 1: SLIDE NỘI DUNG */}
           <div className="card-item" id="project-card-1">
-            <div className="card-image-wrapper">
-              <img src="img-network-feature-1.jpg" alt="Smart Battery Swapping" />
+            <div className={`card-image-wrapper slide-horizontal ${slide === 'left' ? 'slide-out-left' : ''}${slide === 'right' ? 'slide-in-right' : ''}`.trim()}>
+              <img src={projectCard1Contents[card1Idx].img} alt={projectCard1Contents[card1Idx].title} />
             </div>
-            <div className="card-text-content">
-              <h4>Pin thông minh - Đổi pin siêu tốc</h4>
-              <h3>Chỉ vài giây, tiếp năng lượng cho hành trình mới.</h3>
-              <p>Không còn chờ đợi sạc. Đổi pin nhanh, sạch, tiện lợi. Công nghệ pin hiện đại giúp bạn luôn sẵn sàng di chuyển, tiết kiệm thời gian và bảo vệ môi trường.</p>
+            <div className={`card-text-content card-text-with-slide slide-horizontal ${slide === 'left' ? 'slide-out-left' : ''}${slide === 'right' ? 'slide-in-right' : ''}`.trim()}>
+              <div className="card-text-main">
+                <h4>{projectCard1Contents[card1Idx].title}</h4>
+                <h3>{projectCard1Contents[card1Idx].subtitle}</h3>
+                <p>{projectCard1Contents[card1Idx].desc}</p>
+              </div>
+              <div className="card-slide-btns">
+                <button className="slide-btn simple-circle" onClick={handleNextCard1} aria-label="Xem tiếp">
+                  <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="14" cy="14" r="12" stroke="#bbb" strokeWidth="2" fill="#fff" />
+                    <path d="M12 10L16 14L12 18" stroke="#222" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
+              </div>
             </div>
           </div>
 
-          {/* THẺ DỰ ÁN 2: ẢNH TRÁI - TEXT PHẢI */}
+          {/* THẺ DỰ ÁN 2: SLIDE NỘI DUNG */}
           <div className="card-item" id="project-card-2">
-            <div className="card-image-wrapper">
-              <img src="/img-network-feature-2.jpg" alt="Energy Storage Application" />
+            <div className={`card-image-wrapper slide-horizontal ${slide2 === 'left' ? 'slide-out-left' : ''}${slide2 === 'right' ? 'slide-in-right' : ''}`.trim()}>
+              <img src={projectCard2Contents[card2Idx].img} alt={projectCard2Contents[card2Idx].title} />
             </div>
-            <div className="card-text-content">
-              <h4>Trạm đổi pin tự động</h4>
-              <h3>Tiết kiệm thời gian, tối ưu chi phí.</h3>
-              <p>Trạm đổi pin thông minh vận hành 24/7, lưu trữ năng lượng an toàn, hỗ trợ nhiều loại xe điện. Đảm bảo nguồn pin luôn sẵn sàng, giảm thiểu chi phí bảo trì và vận hành.</p>
+            <div className={`card-text-content card-text-with-slide slide-horizontal ${slide2 === 'left' ? 'slide-out-left' : ''}${slide2 === 'right' ? 'slide-in-right' : ''}`.trim()}>
+              <div className="card-text-main">
+                <h4>{projectCard2Contents[card2Idx].title}</h4>
+                <h3>{projectCard2Contents[card2Idx].subtitle}</h3>
+                <p>{projectCard2Contents[card2Idx].desc}</p>
+              </div>
+              <div className="card-slide-btns">
+                <button className="slide-btn simple-circle" onClick={handleNextCard2} aria-label="Xem tiếp">
+                  <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="14" cy="14" r="12" stroke="#bbb" strokeWidth="2" fill="#fff" />
+                    <path d="M12 10L16 14L12 18" stroke="#222" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
+              </div>
             </div>
           </div>
 
-          {/* THẺ DỰ ÁN 3: ẢNH TRÁI - TEXT PHẢI */}
+          {/* THẺ DỰ ÁN 3: SLIDE NỘI DUNG */}
           <div className="card-item" id="project-card-3">
-            <div className="card-image-wrapper">
-              <img src="/img-network-feature-3.jpg" alt="Design and Technology" />
+            <div className={`card-image-wrapper slide-horizontal ${slide3 === 'left' ? 'slide-out-left' : ''}${slide3 === 'right' ? 'slide-in-right' : ''}`.trim()}>
+              <img src={projectCard3Contents[card3Idx].img} alt={projectCard3Contents[card3Idx].title} />
             </div>
-            <div className="card-text-content">
-              <h4>Ứng dụng quản lý & kết nối</h4>
-              <h3>Kiểm soát pin, hành trình và thanh toán chỉ với một chạm.</h3>
-              <p>Kết nối hệ sinh thái pin đổi nhanh, tra cứu trạm gần nhất, quản lý lịch sử sử dụng, thanh toán không tiền mặt, nhận thông báo bảo trì và hỗ trợ 24/7. Trải nghiệm di chuyển thông minh, an toàn, tiện lợi.</p>
+            <div className={`card-text-content card-text-with-slide slide-horizontal ${slide3 === 'left' ? 'slide-out-left' : ''}${slide3 === 'right' ? 'slide-in-right' : ''}`.trim()}>
+              <div className="card-text-main">
+                <h4>{projectCard3Contents[card3Idx].title}</h4>
+                <h3>{projectCard3Contents[card3Idx].subtitle}</h3>
+                <p>{projectCard3Contents[card3Idx].desc}</p>
+              </div>
+              <div className="card-slide-btns">
+                <button className="slide-btn simple-circle" onClick={handleNextCard3} aria-label="Xem tiếp">
+                  <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="14" cy="14" r="12" stroke="#bbb" strokeWidth="2" fill="#fff" />
+                    <path d="M12 10L16 14L12 18" stroke="#222" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
+              </div>
             </div>
           </div>
         </div>

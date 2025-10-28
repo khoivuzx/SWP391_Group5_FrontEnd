@@ -1,3 +1,109 @@
+.slide-horizontal {
+  transition: transform 0.8s cubic-bezier(.4,0,.2,1), opacity 0.3s cubic-bezier(.4,0,.2,1);
+}
+.slide-out-left {
+  transform: translateX(-100px);
+  opacity: 0;
+}
+.slide-in-right {
+  transform: translateX(100px);
+  opacity: 0;
+}
+.fade-slide {
+  transition: opacity 0.25s cubic-bezier(.4,0,.2,1);
+}
+.fade-in {
+  opacity: 1;
+}
+.fade-out {
+  opacity: 0;
+}
+.simple-circle {
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+.simple-circle svg {
+  display: block;
+}
+.simple-circle:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #bbb;
+}
+.simple-circle:hover svg circle {
+  stroke: #222;
+  fill: #f5f5f5;
+}
+.square-gradient {
+  width: 48px;
+  height: 48px;
+  border: none;
+  background: none;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px #2196F344;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+.square-gradient svg {
+  display: block;
+}
+.square-gradient:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #2196F388;
+}
+.square-gradient:hover {
+  box-shadow: 0 4px 16px #2196F388;
+  transform: translateY(-2px) scale(1.08);
+}
+/* Card text với nút chuyển slide bên phải */
+.card-text-with-slide {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+.card-text-main {
+  flex: 1;
+}
+.card-slide-btns {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-left: 24px;
+}
+/* Nút chuyển slide hình tròn, viền đỏ, icon mũi tên đậm */
+.slide-btn {
+  width: 44px;
+  height: 44px;
+  border: none;
+  background: none;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: box-shadow 0.2s;
+}
+.slide-btn svg {
+  display: block;
+}
+.slide-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #E5393533;
+}
+.slide-btn:hover svg circle {
+  stroke: #B71C1C;
+  box-shadow: 0 2px 8px #E5393533;
+}
 
 /* Battery.css - CODE ĐƯỢC CHỈNH SỬA HOÀN CHỈNH */
 

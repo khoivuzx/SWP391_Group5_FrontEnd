@@ -138,6 +138,13 @@ export function renderListGogoro(list) {
 export function GogoroPolicyModern() {
   const [tab, setTab] = React.useState(0);
   const data = tabDataGogoro[tab];
+  // State để điều khiển modal đăng ký/đăng nhập
+  const [showRegister, setShowRegister] = React.useState(false);
+  const [showLogin, setShowLogin] = React.useState(false);
+  // Import RegisterModal/LoginModal
+  const RegisterModal = React.lazy(() => import('../../components/Login/RegisterModal'));
+  const LoginModal = React.lazy(() => import('../../components/Login/LoginModal'));
+
   return (
     <div className="gogoro-policy-modern polices-container">
       <h1>Chính sách thuê pin Gogoro</h1>
@@ -189,16 +196,43 @@ export function GogoroPolicyModern() {
 
       {/* Action buttons */}
       <div className="gogoro-actions">
-        <button className="btn btn--secondary" onClick={() => { /* show more details - could open modal */ window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
+        <button className="btn btn--secondary" onClick={() => { window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
           Xem chi tiết
         </button>
-        <button className="btn btn--primary" onClick={() => { window.open('/dashboard/driver/booking', '_self'); }}>
+        <button className="btn btn--primary" onClick={() => setShowLogin(true)}>
           Đăng ký ngay
         </button>
         <button className="btn btn--outline" onClick={() => { window.location.href = 'tel:1900232389'; }}>
           Liên hệ hỗ trợ
         </button>
       </div>
+
+      {/* Modal đăng ký */}
+      {showRegister && (
+        <React.Suspense fallback={<div>Đang tải...</div>}>
+          <RegisterModal
+            isOpen={showRegister}
+            onClose={() => setShowRegister(false)}
+            onSwitchToLogin={() => {
+              setShowRegister(false);
+              setShowLogin(true);
+            }}
+          />
+        </React.Suspense>
+      )}
+      {/* Modal đăng nhập */}
+      {showLogin && (
+        <React.Suspense fallback={<div>Đang tải...</div>}>
+          <LoginModal
+            isOpen={showLogin}
+            onClose={() => setShowLogin(false)}
+            onSwitchToRegister={() => {
+              setShowLogin(false);
+              setShowRegister(true);
+            }}
+          />
+        </React.Suspense>
+      )}
     </div>
   );
 }

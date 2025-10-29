@@ -223,63 +223,105 @@ const handleFindBattery = async (chemistry) => {
 
   return (
     <>
-    <main className="home-main">
-      <video
-        autoPlay
-        loop
-        muted
-        playsInline
-        controls={false}
-        className="home-video"
-      >
-        <source src="/promo.mp4" type="video/mp4" />
-      </video>
-      <div className="home-map-section">
-        <img
-          src="/homemap.jpg"
-          alt="Sơ đồ các trạm"
-          className="home-map-img"
-        />
-        {/* Nội dung overlay trên hình homemap */}
-        <div className="home-map-overlay">
-          Chào mừng bạn đến với hệ thống đổi pin thông minh!
-          <div className="home-map-desc">
-            Đổi pin nhanh chóng, tiện lợi, an toàn và tiết kiệm cho xe điện của bạn.
+      <main className="home-main">
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          controls={false}
+          className="home-video"
+        >
+          <source src="/promo.mp4" type="video/mp4" />
+        </video>
+        <div className="home-map-section">
+          <img
+            src="/homemap.jpg"
+            alt="Sơ đồ các trạm"
+            className="home-map-img"
+          />
+          {/* Nội dung overlay trên hình homemap */}
+          <div className="home-map-overlay">
+            Chào mừng bạn đến với hệ thống đổi pin thông minh!
+            <div className="home-map-desc">
+              Đổi pin nhanh chóng, tiện lợi, an toàn và tiết kiệm cho xe điện của bạn.
+            </div>
           </div>
         </div>
-      </div>
-      <div className="home-content-row">
-        <div className="home-content-left">
-          {stationsLoading && <div>Loading stations...</div>}
-          {stationsError && <div className="home-error">{stationsError}</div>}
-          {!stationsLoading && !stationsError && (
-            <SearchForm
-              stations={stations}
+        <div className="home-content-row">
+          <div className="home-content-left">
+            {stationsLoading && <div>Loading stations...</div>}
+            {stationsError && <div className="home-error">{stationsError}</div>}
+            {!stationsLoading && !stationsError && (
+              <SearchForm
+                stations={stations}
+                selectedStation={selectedStation}
+                setSelectedStation={setSelectedStation}
+                onFindPath={handleFindPath}
+                foundStations={foundStations}
+                onFindBattery={handleFindBattery}
+              />
+            )}
+            {routeLoading && <div className="home-info">Finding route...</div>}
+            {routeError && <div className="home-error">{routeError}</div>}
+          </div>
+          <div className="home-content-right">
+            <MapboxMap
+              token={MAPBOX_TOKEN}
               selectedStation={selectedStation}
               setSelectedStation={setSelectedStation}
-              onFindPath={handleFindPath}
-              foundStations={foundStations}
-              onFindBattery={handleFindBattery}
+              routeGeoJSON={routeGeoJSON}
+              showPopup={true}
+              userLocation={userLocation}
+              onStationsLoaded={handleStationsLoaded}
+              onBookStation={handleBookStation}
+              style={{ width: '100%', height: '100%', borderRadius: 12 }}
             />
-          )}
-          {routeLoading && <div className="home-info">Finding route...</div>}
-          {routeError && <div className="home-error">{routeError}</div>}
+          </div>
         </div>
-        <div className="home-content-right">
-          <MapboxMap
-            token={MAPBOX_TOKEN}
-            selectedStation={selectedStation}
-            setSelectedStation={setSelectedStation}
-            routeGeoJSON={routeGeoJSON}
-            showPopup={true}
-            userLocation={userLocation}
-            onStationsLoaded={handleStationsLoaded}
-            onBookStation={handleBookStation}
-            style={{ width: '100%', height: '100%', borderRadius: 12 }}
-          />
-        </div>
-      </div>
-    </main>
+        {/* Latest News Section */}
+        <section className="latest-news-section">
+          <h2 className="latest-news-title">Latest News</h2>
+          <div className="latest-news-list">
+            <div className="latest-news-card">
+              <img src="/e1.jpg" alt="Gogoro Most Innovative Company" className="latest-news-img" />
+              <div className="latest-news-meta">Press</div>
+              <div className="latest-news-headline">Think Deeper: Gogoro Platform.</div>
+              <a
+                href="/home/new-a"
+                className="latest-news-link"
+                onClick={e => { e.preventDefault(); window.location.href = '/home/new-a'; }}
+              >
+                LEARN MORE &rarr;
+              </a>
+            </div>
+            <div className="latest-news-card">
+              <img src="/e2.jpg" alt="Gogoro Pulse" className="latest-news-img" />
+              <div className="latest-news-meta">Press</div>
+              <div className="latest-news-headline">Think Deeper: SmartGEN.</div>
+              <a
+                href="/home/new-b"
+                className="latest-news-link"
+                onClick={e => { e.preventDefault(); window.location.href = '/home/new-b'; }}
+              >
+                LEARN MORE &rarr;
+              </a>
+            </div>
+            <div className="latest-news-card">
+              <img src="/e3.jpg" alt="Uber Eats Gogoro" className="latest-news-img" />
+              <div className="latest-news-meta">Press</div>
+              <div className="latest-news-headline">Think Deeper: iQ System.</div>
+              <a
+                href="/home/new-c"
+                className="latest-news-link"
+                onClick={e => { e.preventDefault(); window.location.href = '/home/new-c'; }}
+              >
+                LEARN MORE &rarr;
+              </a>
+            </div>
+          </div>
+        </section>
+      </main>
       <LocationPermissionModal
         open={showPrePerm}
         onCancel={() => { if (prePermResolveRef.current) { prePermResolveRef.current(false); prePermResolveRef.current = null; } }}

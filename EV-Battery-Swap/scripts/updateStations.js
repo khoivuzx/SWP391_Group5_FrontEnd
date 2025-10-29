@@ -58,7 +58,7 @@ async function main() {
       const m = txt.match(/API_BASE_URL\s*=\s*["'`]([^"'`]+)["'`]/);
       if (m && m[1]) {
         const base = String(m[1]).replace(/\/+$/, '');
-        API_URL = base + '/webAPI/api/getStationBatteryReportGuest';
+        API_URL = base + '/webAPI/api/getstations';
         console.log('API_URL not set — using API base from src/config.js ->', API_URL);
       } else {
         console.error('API_URL not set and failed to parse API_BASE_URL from src/config.js');
@@ -73,7 +73,6 @@ async function main() {
     console.warn('MAPBOX_TOKEN not set — geocoding will be skipped for stations that lack coordinates.');
   }
 
-  console.log('Fetching stations from API or local file:', API_URL);
   let stations;
   try {
     if (API_URL.startsWith('http://') || API_URL.startsWith('https://')) {
@@ -103,7 +102,32 @@ async function main() {
     }
   }
 
-  console.log(`Got ${stations.length} station records — geocoding addresses (this may take a while if needed)...`);
+  // Deduplicate station records by stationId if available, otherwise by normalized station name.
+  // The battery-report endpoint can return multiple rows per station; collapse them into one entry.
+  const originalCount = stations.length;
+  const grouped = new Map();
+  for (const s of stations) {
+    const id = s.Station_ID ?? s.stationId ?? s.id ?? s.ID ?? null;
+    const rawName = String(s.stationName ?? s.Name ?? s.name ?? s.station ?? '').trim();
+    const nameKey = rawName.toLowerCase();
+    const key = id != null ? `id:${id}` : `name:${nameKey}`;
+    if (!grouped.has(key)) {
+      // shallow clone
+      grouped.set(key, { ...s });
+    } else {
+      const cur = grouped.get(key);
+      // prefer entries that already have latitude/longitude
+      const curLat = cur.Latitude ?? cur.latitude ?? cur.Lat ?? cur.lat ?? cur.latitude ?? null;
+      const curLng = cur.Longitude ?? cur.longitude ?? cur.Lng ?? cur.lng ?? cur.longitude ?? null;
+      const sLat = s.Latitude ?? s.latitude ?? s.Lat ?? s.lat ?? s.latitude ?? null;
+      const sLng = s.Longitude ?? s.longitude ?? s.Lng ?? s.lng ?? s.longitude ?? null;
+      if ((!curLat || !curLng) && (sLat && sLng)) {
+        grouped.set(key, { ...cur, ...s });
+      }
+    }
+  }
+  stations = Array.from(grouped.values());
+  console.log(`Got ${originalCount} station records, ${stations.length} unique stations — geocoding addresses (this may take a while if needed)...`);
 
   // simple sequential geocoding to be gentle with rate limits; you can parallelize if desired
   const out = [];

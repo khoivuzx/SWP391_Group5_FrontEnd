@@ -3,66 +3,110 @@
     "id": 1,
     "name": "Gogoro Central Park",
     "address": "Số 208 Nguyễn Hữu Cảnh, Phường 22, Quận Bình Thạnh, TP.HCM",
-    "latitude": 10.809452618394472,
-    "longitude": 106.69811168144163,
+    "latitude": 10.775547732483707,
+    "longitude": 106.6585547076581,
     "coords": [
-      106.69811168144163,
-      10.809452618394472
+      106.6585547076581,
+      10.775547732483707
     ]
   },
   {
     "id": 2,
     "name": "Gogoro Grand Park - Khu 1",
     "address": "Số 512 Nguyễn Xiển, Phường Long Thạnh Mỹ, TP. Thủ Đức, TP.HCM",
-    "latitude": 10.77444955827571,
-    "longitude": 106.69902657494673,
+    "latitude": 10.8017076425748,
+    "longitude": 106.74968104880331,
     "coords": [
-      106.69902657494673,
-      10.77444955827571
+      106.74968104880331,
+      10.8017076425748
     ]
   },
   {
     "id": 3,
     "name": "Gogoro Central Đồng Khởi",
     "address": "Hầm B5, số 72 Lê Thánh Tông, Phường Bến Nghé",
-    "latitude": 10.817027560277282,
-    "longitude": 106.6712803221293,
+    "latitude": 10.787339588536186,
+    "longitude": 106.69588612232654,
     "coords": [
-      106.6712803221293,
-      10.817027560277282
+      106.69588612232654,
+      10.787339588536186
     ]
   },
   {
     "id": 4,
     "name": "Gogoro Golden River",
     "address": "Tòa LUXURY 6, Hầm B3, Đ. Tôn Đức Thắng, Phường Bến Nghé",
-    "latitude": 10.73574175180667,
-    "longitude": 106.75015384786592,
+    "latitude": 10.777624305845746,
+    "longitude": 106.69500508589537,
     "coords": [
-      106.75015384786592,
-      10.73574175180667
+      106.69500508589537,
+      10.777624305845746
     ]
   },
   {
     "id": 5,
-    "name": "Chung Cu Golden King",
+    "name": "Chung Cư Golden King",
     "address": "Số 512 Nguyễn Xiển, Phường Long Thạnh Mỹ, TP. Thủ Đức, TP.HCM",
-    "latitude": 10.788596283479821,
-    "longitude": 106.7508529630996,
+    "latitude": 10.756382966024333,
+    "longitude": 106.69840831723397,
     "coords": [
-      106.7508529630996,
-      10.788596283479821
+      106.69840831723397,
+      10.756382966024333
     ]
   },
   {
     "id": 6,
-    "name": "TTTM VinCom+ Nam Long",
+    "name": "TTTM Vincom+ Nam Long",
     "address": "71 Trần Trọng Cung, Phường Tân Thuận Đông",
-    "latitude": 10.796460456423901,
-    "longitude": 106.6855808750579,
+    "latitude": 10.73595260161231,
+    "longitude": 106.69838996122374,
     "coords": [
-      106.6855808750579,
-      10.796460456423901
+      106.69838996122374,
+      10.73595260161231
+    ]
+  },
+  {
+    "id": 17,
+    "name": "Gogoro Crescent Mall",
+    "address": "Tầng B1, Crescent Mall, 101 Tôn Dật Tiên, Phường Tân Phú, Quận 7, TP.HCM",
+    "latitude": 10.727958780800437,
+    "longitude": 106.66600551848721,
+    "coords": [
+      106.66600551848721,
+      10.727958780800437
+    ]
+  },
+  {
+    "id": 18,
+    "name": "Gogoro Vạn Hạnh Mall",
+    "address": "Tầng B1, Vạn Hạnh Mall, 11 Sư Vạn Hạnh, Phường 12, Quận 10, TP.HCM",
+    "latitude": 10.795120520381333,
+    "longitude": 106.74930434068466,
+    "coords": [
+      106.74930434068466,
+      10.795120520381333
+    ]
+  },
+  {
+    "id": 19,
+    "name": "Gogoro E-Town Cộng Hòa",
+    "address": "Tầng G, E-Town 1, 364 Cộng Hòa, Phường 13, Quận Tân Bình, TP.HCM",
+    "latitude": 10.739893125908987,
+    "longitude": 106.70391200808115,
+    "coords": [
+      106.70391200808115,
+      10.739893125908987
+    ]
+  },
+  {
+    "id": 20,
+    "name": "Gogoro Emart Phan Văn Trị",
+    "address": "366 Phan Văn Trị, Phường 5, Quận Gò Vấp, TP.HCM",
+    "latitude": 10.739868652024095,
+    "longitude": 106.74212990172425,
+    "coords": [
+      106.74212990172425,
+      10.739868652024095
     ]
   }
 ]

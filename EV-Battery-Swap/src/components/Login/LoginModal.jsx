@@ -81,11 +81,6 @@ const getDashboardPathByRole = (role) => {
     setIsLoading(true);
 
     try {
-      // Nếu chưa có redirect → lưu lại trang hiện tại (chỉ để dùng cho Driver/Guest)
-      if (!localStorage.getItem('redirectAfterLogin')) {
-        localStorage.setItem('redirectAfterLogin', getCurrentPath());
-      }
-
       const res = await fetch(`${API_BASE_URL}/webAPI/api/login`, {
         method: 'POST',
         headers: {
@@ -110,37 +105,27 @@ const getDashboardPathByRole = (role) => {
 
       if (onLoginSuccess) onLoginSuccess(data?.user);
 
-      // ======== QUY TẮC ĐIỀU HƯỚNG THEO ROLE ========
-      const role = data?.user?.role || data?.user?.Role || data?.user?.roleName;
-      const roleDash = getDashboardPathByRole(role);
-
-      // Đóng modal trước khi điều hướng
+      // Điều hướng theo role
       onClose();
-
-      // 1) Nếu là Staff/Manager/Admin → vào dashboard role (bỏ qua redirect cũ)
-      if (roleDash) {
-        localStorage.removeItem('redirectAfterLogin');
-        go(roleDash);
-        return;
+      const role = data?.user?.role || data?.user?.Role || data?.user?.roleName;
+      if (role) {
+        switch (role.toLowerCase()) {
+          case 'driver':
+            go('/dashboard/driver');
+            return;
+          case 'staff':
+          case 'manager':
+            go('/dashboard/staff');
+            return;
+          case 'admin':
+            go('/dashboard/admin');
+            return;
+        }
       }
-
-      // 2) Driver/Guest/khác → dùng logic cũ
+      // Nếu không có role, dùng redirect cũ
       const redirectPath = localStorage.getItem('redirectAfterLogin') || '/';
-      const selectedPkg = localStorage.getItem('selectedPackageId');
-
-      // Xóa cờ trước khi điều hướng
       localStorage.removeItem('redirectAfterLogin');
-
-      // Nếu login từ /polices và có gói được chọn → sang payment
-      if (redirectPath.includes('/polices') && selectedPkg) {
-        localStorage.removeItem('selectedPackageId');
-        go(`/payment?packageId=${encodeURIComponent(selectedPkg)}`);
-      } else {
-        // Ngăn quay lại trang login nếu có
-        const safeRedirect =
-          redirectPath === '/login' || redirectPath === '/signin' ? '/' : redirectPath;
-        go(safeRedirect);
-      }
+      go(redirectPath);
     } catch (err) {
       setError(err.message || 'Lỗi kết nối mạng. Vui lòng thử lại.');
     } finally {

@@ -1,3 +1,66 @@
+// Slider component cho hình w1, w2, w3
+
+function HomeSlider() {
+  const slides = [
+    {
+      img: '/home/w1.jpg',
+      title: 'Batteries Swapped',
+      value: '798,220,048',
+      desc: 'More than 394,634 batteries swapped per day in the last 30 days.'
+    },
+    {
+      img: '/home/w3.jpg',
+      title: 'CO₂ Saved',
+      value: '1,237,756,119 kg',
+      desc: 'The same amount of CO₂ as 123,775,611 trees absorb every year.'
+    },
+    {
+      img: '/home/w2.jpg',
+      title: 'Total Distance Covered',
+      value: '13,974,062,302 km',
+      desc: `Equal to traveling around the Earth's equator 349,351 times.`
+    }
+  ];
+  const [current, setCurrent] = useState(0);
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrent(c => (c + 1) % slides.length);
+    }, 4000);
+    return () => clearInterval(timer);
+  }, [slides.length]);
+  return (
+    <div className="home-slider">
+      <div className="home-slider-img-wrapper">
+        {slides.map((slide, idx) => (
+          <div
+            key={slide.img}
+            className={`home-slider-img${current === idx ? ' active' : ''}`}
+            style={{ opacity: current === idx ? 1 : 0, zIndex: current === idx ? 2 : 1 }}
+          >
+            <img src={slide.img} alt={slide.title} style={{ width: '100vw', height: '100%', objectFit: 'cover' }} />
+            {current === idx && (
+              <div className="home-slider-overlay">
+                <h2 className="home-slider-title">{slide.title}</h2>
+                <div className="home-slider-value">{slide.value}</div>
+                <div className="home-slider-desc">{slide.desc}</div>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+      <div className="home-slider-dots">
+        {slides.map((_, idx) => (
+          <button
+            key={idx}
+            className={`home-slider-dot${current === idx ? ' active' : ''}`}
+            onClick={() => setCurrent(idx)}
+            aria-label={`Chuyển đến slide ${idx+1}`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
 // DEBUG: log mọi lần gọi fetch để biết URL + method + nơi khởi tạo
 if (typeof window !== 'undefined' && !window.__FETCH_SPY__) {
   window.__FETCH_SPY__ = true;
@@ -26,13 +89,14 @@ import API_BASE_URL from '../../config';
 import useGeolocation from '../../hooks/useGeolocation';
 import LocationPermissionModal from '../../components/LocationPermissionModal/LocationPermissionModal';
 import RegisterModal from '../../components/Login/RegisterModal';
+import { Link, useNavigate } from 'react-router-dom';
 
 const MAPBOX_TOKEN = 'pk.eyJ1Ijoia2hvaXZ1engiLCJhIjoiY21nNHcyZXZ4MHg5ZTJtcGtrNm9hbmVpciJ9.N3prC7rC3ycR6DV5giMUfg';
 
 export default function Home() {
+  const navigate = useNavigate();
   const [selectedStation, setSelectedStation] = useState("");
   const [routeGeoJSON, setRouteGeoJSON] = useState(null);
-  const [routeSummary, setRouteSummary] = useState(null); // { distance: meters, duration: seconds }
   const [routeLoading, setRouteLoading] = useState(false);
   const [routeError, setRouteError] = useState("");
   const [stations, setStations] = useState([]);
@@ -172,7 +236,6 @@ const handleFindBattery = async (chemistry) => {
       return;
     }
     setRouteLoading(true);
-  setRouteSummary(null);
     // Always attempt to get the user's current position when guiding.
     // The browser will show its permission prompt if the permission state is "prompt".
     let start;
@@ -208,16 +271,13 @@ const handleFindBattery = async (chemistry) => {
       const data = await res.json();
       if (data.routes && data.routes.length > 0) {
         setRouteGeoJSON(data.routes[0].geometry);
-        setRouteSummary({ distance: data.routes[0].distance, duration: data.routes[0].duration });
       } else {
         setRouteError("No route found.");
         setRouteGeoJSON(null);
-        setRouteSummary(null);
       }
     } catch (err) {
       setRouteError("Failed to fetch route.");
       setRouteGeoJSON(null);
-      setRouteSummary(null);
     }
     setRouteLoading(false);
   };
@@ -225,21 +285,6 @@ const handleFindBattery = async (chemistry) => {
   const { getCurrentPositionAsync, checkPermission } = useGeolocation();
   const [showPrePerm, setShowPrePerm] = useState(false);
   const prePermResolveRef = useRef(null);
-
-  // Helpers for rendering route summary
-  const formatDistance = (meters) => {
-    if (meters == null) return '';
-    if (meters < 1000) return `${Math.round(meters)} m`;
-    return `${(meters / 1000).toFixed(1)} km`;
-  };
-  const formatDuration = (seconds) => {
-    if (seconds == null) return '';
-    const mins = Math.round(seconds / 60);
-    if (mins < 60) return `${mins} min`;
-    const hours = Math.floor(mins / 60);
-    const rem = mins % 60;
-    return `${hours}h ${rem}m`;
-  };
 
   return (
     <>
@@ -284,11 +329,6 @@ const handleFindBattery = async (chemistry) => {
             )}
             {routeLoading && <div className="home-info">Finding route...</div>}
             {routeError && <div className="home-error">{routeError}</div>}
-          {routeSummary && (
-            <div className="home-info" style={{ marginTop: 8 }}>
-              <strong>Route:</strong>&nbsp;{formatDistance(routeSummary.distance)} • {formatDuration(routeSummary.duration)}
-            </div>
-          )}
           </div>
           <div className="home-content-right">
             <MapboxMap
@@ -296,7 +336,6 @@ const handleFindBattery = async (chemistry) => {
               selectedStation={selectedStation}
               setSelectedStation={setSelectedStation}
               routeGeoJSON={routeGeoJSON}
-            routeSummary={routeSummary}
               showPopup={true}
               userLocation={userLocation}
               onStationsLoaded={handleStationsLoaded}
@@ -313,41 +352,40 @@ const handleFindBattery = async (chemistry) => {
               <img src="/e1.jpg" alt="Gogoro Most Innovative Company" className="latest-news-img" />
               <div className="latest-news-meta">Press</div>
               <div className="latest-news-headline">Think Deeper: Gogoro Platform.</div>
-              <a
-                href="/home/new-a"
-                className="latest-news-link"
-                onClick={e => { e.preventDefault(); window.location.href = '/home/new-a'; }}
-              >
-                LEARN MORE &rarr;
-              </a>
+            <Link to="/news/gogoro-platform" className="latest-news-link">LEARN MORE &rarr;</Link>
             </div>
             <div className="latest-news-card">
               <img src="/e2.jpg" alt="Gogoro Pulse" className="latest-news-img" />
               <div className="latest-news-meta">Press</div>
               <div className="latest-news-headline">Think Deeper: SmartGEN.</div>
-              <a
-                href="/home/new-b"
-                className="latest-news-link"
-                onClick={e => { e.preventDefault(); window.location.href = '/home/new-b'; }}
-              >
-                LEARN MORE &rarr;
-              </a>
+            <Link to="/news/smartgen" className="latest-news-link">LEARN MORE &rarr;</Link>
             </div>
             <div className="latest-news-card">
               <img src="/e3.jpg" alt="Uber Eats Gogoro" className="latest-news-img" />
               <div className="latest-news-meta">Press</div>
               <div className="latest-news-headline">Think Deeper: iQ System.</div>
-              <a
-                href="/home/new-c"
-                className="latest-news-link"
-                onClick={e => { e.preventDefault(); window.location.href = '/home/new-c'; }}
-              >
-                LEARN MORE &rarr;
-              </a>
+            <Link to="/news/iq-system" className="latest-news-link">LEARN MORE &rarr;</Link>
             </div>
           </div>
-        </section>
-      </main>
+  </section>
+  {/* Slider hình ảnh w1, w2, w3 nằm trên footer */}
+        {/* Gogoro Network Banner Section */}
+        <section className="gogoro-banner-section">
+          <div className="gogoro-banner-img">
+            <img src="/img1.jpg" alt="Gogoro Battery Swap" />
+            <div className="gogoro-banner-content">
+              <h2 className="gogoro-banner-title">Gogoro Network</h2>
+              <p className="gogoro-banner-desc">The world's most advanced battery swapping system, vehicles recharged in seconds.</p>
+              <div className="gogoro-banner-link">
+                <button className="gogoro-banner-btn" onClick={() => { navigate('/battery'); window.scrollTo(0,0); }}>
+                  DISCOVER MORE &rarr;
+                </button>
+              </div>
+            </div>
+          </div>
+  </section>
+      <HomeSlider />
+    </main>
       <LocationPermissionModal
         open={showPrePerm}
         onCancel={() => { if (prePermResolveRef.current) { prePermResolveRef.current(false); prePermResolveRef.current = null; } }}
@@ -356,9 +394,8 @@ const handleFindBattery = async (chemistry) => {
       <RegisterModal
         isOpen={showRegister}
         onClose={() => setShowRegister(false)}
-        onSwitchToLogin={() => { /* optionally open login modal - not implemented here */ setShowRegister(false); }}
+        onSwitchToLogin={() => { setShowRegister(false); }}
       >
-        {/* provide a short explanation above the form via a simple element insertion if modal supports children */}
         <div style={{ padding: '12px 20px', background: '#fff', color: '#333' }}>{registerNote}</div>
       </RegisterModal>
     </>

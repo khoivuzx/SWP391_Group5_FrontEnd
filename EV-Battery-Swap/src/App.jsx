@@ -27,6 +27,7 @@ import UserInfo from './pages/User/UserInfo';
 import TransactionHistory from './pages/User/TransactionHistory';
 import Booking from './pages/Dashboard/Driver/Booking/booking.jsx';
 import BookingHistory from './pages/Dashboard/Driver/Booking/BookingHistory.jsx';
+import NewsDetail from './pages/Home/NewsDetail.jsx';
 
 function App() {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false); 
@@ -95,6 +96,9 @@ function AppContent({ user, isLoginModalOpen, onOpenModal, onCloseModal, onLogin
           <Route path="/reset-pass" element={<ResetPass />} />
           <Route path="/user/info" element={<UserInfo />} />
           <Route path="/user/transactions" element={<TransactionHistory />} />
+
+          {/* Route cho trang chi tiết tin tức */}
+          <Route path="/news/:id" element={<NewsDetail />} />
 
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />

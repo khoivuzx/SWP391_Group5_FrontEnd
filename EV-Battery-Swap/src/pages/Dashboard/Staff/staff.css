@@ -267,3 +267,33 @@ select.input{
   .row-inline{ flex-direction: column; align-items: stretch; gap: 8px; }
   .btn-secondary, .detail-btn{ width: 100%; }
 }
+
+/* Backdrop riêng cho popup slot */
+.station-popup-backdrop{
+  position: fixed; inset: 0;
+  background: rgba(2,6,23,.45);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 10000;               /* cao hơn modal trụ */
+}
+
+/* Hộp popup */
+.station-popup{
+  background:#fff; color:#222; border-radius:14px;
+  box-shadow: 0 18px 60px rgba(2,6,23,.25), 0 4px 16px rgba(2,6,23,.12);
+  padding:18px 24px; min-width:280px; max-width:min(92vw, 520px);
+  font-size:1.06rem;
+}
+
+/* Giữ modal trụ thấp tầng hơn popup */
+.station-modal-backdrop{ z-index: 9000; }
+
+/* Nút Đóng của modal trụ chỉ hiện khi KHÔNG có overlay con */
+.station-modal-footer{ visibility: visible; }
+.station-modal-backdrop:has(.station-popup-backdrop),
+.station-modal-backdrop:has(.modal-backdrop){
+  /* khi popup slot hoặc selector pin mở thì ẩn footer của modal trụ */
+}
+.station-modal-backdrop:has(.station-popup-backdrop) .station-modal-footer,
+.station-modal-backdrop:has(.modal-backdrop) .station-modal-footer{
+  visibility: hidden;
+}

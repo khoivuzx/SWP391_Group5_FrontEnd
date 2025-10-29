@@ -76,6 +76,7 @@ export default function Polices({ onLoginClick, user }) {
     <>
       <PolicesHeader />
       <PolicesPricingFAQ onLoginClick={onLoginClick} user={user} />
+      <GogoroPolicyModern />
     </>
   );
 }
@@ -367,8 +368,7 @@ export function PolicesPricingFAQ({ onLoginClick, user }) {
         </main>
       </div>
 
-      {/* ====== GOGORO POLICY MODERN DESIGN BÊN DƯỚI ====== */}
-      <GogoroPolicyModern />
+  {/* Đã loại bỏ GogoroPolicyModern cho PolicesOnlyPricingFAQ */}
     </>
   );
 }

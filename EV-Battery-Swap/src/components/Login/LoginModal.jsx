@@ -110,36 +110,14 @@ const getDashboardPathByRole = (role) => {
 
       if (onLoginSuccess) onLoginSuccess(data?.user);
 
-      // ======== QUY TẮC ĐIỀU HƯỚNG THEO ROLE ========
-      const role = data?.user?.role || data?.user?.Role || data?.user?.roleName;
-      const roleDash = getDashboardPathByRole(role);
-
-      // Đóng modal trước khi điều hướng
+      // Nếu đăng nhập từ polices, chuyển sang tab 'Gói dịch vụ' của dashboard driver
       onClose();
-
-      // 1) Nếu là Staff/Manager/Admin → vào dashboard role (bỏ qua redirect cũ)
-      if (roleDash) {
-        localStorage.removeItem('redirectAfterLogin');
-        go(roleDash);
-        return;
-      }
-
-      // 2) Driver/Guest/khác → dùng logic cũ
-      const redirectPath = localStorage.getItem('redirectAfterLogin') || '/';
-      const selectedPkg = localStorage.getItem('selectedPackageId');
-
-      // Xóa cờ trước khi điều hướng
-      localStorage.removeItem('redirectAfterLogin');
-
-      // Nếu login từ /polices và có gói được chọn → sang payment
-      if (redirectPath.includes('/polices') && selectedPkg) {
-        localStorage.removeItem('selectedPackageId');
-        go(`/payment?packageId=${encodeURIComponent(selectedPkg)}`);
+      if (getCurrentPath().includes('/polices')) {
+        // Lưu tab dịch vụ vào localStorage để dashboard driver chọn đúng tab
+        localStorage.setItem('driverTab', 'service');
+        go('/dashboard/driver');
       } else {
-        // Ngăn quay lại trang login nếu có
-        const safeRedirect =
-          redirectPath === '/login' || redirectPath === '/signin' ? '/' : redirectPath;
-        go(safeRedirect);
+        go('/dashboard/driver');
       }
     } catch (err) {
       setError(err.message || 'Lỗi kết nối mạng. Vui lòng thử lại.');

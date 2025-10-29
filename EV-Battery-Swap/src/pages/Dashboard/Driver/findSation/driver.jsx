@@ -6,7 +6,7 @@ import useGeolocation from '../../../../hooks/useGeolocation';
 import LocationPermissionModal from '../../../../components/LocationPermissionModal/LocationPermissionModal';
 import API_BASE_URL from '../../../../config';
 import TabBar from '../../../../components/TabBar/TabBar';
-import { PolicesPricingFAQ } from '../../../Polices/polices';
+import { PolicesOnlyPricingFAQ } from '../../../Polices/polices';
 import TransactionHistory from '../../../User/TransactionHistory';
 import BookingHistory from '../Booking/BookingHistory';
 
@@ -286,7 +286,7 @@ export default function DriverDashboard() {
 
         {activeTab === 'service' && (
           <div style={{padding:'32px 0'}}>
-            <PolicesPricingFAQ user={user} />
+            <PolicesOnlyPricingFAQ user={user} />
           </div>
         )}
 

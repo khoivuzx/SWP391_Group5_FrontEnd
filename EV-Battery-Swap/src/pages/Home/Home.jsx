@@ -1,3 +1,66 @@
+// Slider component cho hình w1, w2, w3
+
+function HomeSlider() {
+  const slides = [
+    {
+      img: '/home/w1.jpg',
+      title: 'Batteries Swapped',
+      value: '798,220,048',
+      desc: 'More than 394,634 batteries swapped per day in the last 30 days.'
+    },
+    {
+      img: '/home/w3.jpg',
+      title: 'CO₂ Saved',
+      value: '1,237,756,119 kg',
+      desc: 'The same amount of CO₂ as 123,775,611 trees absorb every year.'
+    },
+    {
+      img: '/home/w2.jpg',
+      title: 'Total Distance Covered',
+      value: '13,974,062,302 km',
+      desc: `Equal to traveling around the Earth's equator 349,351 times.`
+    }
+  ];
+  const [current, setCurrent] = useState(0);
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrent(c => (c + 1) % slides.length);
+    }, 4000);
+    return () => clearInterval(timer);
+  }, [slides.length]);
+  return (
+    <div className="home-slider">
+      <div className="home-slider-img-wrapper">
+        {slides.map((slide, idx) => (
+          <div
+            key={slide.img}
+            className={`home-slider-img${current === idx ? ' active' : ''}`}
+            style={{ opacity: current === idx ? 1 : 0, zIndex: current === idx ? 2 : 1 }}
+          >
+            <img src={slide.img} alt={slide.title} style={{ width: '100vw', height: '100%', objectFit: 'cover' }} />
+            {current === idx && (
+              <div className="home-slider-overlay">
+                <h2 className="home-slider-title">{slide.title}</h2>
+                <div className="home-slider-value">{slide.value}</div>
+                <div className="home-slider-desc">{slide.desc}</div>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+      <div className="home-slider-dots">
+        {slides.map((_, idx) => (
+          <button
+            key={idx}
+            className={`home-slider-dot${current === idx ? ' active' : ''}`}
+            onClick={() => setCurrent(idx)}
+            aria-label={`Chuyển đến slide ${idx+1}`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
 // DEBUG: log mọi lần gọi fetch để biết URL + method + nơi khởi tạo
 if (typeof window !== 'undefined' && !window.__FETCH_SPY__) {
   window.__FETCH_SPY__ = true;
@@ -304,7 +367,8 @@ const handleFindBattery = async (chemistry) => {
             <Link to="/news/iq-system" className="latest-news-link">LEARN MORE &rarr;</Link>
             </div>
           </div>
-        </section>
+  </section>
+  {/* Slider hình ảnh w1, w2, w3 nằm trên footer */}
         {/* Gogoro Network Banner Section */}
         <section className="gogoro-banner-section">
           <div className="gogoro-banner-img">
@@ -319,8 +383,9 @@ const handleFindBattery = async (chemistry) => {
               </div>
             </div>
           </div>
-        </section>
-      </main>
+  </section>
+      <HomeSlider />
+    </main>
       <LocationPermissionModal
         open={showPrePerm}
         onCancel={() => { if (prePermResolveRef.current) { prePermResolveRef.current(false); prePermResolveRef.current = null; } }}

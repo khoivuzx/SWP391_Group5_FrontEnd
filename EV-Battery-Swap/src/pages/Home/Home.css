@@ -1,3 +1,64 @@
+/* Overlay chữ trên slider */
+.home-slider-overlay {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	color: #fff;
+	text-align: center;
+	z-index: 3;
+	pointer-events: none;
+	background: rgba(0,0,0,0.18);
+}
+.home-slider-title {
+	font-size: 2.2rem;
+	font-weight: bold;
+	margin-bottom: 18px;
+	text-shadow: 0 2px 8px rgba(0,0,0,0.18);
+}
+.home-slider-value {
+	font-size: 4.2rem;
+	font-weight: bold;
+	margin-bottom: 18px;
+	text-shadow: 0 2px 8px rgba(0,0,0,0.18);
+}
+.home-slider-desc {
+	font-size: 1.5rem;
+	margin-bottom: 0;
+	text-shadow: 0 2px 8px rgba(0,0,0,0.18);
+}
+/* Slider hình ảnh w1, w2, w3 */
+
+.home-slider-img-wrapper {
+	position: relative;
+	width: 100vw;
+	height: 600px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	overflow: hidden;
+	background: #222;
+	border-radius: 0;
+	box-shadow: none;
+}
+.home-slider-img {
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: 100vw;
+	height: 100%;
+	object-fit: cover;
+	border-radius: 0;
+	opacity: 0;
+	transition: opacity 0.7s cubic-bezier(.4,0,.2,1);
+	z-index: 1;
+}
+
 .gogoro-banner-img {
 	position: relative;
 	display: flex;
@@ -125,7 +186,7 @@
 }
 .home-img1-container {
 	width: 100%;
-	text-align: center;
+	margin: 0;
 	margin: 32px 0 0 0;
 }
 .home-img1 {
@@ -268,3 +329,5 @@
 	color: #1976d2;
 	margin-top: 8px;
 }
+
+

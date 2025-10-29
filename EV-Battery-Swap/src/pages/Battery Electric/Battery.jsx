@@ -61,19 +61,19 @@ function Battery() {
   // Nội dung cho project-card-1 dạng slide
   const projectCard1Contents = [
     {
-      img: '/img-network-feature-1.jpg',
+      img: '/b1.jpg',
       title: 'Pin thông minh - Đổi pin siêu tốc',
       subtitle: 'Chỉ vài giây, tiếp năng lượng cho hành trình mới.',
       desc: 'Không còn chờ đợi sạc. Đổi pin nhanh, sạch, tiện lợi. Công nghệ pin hiện đại giúp bạn luôn sẵn sàng di chuyển, tiết kiệm thời gian và bảo vệ môi trường.'
     },
     {
-      img: '/img-battery3.jpg',
+      img: '/b2.jpg',
       title: 'Pin Lithium thế hệ mới',
       subtitle: 'An toàn, tuổi thọ cao.',
       desc: 'Pin Lithium với công nghệ quản lý thông minh, chống cháy nổ, tuổi thọ vượt trội, bảo vệ môi trường.'
     },
     {
-      img: '/img-battery2.jpg',
+      img: '/a1.jpg',
       title: 'Đổi pin mọi lúc mọi nơi',
       subtitle: 'Tiện lợi cho mọi hành trình.',
       desc: 'Hệ thống trạm phủ rộng, đổi pin nhanh chóng, không lo hết năng lượng giữa đường.'
@@ -93,13 +93,13 @@ function Battery() {
     // Nội dung cho project-card-2 dạng slide
   const projectCard2Contents = [
     {
-      img: '/img-network-feature-2.jpg',
+      img: '/c2.jpg',
       title: 'Trạm đổi pin tự động',
       subtitle: 'Tiết kiệm thời gian, tối ưu chi phí.',
       desc: 'Trạm đổi pin thông minh vận hành 24/7, lưu trữ năng lượng an toàn, hỗ trợ nhiều loại xe điện. Đảm bảo nguồn pin luôn sẵn sàng, giảm thiểu chi phí bảo trì và vận hành.'
     },
     {
-      img: '/img-battery4.jpg',
+      img: '/img-network-feature-2.jpg',
       title: 'Trạm lưu trữ năng lượng',
       subtitle: 'An toàn, hiện đại, thân thiện môi trường.',
       desc: 'Trạm lưu trữ pin với công nghệ kiểm soát thông minh, tiết kiệm chi phí vận hành, bảo vệ môi trường.'
@@ -126,7 +126,7 @@ function Battery() {
       desc: 'Kết nối hệ sinh thái pin đổi nhanh, tra cứu trạm gần nhất, quản lý lịch sử sử dụng, thanh toán không tiền mặt, nhận thông báo bảo trì và hỗ trợ 24/7. Trải nghiệm di chuyển thông minh, an toàn, tiện lợi.'
     },
     {
-      img: '/img-battery2.jpg',
+      img: '/d2.jpg',
       title: 'Quản lý thông minh',
       subtitle: 'Theo dõi trạng thái pin và xe mọi lúc.',
       desc: 'Ứng dụng di động giúp bạn kiểm tra trạng thái pin, lịch sử sử dụng, nhận thông báo bảo trì và hỗ trợ nhanh chóng.'

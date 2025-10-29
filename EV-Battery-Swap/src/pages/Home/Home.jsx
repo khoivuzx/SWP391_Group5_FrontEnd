@@ -304,6 +304,19 @@ const handleFindBattery = async (chemistry) => {
             </div>
           </div>
         </section>
+        {/* Gogoro Network Banner Section giống demo gốc */}
+        <section className="gogoro-banner-section">
+          <div className="gogoro-banner-img">
+            <img src="/img1.jpg" alt="Gogoro Battery Swap" />
+            <div className="gogoro-banner-content">
+              <h2 className="gogoro-banner-title">Gogoro Network</h2>
+              <p className="gogoro-banner-desc">The world's most advanced battery swapping system, vehicles recharged in seconds.</p>
+              <div className="gogoro-banner-link">
+                <a href="#" className="gogoro-banner-btn">DISCOVER MORE &rarr;</a>
+              </div>
+            </div>
+          </div>
+        </section>
       </main>
       <LocationPermissionModal
         open={showPrePerm}

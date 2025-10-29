@@ -32,7 +32,6 @@ const MAPBOX_TOKEN = 'pk.eyJ1Ijoia2hvaXZ1engiLCJhIjoiY21nNHcyZXZ4MHg5ZTJtcGtrNm9
 export default function Home() {
   const [selectedStation, setSelectedStation] = useState("");
   const [routeGeoJSON, setRouteGeoJSON] = useState(null);
-  const [routeSummary, setRouteSummary] = useState(null); // { distance: meters, duration: seconds }
   const [routeLoading, setRouteLoading] = useState(false);
   const [routeError, setRouteError] = useState("");
   const [stations, setStations] = useState([]);
@@ -172,7 +171,6 @@ const handleFindBattery = async (chemistry) => {
       return;
     }
     setRouteLoading(true);
-  setRouteSummary(null);
     // Always attempt to get the user's current position when guiding.
     // The browser will show its permission prompt if the permission state is "prompt".
     let start;
@@ -208,16 +206,13 @@ const handleFindBattery = async (chemistry) => {
       const data = await res.json();
       if (data.routes && data.routes.length > 0) {
         setRouteGeoJSON(data.routes[0].geometry);
-        setRouteSummary({ distance: data.routes[0].distance, duration: data.routes[0].duration });
       } else {
         setRouteError("No route found.");
         setRouteGeoJSON(null);
-        setRouteSummary(null);
       }
     } catch (err) {
       setRouteError("Failed to fetch route.");
       setRouteGeoJSON(null);
-      setRouteSummary(null);
     }
     setRouteLoading(false);
   };
@@ -225,21 +220,6 @@ const handleFindBattery = async (chemistry) => {
   const { getCurrentPositionAsync, checkPermission } = useGeolocation();
   const [showPrePerm, setShowPrePerm] = useState(false);
   const prePermResolveRef = useRef(null);
-
-  // Helpers for rendering route summary
-  const formatDistance = (meters) => {
-    if (meters == null) return '';
-    if (meters < 1000) return `${Math.round(meters)} m`;
-    return `${(meters / 1000).toFixed(1)} km`;
-  };
-  const formatDuration = (seconds) => {
-    if (seconds == null) return '';
-    const mins = Math.round(seconds / 60);
-    if (mins < 60) return `${mins} min`;
-    const hours = Math.floor(mins / 60);
-    const rem = mins % 60;
-    return `${hours}h ${rem}m`;
-  };
 
   return (
     <>
@@ -284,11 +264,6 @@ const handleFindBattery = async (chemistry) => {
             )}
             {routeLoading && <div className="home-info">Finding route...</div>}
             {routeError && <div className="home-error">{routeError}</div>}
-          {routeSummary && (
-            <div className="home-info" style={{ marginTop: 8 }}>
-              <strong>Route:</strong>&nbsp;{formatDistance(routeSummary.distance)} • {formatDuration(routeSummary.duration)}
-            </div>
-          )}
           </div>
           <div className="home-content-right">
             <MapboxMap
@@ -296,7 +271,6 @@ const handleFindBattery = async (chemistry) => {
               selectedStation={selectedStation}
               setSelectedStation={setSelectedStation}
               routeGeoJSON={routeGeoJSON}
-            routeSummary={routeSummary}
               showPopup={true}
               userLocation={userLocation}
               onStationsLoaded={handleStationsLoaded}
@@ -313,37 +287,19 @@ const handleFindBattery = async (chemistry) => {
               <img src="/e1.jpg" alt="Gogoro Most Innovative Company" className="latest-news-img" />
               <div className="latest-news-meta">Press</div>
               <div className="latest-news-headline">Think Deeper: Gogoro Platform.</div>
-              <a
-                href="/home/new-a"
-                className="latest-news-link"
-                onClick={e => { e.preventDefault(); window.location.href = '/home/new-a'; }}
-              >
-                LEARN MORE &rarr;
-              </a>
+              <a href="/home/new-a" className="latest-news-link" onClick={e => { e.preventDefault(); window.location.href = '/home/new-a'; }}>LEARN MORE &rarr;</a>
             </div>
             <div className="latest-news-card">
               <img src="/e2.jpg" alt="Gogoro Pulse" className="latest-news-img" />
               <div className="latest-news-meta">Press</div>
               <div className="latest-news-headline">Think Deeper: SmartGEN.</div>
-              <a
-                href="/home/new-b"
-                className="latest-news-link"
-                onClick={e => { e.preventDefault(); window.location.href = '/home/new-b'; }}
-              >
-                LEARN MORE &rarr;
-              </a>
+              <a href="/home/new-b" className="latest-news-link" onClick={e => { e.preventDefault(); window.location.href = '/home/new-b'; }}>LEARN MORE &rarr;</a>
             </div>
             <div className="latest-news-card">
               <img src="/e3.jpg" alt="Uber Eats Gogoro" className="latest-news-img" />
               <div className="latest-news-meta">Press</div>
               <div className="latest-news-headline">Think Deeper: iQ System.</div>
-              <a
-                href="/home/new-c"
-                className="latest-news-link"
-                onClick={e => { e.preventDefault(); window.location.href = '/home/new-c'; }}
-              >
-                LEARN MORE &rarr;
-              </a>
+              <a href="/home/new-c" className="latest-news-link" onClick={e => { e.preventDefault(); window.location.href = '/home/new-c'; }}>LEARN MORE &rarr;</a>
             </div>
           </div>
         </section>

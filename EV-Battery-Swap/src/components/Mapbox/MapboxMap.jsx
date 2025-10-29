@@ -38,6 +38,27 @@ export default function MapboxMap({
         center: stations.length ? [stations[0].lng, stations[0].lat] : [106.7, 10.8],
         zoom: 12,
       });
+      // Add the Mapbox GeolocateControl (button + built-in blue dot).
+      try {
+        const geolocate = new mapboxgl.GeolocateControl({
+          positionOptions: { enableHighAccuracy: true },
+          trackUserLocation: true,
+          showUserHeading: true,
+        });
+        map.current.addControl(geolocate, 'top-right');
+        // When GeolocateControl emits a geolocate event, update the map manager so
+        // the rest of the app sees the user location marker consistently.
+        geolocate.on('geolocate', (evt) => {
+          try {
+            const coords = [evt.coords.longitude, evt.coords.latitude];
+            if (mapManagerRef.current && typeof mapManagerRef.current.setUserLocation === 'function') {
+              mapManagerRef.current.setUserLocation(coords);
+            }
+          } catch (e) {}
+        });
+      } catch (e) {
+        // ignore if GeolocateControl unavailable
+      }
       try { mapManagerRef.current = createMapManager(map.current); } catch { mapManagerRef.current = null; }
     }
     return () => { if (map.current) { map.current.remove(); map.current = null; } };
@@ -233,6 +254,36 @@ export default function MapboxMap({
     if (routeGeoJSON) {
       map.current.addSource('route', { type: 'geojson', data: routeGeoJSON });
       map.current.addLayer({ id: 'route', type: 'line', source: 'route', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#1976d2', 'line-width': 5 } });
+      // Fit the map to the route geometry so the entire route is visible
+      try {
+        // routeGeoJSON may be a geometry object or a Feature
+        const geom = routeGeoJSON.type === 'Feature' ? routeGeoJSON.geometry : routeGeoJSON;
+        const coords = (geom && geom.coordinates) || [];
+        if (coords && coords.length) {
+          // coords may be nested (LineString) or array of arrays; compute bounds
+          let flat = coords;
+          // if featureCollection or MultiLineString, flatten one level
+          if (Array.isArray(coords[0]) && Array.isArray(coords[0][0])) {
+            flat = coords.flat();
+          }
+          let minLng = Infinity, minLat = Infinity, maxLng = -Infinity, maxLat = -Infinity;
+          for (const c of flat) {
+            if (!Array.isArray(c) || c.length < 2) continue;
+            const [lng, lat] = c;
+            if (lng < minLng) minLng = lng;
+            if (lat < minLat) minLat = lat;
+            if (lng > maxLng) maxLng = lng;
+            if (lat > maxLat) maxLat = lat;
+          }
+          if (isFinite(minLng) && isFinite(minLat) && isFinite(maxLng) && isFinite(maxLat)) {
+            try {
+              map.current.fitBounds([[minLng, minLat], [maxLng, maxLat]], { padding: 60, maxZoom: 15, duration: 800 });
+            } catch (e) {}
+          }
+        }
+      } catch (err) {
+        // ignore fit errors
+      }
     }
   }, [routeGeoJSON]);
 

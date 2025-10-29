@@ -16,12 +16,22 @@ export function createMapManager(mapInstance) {
       try { userMarker.remove(); } catch (e) {}
       userMarker = null;
     }
-    const el = document.createElement('div');
-    el.className = 'map-user-marker';
+  const el = document.createElement('div');
+  // inline styles so the marker is visible out-of-the-box (blue dot with white border)
+  el.style.width = '14px';
+  el.style.height = '14px';
+  el.style.borderRadius = '50%';
+  el.style.background = '#1E90FF'; // blue
+  el.style.border = '2px solid #fff';
+  el.style.boxSizing = 'border-box';
+  el.style.boxShadow = '0 0 6px rgba(30,144,255,0.6)';
+  el.style.pointerEvents = 'none';
+  el.className = 'map-user-marker';
     userMarker = new mapboxgl.Marker({ element: el })
       .setLngLat([coords[0], coords[1]])
       .addTo(mapInstance);
-    try { mapInstance.flyTo({ center: [coords[0], coords[1]], zoom: 14 }); } catch (e) {}
+    // Do not auto-zoom to the user location here; fitting to routes or selected stations
+    // should be handled at the Map component level to avoid flicker.
     return userMarker;
   }
 

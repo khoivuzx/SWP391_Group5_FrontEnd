@@ -68,6 +68,8 @@ function PinStationMockup({ slots, title, onReload }) {
     return "#d1d5db";
   }
 
+  const [msg, setMsg] = useState({ open: false, title: '', body: '', tone: 'info' });
+
   async function openAddBattery() {
     try {
       const token = localStorage.getItem("authToken") || "";
@@ -95,7 +97,7 @@ function PinStationMockup({ slots, title, onReload }) {
       setAvail(normalized);
       setShowSelect(true);
     } catch (e) {
-      alert("Không tải được danh sách pin khả dụng: " + (e?.message || e));
+      setMsg({ open: true, title: 'Lỗi', body: "Không tải được danh sách pin khả dụng: " + (e?.message || e), tone: 'error' });
     }
   }
 
@@ -118,12 +120,12 @@ function PinStationMockup({ slots, title, onReload }) {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok || data.success === false) throw new Error(data.error || `HTTP ${res.status}`);
-      alert("✅ Gắn pin thành công!");
+      setMsg({ open: true, title: 'Thành công', body: '✅ Gắn pin thành công!', tone: 'success' });
       setShowSelect(false);
       setSelectedIndex(null);
       onReload && onReload();
     } catch (e) {
-      alert("❌ Gắn pin thất bại: " + (e?.message || e));
+      setMsg({ open: true, title: 'Lỗi', body: "❌ Gắn pin thất bại: " + (e?.message || e), tone: 'error' });
     }
   }
 
@@ -145,45 +147,50 @@ function PinStationMockup({ slots, title, onReload }) {
       if (!res.ok || data.ok === false) {
         throw new Error(data.message || `HTTP ${res.status}`);
       }
-      alert("✅ Đã gỡ pin khỏi ô.");
+      setMsg({ open: true, title: 'Thành công', body: '✅ Đã gỡ pin khỏi ô.', tone: 'success' });
       setSelectedIndex(null);
       onReload && onReload();
     } catch (e) {
-      alert("❌ Không thể gỡ pin: " + (e?.message || e));
+      setMsg({ open: true, title: 'Lỗi', body: "❌ Không thể gỡ pin: " + (e?.message || e), tone: 'error' });
     }
   }
 
   return (
-    <div className="station-mockup-minimal">
-      {title && <div className="station-mockup-minimal-header">{title}</div>}
-      <div className="station-mockup-minimal-inner">
-        <div className="station-mockup-minimal-grid">
-          {gridSlots.map((s, i) => {
-            const color = colorOf(s);
-            return (
-              <div
-                key={s.slotId || s.code || i}
-                className={
-                  "station-mockup-minimal-battery" +
-                  (selectedIndex === i ? " selected" : "") +
-                  (!s.batteryId ? " empty" : "")
-                }
-                onClick={() => setSelectedIndex(i)}
-                title={s.code || s.slotId}
-                style={{ cursor: "pointer" }}
-              >
-                <span
-                  className="station-mockup-minimal-dot"
-                  style={{
-                    background: color,
-                    border: `2.5px solid ${color}`,
-                    boxShadow: !s.batteryId || color === "#000000" ? "none" : `0 0 14px 3px ${color}55`,
-                    opacity: !s.batteryId ? 0.6 : 1,
-                  }}
-                />
-              </div>
-            );
-          })}
+    <React.Fragment>
+      <MessageBox open={msg.open} title={msg.title} tone={msg.tone} onClose={() => setMsg({ ...msg, open: false })}>
+        {msg.body}
+      </MessageBox>
+      <div className="station-mockup-minimal">
+        {title && <div className="station-mockup-minimal-header">{title}</div>}
+        <div className="station-mockup-minimal-inner">
+          <div className="station-mockup-minimal-grid">
+            {gridSlots.map((s, i) => {
+              const color = colorOf(s);
+              return (
+                <div
+                  key={s.slotId || s.code || i}
+                  className={
+                    "station-mockup-minimal-battery" +
+                    (selectedIndex === i ? " selected" : "") +
+                    (!s.batteryId ? " empty" : "")
+                  }
+                  onClick={() => setSelectedIndex(i)}
+                  title={s.code || s.slotId}
+                  style={{ cursor: "pointer" }}
+                >
+                  <span
+                    className="station-mockup-minimal-dot"
+                    style={{
+                      background: color,
+                      border: `2.5px solid ${color}`,
+                      boxShadow: !s.batteryId || color === "#000000" ? "none" : `0 0 14px 3px ${color}55`,
+                      opacity: !s.batteryId ? 0.6 : 1,
+                    }}
+                  />
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
 
@@ -218,7 +225,7 @@ function PinStationMockup({ slots, title, onReload }) {
             onClick={(e) => e.stopPropagation()}
           >
             {!selected.batteryId ? (
-              <>
+              <React.Fragment>
                 <strong>{selected.code || `Slot #${selected.slotId || "-"}`}</strong> — <em>Ô trống</em>
                 <p>Hiện tại chưa có pin trong ô này.</p>
                 <div>Vị trí: <b>{selected.chargingStationName || "-"}</b></div>
@@ -231,9 +238,9 @@ function PinStationMockup({ slots, title, onReload }) {
                 {selected.__placeholder && (
                   <small className="hint">Ô này là placeholder (API không trả slot). Không thể gán pin.</small>
                 )}
-              </>
+              </React.Fragment>
             ) : (
-              <>
+              <React.Fragment>
                 <strong>{selected.serial || selected.code || `Slot #${selected.slotId}`}</strong> — {selected.chargingSlotType || "—"}
                 <div>Trạng thái: <b>{selected.state || "-"}</b></div>
                 <div>Sức khỏe: <b>{Number(selected.soh || 0)}%</b></div>
@@ -256,7 +263,7 @@ function PinStationMockup({ slots, title, onReload }) {
                   </button>
                   <button className="btn-secondary" onClick={() => setSelectedIndex(null)}>Đóng</button>
                 </div>
-              </>
+              </React.Fragment>
             )}
           </div>
         </div>
@@ -314,7 +321,7 @@ function PinStationMockup({ slots, title, onReload }) {
           </div>
         </div>
       )}
-    </div>
+    </React.Fragment>
   );
 }
 

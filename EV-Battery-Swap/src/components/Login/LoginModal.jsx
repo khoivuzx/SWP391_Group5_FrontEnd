@@ -81,11 +81,6 @@ const getDashboardPathByRole = (role) => {
     setIsLoading(true);
 
     try {
-      // Nếu chưa có redirect → lưu lại trang hiện tại (chỉ để dùng cho Driver/Guest)
-      if (!localStorage.getItem('redirectAfterLogin')) {
-        localStorage.setItem('redirectAfterLogin', getCurrentPath());
-      }
-
       const res = await fetch(`${API_BASE_URL}/webAPI/api/login`, {
         method: 'POST',
         headers: {
@@ -110,15 +105,27 @@ const getDashboardPathByRole = (role) => {
 
       if (onLoginSuccess) onLoginSuccess(data?.user);
 
-      // Nếu đăng nhập từ polices, chuyển sang tab 'Gói dịch vụ' của dashboard driver
+      // Điều hướng theo role
       onClose();
-      if (getCurrentPath().includes('/polices')) {
-        // Lưu tab dịch vụ vào localStorage để dashboard driver chọn đúng tab
-        localStorage.setItem('driverTab', 'service');
-        go('/dashboard/driver');
-      } else {
-        go('/dashboard/driver');
+      const role = data?.user?.role || data?.user?.Role || data?.user?.roleName;
+      if (role) {
+        switch (role.toLowerCase()) {
+          case 'driver':
+            go('/dashboard/driver');
+            return;
+          case 'staff':
+          case 'manager':
+            go('/dashboard/staff');
+            return;
+          case 'admin':
+            go('/dashboard/admin');
+            return;
+        }
       }
+      // Nếu không có role, dùng redirect cũ
+      const redirectPath = localStorage.getItem('redirectAfterLogin') || '/';
+      localStorage.removeItem('redirectAfterLogin');
+      go(redirectPath);
     } catch (err) {
       setError(err.message || 'Lỗi kết nối mạng. Vui lòng thử lại.');
     } finally {

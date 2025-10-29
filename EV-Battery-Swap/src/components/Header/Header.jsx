@@ -5,9 +5,27 @@ import "./Header.css";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 
 /* ---------------- Brand ---------------- */
-function Brand() {
+function Brand({ isStaffPage }) {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const handleClick = (e) => {
+    if (isStaffPage) {
+      e.preventDefault();
+      // Reload lại trang staff
+      navigate("/dashboard/staff", { replace: true });
+      return;
+    }
+    // Nếu không phải staff thì chuyển về home
+    navigate("/");
+  };
   return (
-    <a className="brand" href="/" aria-label="home">
+    <a
+      className="brand"
+      href={isStaffPage ? "/dashboard/staff" : "/"}
+      aria-label="home"
+      onClick={handleClick}
+      style={{ cursor: "pointer" }}
+    >
       <img src={logo} alt="Logo" className="brand-logo" />
       <span className="brand-title">GogoRo Battery Swapping</span>
     </a>
@@ -71,7 +89,11 @@ function Navigation({
     );
   }
 
-  // ...existing code...
+  // Nếu là staff page: ẩn toàn bộ nav
+  if (isStaffPage) {
+    return <nav className="main-nav" aria-label="Primary" />;
+  }
+
   return (
     <nav className="main-nav" aria-label="Primary">
       <Link to="/" className={`nav-link ${isActive("/") ? "active" : ""}`}>
@@ -105,10 +127,9 @@ function Navigation({
 
       {/*  Chỉ hiển thị “Điều phối pin” nếu đang ở trang staff + role = manager */}
       {isStaffPage && role === "manager" && (
-       <Link to="/dashboard/staff?tab=dispatch" className="nav-link admin-only">
-  Điều phối pin
-	</Link>
-
+        <Link to="/dashboard/staff?tab=dispatch" className="nav-link admin-only">
+          Điều phối pin
+        </Link>
       )}
     </nav>
   );
@@ -161,7 +182,7 @@ export default function Header({ onLoginClick, user }) {
       onMouseLeave={() => setHovered(false)}
     >
       <div className="header-inner">
-        <Brand />
+        <Brand isStaffPage={isStaffPage} />
 
         <Navigation
           isActive={isActive}

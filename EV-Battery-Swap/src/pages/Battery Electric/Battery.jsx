@@ -1,9 +1,12 @@
 
-
 import React, { useEffect, useRef, useState } from "react";
 import "./Battery.css";
 
 function Battery() {
+  // Khi vào trang này, tự động scroll lên đầu trang
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
   const videoRef = useRef(null);
   const hasPlayedRef = useRef(false);
 

@@ -26,11 +26,12 @@ import API_BASE_URL from '../../config';
 import useGeolocation from '../../hooks/useGeolocation';
 import LocationPermissionModal from '../../components/LocationPermissionModal/LocationPermissionModal';
 import RegisterModal from '../../components/Login/RegisterModal';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const MAPBOX_TOKEN = 'pk.eyJ1Ijoia2hvaXZ1engiLCJhIjoiY21nNHcyZXZ4MHg5ZTJtcGtrNm9hbmVpciJ9.N3prC7rC3ycR6DV5giMUfg';
 
 export default function Home() {
+  const navigate = useNavigate();
   const [selectedStation, setSelectedStation] = useState("");
   const [routeGeoJSON, setRouteGeoJSON] = useState(null);
   const [routeLoading, setRouteLoading] = useState(false);
@@ -304,7 +305,7 @@ const handleFindBattery = async (chemistry) => {
             </div>
           </div>
         </section>
-        {/* Gogoro Network Banner Section giống demo gốc */}
+        {/* Gogoro Network Banner Section */}
         <section className="gogoro-banner-section">
           <div className="gogoro-banner-img">
             <img src="/img1.jpg" alt="Gogoro Battery Swap" />
@@ -312,7 +313,9 @@ const handleFindBattery = async (chemistry) => {
               <h2 className="gogoro-banner-title">Gogoro Network</h2>
               <p className="gogoro-banner-desc">The world's most advanced battery swapping system, vehicles recharged in seconds.</p>
               <div className="gogoro-banner-link">
-                <a href="#" className="gogoro-banner-btn">DISCOVER MORE &rarr;</a>
+                <button className="gogoro-banner-btn" onClick={() => { navigate('/battery'); window.scrollTo(0,0); }}>
+                  DISCOVER MORE &rarr;
+                </button>
               </div>
             </div>
           </div>
@@ -326,9 +329,8 @@ const handleFindBattery = async (chemistry) => {
       <RegisterModal
         isOpen={showRegister}
         onClose={() => setShowRegister(false)}
-        onSwitchToLogin={() => { /* optionally open login modal - not implemented here */ setShowRegister(false); }}
+        onSwitchToLogin={() => { setShowRegister(false); }}
       >
-        {/* provide a short explanation above the form via a simple element insertion if modal supports children */}
         <div style={{ padding: '12px 20px', background: '#fff', color: '#333' }}>{registerNote}</div>
       </RegisterModal>
     </>

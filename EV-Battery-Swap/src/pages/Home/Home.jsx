@@ -26,6 +26,7 @@ import API_BASE_URL from '../../config';
 import useGeolocation from '../../hooks/useGeolocation';
 import LocationPermissionModal from '../../components/LocationPermissionModal/LocationPermissionModal';
 import RegisterModal from '../../components/Login/RegisterModal';
+import { Link } from 'react-router-dom';
 
 const MAPBOX_TOKEN = 'pk.eyJ1Ijoia2hvaXZ1engiLCJhIjoiY21nNHcyZXZ4MHg5ZTJtcGtrNm9hbmVpciJ9.N3prC7rC3ycR6DV5giMUfg';
 
@@ -287,19 +288,19 @@ const handleFindBattery = async (chemistry) => {
               <img src="/e1.jpg" alt="Gogoro Most Innovative Company" className="latest-news-img" />
               <div className="latest-news-meta">Press</div>
               <div className="latest-news-headline">Think Deeper: Gogoro Platform.</div>
-              <a href="/home/new-a" className="latest-news-link" onClick={e => { e.preventDefault(); window.location.href = '/home/new-a'; }}>LEARN MORE &rarr;</a>
+            <Link to="/news/gogoro-platform" className="latest-news-link">LEARN MORE &rarr;</Link>
             </div>
             <div className="latest-news-card">
               <img src="/e2.jpg" alt="Gogoro Pulse" className="latest-news-img" />
               <div className="latest-news-meta">Press</div>
               <div className="latest-news-headline">Think Deeper: SmartGEN.</div>
-              <a href="/home/new-b" className="latest-news-link" onClick={e => { e.preventDefault(); window.location.href = '/home/new-b'; }}>LEARN MORE &rarr;</a>
+            <Link to="/news/smartgen" className="latest-news-link">LEARN MORE &rarr;</Link>
             </div>
             <div className="latest-news-card">
               <img src="/e3.jpg" alt="Uber Eats Gogoro" className="latest-news-img" />
               <div className="latest-news-meta">Press</div>
               <div className="latest-news-headline">Think Deeper: iQ System.</div>
-              <a href="/home/new-c" className="latest-news-link" onClick={e => { e.preventDefault(); window.location.href = '/home/new-c'; }}>LEARN MORE &rarr;</a>
+            <Link to="/news/iq-system" className="latest-news-link">LEARN MORE &rarr;</Link>
             </div>
           </div>
         </section>

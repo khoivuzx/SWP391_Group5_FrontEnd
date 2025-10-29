@@ -45,12 +45,29 @@ async function geocode(address, token, maxRetries = 3) {
   }
 }
 
+// Preserve station name/address strings as provided by the API (assume they are correctly encoded in Unicode).
+
 async function main() {
   const MAPBOX_TOKEN = process.env.MAPBOX_TOKEN;
-  const API_URL = process.env.API_URL;
+  let API_URL = process.env.API_URL;
   if (!API_URL) {
-    console.error('Please set API_URL environment variable to your teammate API endpoint or a local file path');
-    process.exit(2);
+    // Fall back to reading API base from src/config.js and hitting the guest battery report endpoint
+    try {
+      const cfgPath = path.resolve('./src/config.js');
+      const txt = await fs.readFile(cfgPath, 'utf8');
+      const m = txt.match(/API_BASE_URL\s*=\s*["'`]([^"'`]+)["'`]/);
+      if (m && m[1]) {
+        const base = String(m[1]).replace(/\/+$/, '');
+        API_URL = base + '/webAPI/api/getStationBatteryReportGuest';
+        console.log('API_URL not set — using API base from src/config.js ->', API_URL);
+      } else {
+        console.error('API_URL not set and failed to parse API_BASE_URL from src/config.js');
+        process.exit(2);
+      }
+    } catch (err) {
+      console.error('API_URL not set and failed to read src/config.js:', err.message || err);
+      process.exit(2);
+    }
   }
   if (!MAPBOX_TOKEN) {
     console.warn('MAPBOX_TOKEN not set — geocoding will be skipped for stations that lack coordinates.');
@@ -62,10 +79,13 @@ async function main() {
     if (API_URL.startsWith('http://') || API_URL.startsWith('https://')) {
       const hdrs = {};
       if (process.env.SKIP_NGROK_WARNING) hdrs['ngrok-skip-browser-warning'] = '1';
+      // show the exact HTTP URL we'll fetch from
+      console.log('Fetching HTTP URL:', API_URL);
       stations = await fetchJson(API_URL, hdrs);
     } else {
       // treat as local file path
       const filePath = path.resolve(API_URL);
+      console.log('Reading local file:', filePath);
       const txt = await fs.readFile(filePath, 'utf8');
       stations = JSON.parse(txt);
     }
@@ -83,19 +103,20 @@ async function main() {
     }
   }
 
-  console.log(`Got ${stations.length} stations — geocoding addresses (this may take a while)...`);
+  console.log(`Got ${stations.length} station records — geocoding addresses (this may take a while if needed)...`);
 
   // simple sequential geocoding to be gentle with rate limits; you can parallelize if desired
   const out = [];
   for (const s of stations) {
-    // Accept many possible field names from the teammate API
-    const id = s.Station_ID ?? s.id ?? s.ID ?? s.stationId ?? null;
-    const name = s.Name ?? s.name ?? '';
-    const address = s.Address ?? s.address ?? s.physical_address ?? s.location ?? '';
+      // Accept many possible field names from the teammate API
+      const id = s.Station_ID ?? s.id ?? s.ID ?? s.stationId ?? s.stationId ?? null;
+      // Use provided strings as-is (Vietnamese names are expected and should be preserved)
+      const name = String(s.Name ?? s.name ?? s.stationName ?? s.station ?? '');
+      const address = String(s.Address ?? s.address ?? s.physical_address ?? s.location ?? s.stationAddress ?? '');
 
     // If the incoming record already has Latitude/Longitude (or lat/lng), prefer those
-    const incomingLat = s.Latitude ?? s.latitude ?? s.Lat ?? s.lat ?? null;
-    const incomingLng = s.Longitude ?? s.longitude ?? s.Lng ?? s.lng ?? null;
+    const incomingLat = s.Latitude ?? s.latitude ?? s.Lat ?? s.lat ?? s.latitude ?? null;
+    const incomingLng = s.Longitude ?? s.longitude ?? s.Lng ?? s.lng ?? s.longitude ?? null;
 
     let coords = null;
     if (incomingLat != null && incomingLng != null) {
@@ -107,6 +128,7 @@ async function main() {
         console.warn('Geocode failed for', address, err.message || err);
       }
     } else if (address && !MAPBOX_TOKEN) {
+      // If API provided no coords and MAPBOX_TOKEN is not set, we can't geocode — issue a note.
       console.warn(`No MAPBOX_TOKEN; skipping geocode for station ${name || id}`);
     }
 
@@ -136,6 +158,7 @@ async function main() {
     await fs.mkdir(backupDir, { recursive: true });
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const backupPath = path.join(backupDir, `stations-${timestamp}.json`);
+    // write backup with explicit UTF-8 encoding (preserve existing content)
     await fs.writeFile(backupPath, existing, 'utf8');
     console.log('Backed up previous stations.json to', backupPath);
   } catch (err) {
@@ -146,8 +169,11 @@ async function main() {
   }
 
   // write new stations file
-  await fs.writeFile(OUT_FILE, JSON.stringify(out, null, 2), 'utf8');
-  console.log('Wrote', OUT_FILE);
+  // Ensure the output file is saved as UTF-8 with BOM so Windows editors show Vietnamese characters correctly
+  const bom = '\uFEFF';
+  const content = JSON.stringify(out, null, 2);
+  await fs.writeFile(OUT_FILE, bom + content, 'utf8');
+  console.log('Wrote (UTF-8) ', OUT_FILE);
 }
 
 main().catch(err => {

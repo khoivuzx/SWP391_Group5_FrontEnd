@@ -19,6 +19,7 @@ export default function DriverDashboard() {
   const user = JSON.parse(localStorage.getItem('user'));
   const [selectedStation, setSelectedStation] = useState('');
   const [routeGeoJSON, setRouteGeoJSON] = useState(null);
+  const [routeSummary, setRouteSummary] = useState(null); // { distance, duration }
   const [routeLoading, setRouteLoading] = useState(false);
   const [routeError, setRouteError] = useState('');
   const [stations, setStations] = useState([]);
@@ -158,6 +159,7 @@ export default function DriverDashboard() {
       return;
     }
     setRouteLoading(true);
+  setRouteSummary(null);
     let start;
     try {
       if (permState === 'prompt') {
@@ -179,12 +181,31 @@ export default function DriverDashboard() {
     try {
       const res = await fetch(url);
       const data = await res.json();
-      if (data.routes?.length) setRouteGeoJSON(data.routes[0].geometry);
-      else { setRouteError('No route found.'); setRouteGeoJSON(null); }
+      if (data.routes?.length) {
+        setRouteGeoJSON(data.routes[0].geometry);
+        setRouteSummary({ distance: data.routes[0].distance, duration: data.routes[0].duration });
+      } else {
+        setRouteError('No route found.'); setRouteGeoJSON(null); setRouteSummary(null);
+      }
     } catch (_) {
-      setRouteError('Failed to fetch route.'); setRouteGeoJSON(null);
+      setRouteError('Failed to fetch route.'); setRouteGeoJSON(null); setRouteSummary(null);
     }
     setRouteLoading(false);
+  };
+
+  // Helpers for formatting
+  const formatDistance = (meters) => {
+    if (meters == null) return '';
+    if (meters < 1000) return `${Math.round(meters)} m`;
+    return `${(meters / 1000).toFixed(1)} km`;
+  };
+  const formatDuration = (seconds) => {
+    if (seconds == null) return '';
+    const mins = Math.round(seconds / 60);
+    if (mins < 60) return `${mins} min`;
+    const hours = Math.floor(mins / 60);
+    const rem = mins % 60;
+    return `${hours}h ${rem}m`;
   };
 
   const tabList = [
@@ -218,6 +239,13 @@ export default function DriverDashboard() {
                   foundStations={foundStations}
                   onFindBattery={handleFindBattery}
                 />
+                {routeLoading && <div style={{ marginTop: 8, color: '#333' }}>Finding route...</div>}
+                {routeError && <div style={{ marginTop: 8, color: 'crimson' }}>{routeError}</div>}
+                {routeSummary && (
+                  <div style={{ marginTop: 8, background: '#f6f7fb', padding: '8px 12px', borderRadius: 8, color: '#222' }}>
+                    <strong>Route:</strong>&nbsp;{formatDistance(routeSummary.distance)} • {formatDuration(routeSummary.duration)}
+                  </div>
+                )}
               </div>
 
               {/* Cột phải: Map */}
@@ -228,6 +256,7 @@ export default function DriverDashboard() {
                   selectedStation={selectedStation}
                   setSelectedStation={setSelectedStation}
                   routeGeoJSON={routeGeoJSON}
+                  routeSummary={routeSummary}
                   showPopup={true}
                   userLocation={userLocation}
                   onStationsLoaded={(data) => {

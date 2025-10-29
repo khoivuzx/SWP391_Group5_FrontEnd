@@ -11,6 +11,7 @@ export default function MapboxMap({
   selectedStation,
   setSelectedStation,
   routeGeoJSON,
+  routeSummary = null,
   onFindPath,
   showPopup = true,
   style = { width: '100%', height: '400px', borderRadius: '16px' },
@@ -242,7 +243,46 @@ export default function MapboxMap({
   }, [userLocation]);
 
   const mergedStyle = { pointerEvents: 'auto', zIndex: 900, ...style };
-  return <div ref={mapContainer} style={mergedStyle} />;
+  // small helpers for formatting the route summary inside the map
+  const formatDistance = (meters) => {
+    if (meters == null) return '';
+    if (meters < 1000) return `${Math.round(meters)} m`;
+    return `${(meters / 1000).toFixed(1)} km`;
+  };
+  const formatDuration = (seconds) => {
+    if (seconds == null) return '';
+    const mins = Math.round(seconds / 60);
+    if (mins < 60) return `${mins} min`;
+    const hours = Math.floor(mins / 60);
+    const rem = mins % 60;
+    return `${hours}h ${rem}m`;
+  };
+
+  const overlayStyle = {
+    position: 'absolute',
+    left: 12,
+    bottom: 12,
+    background: 'rgba(255,255,255,0.95)',
+    padding: '8px 10px',
+    borderRadius: 10,
+    boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+    fontSize: 13,
+    color: '#222',
+    zIndex: 9999,
+  };
+
+  return (
+    <div style={{ position: 'relative', ...mergedStyle }}>
+      <div ref={mapContainer} style={{ width: '100%', height: '100%', borderRadius: mergedStyle.borderRadius }} />
+      {routeSummary && (
+        <div style={overlayStyle} aria-hidden>
+          <strong style={{ marginRight: 8 }}>Route:</strong>
+          <span style={{ marginRight: 8 }}>{formatDistance(routeSummary.distance)}</span>
+          <span style={{ opacity: 0.85 }}>{formatDuration(routeSummary.duration)}</span>
+        </div>
+      )}
+    </div>
+  );
 }
 
 /** Render 2 loại pin + Good/Average/Weak/Below75/Total cho mỗi loại */

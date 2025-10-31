@@ -35,4 +35,50 @@
     "cancel": "Cancel",
     "allow": "Allow"
   }
+  ,
+  "home": {
+    "map": {
+      "welcome": "Welcome to the smart battery swapping network!",
+      "desc": "Fast, convenient, safe and cost-effective battery swaps for your electric vehicle."
+    },
+    "loadingStations": "Loading stations...",
+    "findingRoute": "Finding route...",
+    "latestNews": {
+      "title": "Latest News",
+      "meta": "Press",
+      "headline1": "Think Deeper: Gogoro Platform.",
+      "headline2": "Think Deeper: SmartGEN.",
+      "headline3": "Think Deeper: iQ System.",
+      "learnMore": "LEARN MORE"
+    },
+    "gogoro": {
+      "title": "Gogoro Network",
+      "desc": "The world's most advanced battery swapping system, vehicles recharged in seconds.",
+      "discover": "DISCOVER MORE"
+    },
+    "slider": {
+      "slide1": { "title": "Batteries Swapped", "desc": "More than 394,634 batteries swapped per day in the last 30 days." },
+      "slide2": { "title": "CO₂ Saved", "desc": "The same amount of CO₂ as 123,775,611 trees absorb every year." },
+      "slide3": { "title": "Total Distance Covered", "desc": "Equal to traveling around the Earth's equator 349,351 times." },
+      "dotAria": "Go to slide {{n}}"
+    }
+  }
+  ,
+  "map": {
+    "popup": {
+      "clickToLoadBattery": "Click marker to load battery info",
+      "bookNow": "Book Now",
+      "loadingBattery": "Loading battery info...",
+      "failedToLoad": "Failed to load battery info"
+    },
+    "routeLabel": "Route"
+  },
+  "battery": {
+    "good": "Good",
+    "average": "Average",
+    "weak": "Weak",
+    "below75": "Below 75%",
+    "total": "Total",
+    "noData": "No data"
+  }
 }

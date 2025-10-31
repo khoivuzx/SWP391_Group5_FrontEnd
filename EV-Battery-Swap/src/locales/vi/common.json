@@ -35,4 +35,50 @@
     "cancel": "Hủy",
     "allow": "Cho phép"
   }
+  ,
+  "home": {
+    "map": {
+      "welcome": "Chào mừng bạn đến với hệ thống đổi pin thông minh!",
+      "desc": "Đổi pin nhanh chóng, tiện lợi, an toàn và tiết kiệm cho xe điện của bạn."
+    },
+    "loadingStations": "Đang tải danh sách trạm...",
+    "findingRoute": "Đang tìm đường...",
+    "latestNews": {
+      "title": "Tin tức mới",
+      "meta": "Báo chí",
+      "headline1": "Think Deeper: Gogoro Platform.",
+      "headline2": "Think Deeper: SmartGEN.",
+      "headline3": "Think Deeper: iQ System.",
+      "learnMore": "TÌM HIỂU THÊM"
+    },
+    "gogoro": {
+      "title": "Mạng lưới Gogoro",
+      "desc": "Hệ thống đổi pin tiên tiến nhất thế giới, nạp lại năng lượng cho phương tiện trong vài giây.",
+      "discover": "TÌM HIỂU THÊM"
+    },
+    "slider": {
+      "slide1": { "title": "Số pin đã đổi", "desc": "Hơn 394.634 pin được đổi trung bình mỗi ngày trong 30 ngày qua." },
+      "slide2": { "title": "CO₂ Đã tiết kiệm", "desc": "Lượng CO₂ tương đương 123.775.611 cây hấp thụ mỗi năm." },
+      "slide3": { "title": "Tổng khoảng cách", "desc": "Bằng việc đi vòng quanh xích đạo Trái Đất 349.351 lần." },
+      "dotAria": "Chuyển đến slide {{n}}"
+    }
+  }
+  ,
+  "map": {
+    "popup": {
+      "clickToLoadBattery": "Nhấn marker để tải thông tin pin",
+      "bookNow": "Đặt ngay",
+      "loadingBattery": "Đang tải thông tin pin...",
+      "failedToLoad": "Tải thông tin pin thất bại"
+    },
+    "routeLabel": "Lộ trình"
+  },
+  "battery": {
+    "good": "Tốt",
+    "average": "Khá",
+    "weak": "Yếu",
+    "below75": "Dưới 75%",
+    "total": "Tổng",
+    "noData": "Không có dữ liệu"
+  }
 }

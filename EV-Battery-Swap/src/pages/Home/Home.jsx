@@ -4,24 +4,25 @@ function HomeSlider() {
   const slides = [
     {
       img: '/home/w1.jpg',
-      title: 'Batteries Swapped',
+      titleKey: 'home.slider.slide1.title',
       value: '798,220,048',
-      desc: 'More than 394,634 batteries swapped per day in the last 30 days.'
+      descKey: 'home.slider.slide1.desc'
     },
     {
       img: '/home/w3.jpg',
-      title: 'CO₂ Saved',
+      titleKey: 'home.slider.slide2.title',
       value: '1,237,756,119 kg',
-      desc: 'The same amount of CO₂ as 123,775,611 trees absorb every year.'
+      descKey: 'home.slider.slide2.desc'
     },
     {
       img: '/home/w2.jpg',
-      title: 'Total Distance Covered',
+      titleKey: 'home.slider.slide3.title',
       value: '13,974,062,302 km',
-      desc: `Equal to traveling around the Earth's equator 349,351 times.`
+      descKey: 'home.slider.slide3.desc'
     }
   ];
   const [current, setCurrent] = useState(0);
+  const { t } = useTranslation();
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrent(c => (c + 1) % slides.length);
@@ -40,9 +41,9 @@ function HomeSlider() {
             <img src={slide.img} alt={slide.title} style={{ width: '100vw', height: '100%', objectFit: 'cover' }} />
             {current === idx && (
               <div className="home-slider-overlay">
-                <h2 className="home-slider-title">{slide.title}</h2>
+                <h2 className="home-slider-title">{t(slide.titleKey)}</h2>
                 <div className="home-slider-value">{slide.value}</div>
-                <div className="home-slider-desc">{slide.desc}</div>
+                <div className="home-slider-desc">{t(slide.descKey)}</div>
               </div>
             )}
           </div>
@@ -54,7 +55,7 @@ function HomeSlider() {
             key={idx}
             className={`home-slider-dot${current === idx ? ' active' : ''}`}
             onClick={() => setCurrent(idx)}
-            aria-label={`Chuyển đến slide ${idx+1}`}
+            aria-label={t('home.slider.dotAria', { n: idx + 1 })}
           />
         ))}
       </div>
@@ -90,10 +91,12 @@ import useGeolocation from '../../hooks/useGeolocation';
 import LocationPermissionModal from '../../components/LocationPermissionModal/LocationPermissionModal';
 import RegisterModal from '../../components/Login/RegisterModal';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 const MAPBOX_TOKEN = 'pk.eyJ1Ijoia2hvaXZ1engiLCJhIjoiY21nNHcyZXZ4MHg5ZTJtcGtrNm9hbmVpciJ9.N3prC7rC3ycR6DV5giMUfg';
 
 export default function Home() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [selectedStation, setSelectedStation] = useState("");
   const [routeGeoJSON, setRouteGeoJSON] = useState(null);
@@ -307,15 +310,15 @@ const handleFindBattery = async (chemistry) => {
           />
           {/* Nội dung overlay trên hình homemap */}
           <div className="home-map-overlay">
-            Chào mừng bạn đến với hệ thống đổi pin thông minh!
+            {t('home.map.welcome')}
             <div className="home-map-desc">
-              Đổi pin nhanh chóng, tiện lợi, an toàn và tiết kiệm cho xe điện của bạn.
+              {t('home.map.desc')}
             </div>
           </div>
         </div>
         <div className="home-content-row">
           <div className="home-content-left">
-            {stationsLoading && <div>Loading stations...</div>}
+            {stationsLoading && <div>{t('home.loadingStations')}</div>}
             {stationsError && <div className="home-error">{stationsError}</div>}
             {!stationsLoading && !stationsError && (
               <SearchForm
@@ -327,7 +330,7 @@ const handleFindBattery = async (chemistry) => {
                 onFindBattery={handleFindBattery}
               />
             )}
-            {routeLoading && <div className="home-info">Finding route...</div>}
+            {routeLoading && <div className="home-info">{t('home.findingRoute')}</div>}
             {routeError && <div className="home-error">{routeError}</div>}
           </div>
           <div className="home-content-right">
@@ -346,25 +349,25 @@ const handleFindBattery = async (chemistry) => {
         </div>
         {/* Latest News Section */}
         <section className="latest-news-section">
-          <h2 className="latest-news-title">Latest News</h2>
+          <h2 className="latest-news-title">{t('home.latestNews.title')}</h2>
           <div className="latest-news-list">
             <div className="latest-news-card">
               <img src="/e1.jpg" alt="Gogoro Most Innovative Company" className="latest-news-img" />
-              <div className="latest-news-meta">Press</div>
-              <div className="latest-news-headline">Think Deeper: Gogoro Platform.</div>
-            <Link to="/news/gogoro-platform" className="latest-news-link">LEARN MORE &rarr;</Link>
+              <div className="latest-news-meta">{t('home.latestNews.meta')}</div>
+              <div className="latest-news-headline">{t('home.latestNews.headline1')}</div>
+            <Link to="/news/gogoro-platform" className="latest-news-link">{t('home.latestNews.learnMore')} &rarr;</Link>
             </div>
             <div className="latest-news-card">
               <img src="/e2.jpg" alt="Gogoro Pulse" className="latest-news-img" />
-              <div className="latest-news-meta">Press</div>
-              <div className="latest-news-headline">Think Deeper: SmartGEN.</div>
-            <Link to="/news/smartgen" className="latest-news-link">LEARN MORE &rarr;</Link>
+              <div className="latest-news-meta">{t('home.latestNews.meta')}</div>
+              <div className="latest-news-headline">{t('home.latestNews.headline2')}</div>
+            <Link to="/news/smartgen" className="latest-news-link">{t('home.latestNews.learnMore')} &rarr;</Link>
             </div>
             <div className="latest-news-card">
               <img src="/e3.jpg" alt="Uber Eats Gogoro" className="latest-news-img" />
-              <div className="latest-news-meta">Press</div>
-              <div className="latest-news-headline">Think Deeper: iQ System.</div>
-            <Link to="/news/iq-system" className="latest-news-link">LEARN MORE &rarr;</Link>
+              <div className="latest-news-meta">{t('home.latestNews.meta')}</div>
+              <div className="latest-news-headline">{t('home.latestNews.headline3')}</div>
+            <Link to="/news/iq-system" className="latest-news-link">{t('home.latestNews.learnMore')} &rarr;</Link>
             </div>
           </div>
   </section>
@@ -374,11 +377,11 @@ const handleFindBattery = async (chemistry) => {
           <div className="gogoro-banner-img">
             <img src="/img1.jpg" alt="Gogoro Battery Swap" />
             <div className="gogoro-banner-content">
-              <h2 className="gogoro-banner-title">Gogoro Network</h2>
-              <p className="gogoro-banner-desc">The world's most advanced battery swapping system, vehicles recharged in seconds.</p>
+              <h2 className="gogoro-banner-title">{t('home.gogoro.title')}</h2>
+              <p className="gogoro-banner-desc">{t('home.gogoro.desc')}</p>
               <div className="gogoro-banner-link">
                 <button className="gogoro-banner-btn" onClick={() => { navigate('/battery'); window.scrollTo(0,0); }}>
-                  DISCOVER MORE &rarr;
+                  {t('home.gogoro.discover')} &rarr;
                 </button>
               </div>
             </div>

@@ -4,6 +4,8 @@ import mapboxgl from 'mapbox-gl';
 import API_BASE_URL from '../../config';
 import reactLogo from '../../assets/react.svg';
 import { createMapManager } from '../../utils/mapManager';
+import { useTranslation } from 'react-i18next';
+import i18n from '../../i18n';
 
 export default function MapboxMap({
   token,
@@ -28,6 +30,7 @@ export default function MapboxMap({
   const batteryCacheRef = useRef({});
   const mapManagerRef = useRef(null);
   const openPopupRef = useRef(null);
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (!map.current && mapContainer.current) {
@@ -79,12 +82,12 @@ export default function MapboxMap({
 
       if (showPopup) {
         const popup = new mapboxgl.Popup({ offset: 25, closeButton: true, closeOnClick: false });
-        const content = document.createElement('div');
-        const title = document.createElement('strong'); title.textContent = station.name;
-        const body = document.createElement('div'); body.className = 'popup-body'; body.textContent = 'Click marker to load battery info';
-        const actions = document.createElement('div'); actions.style.marginTop = '8px';
-        const bookBtn = document.createElement('button');
-        bookBtn.textContent = 'Book Now';
+  const content = document.createElement('div');
+  const title = document.createElement('strong'); title.textContent = station.name;
+  const body = document.createElement('div'); body.className = 'popup-body'; body.textContent = i18n.t('map.popup.clickToLoadBattery');
+  const actions = document.createElement('div'); actions.style.marginTop = '8px';
+  const bookBtn = document.createElement('button');
+  bookBtn.textContent = i18n.t('map.popup.bookNow');
         Object.assign(bookBtn.style, { padding: '6px 10px', background: '#1976d2', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer' });
         actions.appendChild(bookBtn);
         content.appendChild(title); content.appendChild(body); content.appendChild(actions);
@@ -94,8 +97,8 @@ export default function MapboxMap({
         popupRefs.current[station.name] = { popup, body, loadBattery: null, coords: [lng, lat] };
 
         const loadBattery = async () => {
-          try {
-            body.textContent = 'Loading battery info...';
+            try {
+            body.textContent = i18n.t('map.popup.loadingBattery');
             const cacheKey = String(station.id ?? station.stationId ?? station.name);
             if (batteryCacheRef.current[cacheKey]) {
               body.innerHTML = renderBatteryTable(station.name, batteryCacheRef.current[cacheKey]);
@@ -123,8 +126,8 @@ export default function MapboxMap({
 
             batteryCacheRef.current[cacheKey] = rows;
             body.innerHTML = renderBatteryTable(station.name, rows);
-          } catch (err) {
-            body.textContent = 'Failed to load battery info';
+            } catch (err) {
+            body.textContent = i18n.t('map.popup.failedToLoad');
           }
         };
 
@@ -327,7 +330,8 @@ export default function MapboxMap({
       <div ref={mapContainer} style={{ width: '100%', height: '100%', borderRadius: mergedStyle.borderRadius }} />
       {routeSummary && (
         <div style={overlayStyle} aria-hidden>
-          <strong style={{ marginRight: 8 }}>Route:</strong>
+          <strong style={{ marginRight: 8 }}>{i18n.t('map.routeLabel')}</strong>
+          <span style={{ marginRight: 8 }}> </span>
           <span style={{ marginRight: 8 }}>{formatDistance(routeSummary.distance)}</span>
           <span style={{ opacity: 0.85 }}>{formatDuration(routeSummary.duration)}</span>
         </div>
@@ -369,19 +373,19 @@ function renderBatteryTable(_stationName, rows) {
       <table style="width:100%; border-collapse:collapse; font-size:13px; margin-top:6px;">
         <tbody>
           <tr>
-            <td style="padding:2px 0;">${dot(COLOR.good)}Tốt</td>
+            <td style="padding:2px 0;">${dot(COLOR.good)}${i18n.t('battery.good')}</td>
             <td style="text-align:right; color:${COLOR.good}; padding:2px 0;">${escapeHtml(String(v.Good))}</td>
-            <td style="padding:2px 0 2px 12px;">${dot(COLOR.avg)}Khá</td>
+            <td style="padding:2px 0 2px 12px;">${dot(COLOR.avg)}${i18n.t('battery.average')}</td>
             <td style="text-align:right; color:${COLOR.avg}; padding:2px 0;">${escapeHtml(String(v.Average))}</td>
           </tr>
           <tr>
-            <td style="padding:2px 0;">${dot(COLOR.weak)}Yếu</td>
+            <td style="padding:2px 0;">${dot(COLOR.weak)}${i18n.t('battery.weak')}</td>
             <td style="text-align:right; color:${COLOR.weak}; padding:2px 0;">${escapeHtml(String(v.Weak))}</td>
-            <td style="padding:2px 0 2px 12px;">${dot(COLOR.lt75)}Dưới 75%</td>
+            <td style="padding:2px 0 2px 12px;">${dot(COLOR.lt75)}${i18n.t('battery.below75')}</td>
             <td style="text-align:right; color:${COLOR.lt75}; padding:2px 0;">${escapeHtml(String(v.Below75))}</td>
           </tr>
           <tr>
-            <td style="padding-top:4px; font-weight:600; color:${COLOR.total}">Tổng</td>
+            <td style="padding-top:4px; font-weight:600; color:${COLOR.total}">${i18n.t('battery.total')}</td>
             <td style="text-align:right; font-weight:600; color:${COLOR.total}; padding-top:4px">${escapeHtml(String(v.Total))}</td>
             <td></td><td></td>
           </tr>
@@ -391,6 +395,7 @@ function renderBatteryTable(_stationName, rows) {
   `).join('') || '<div style="margin-top:6px;">Không có dữ liệu</div>';
 
   // ⚠️ Không render tên trạm ở đây để tránh trùng với <strong> ở phần title popup
+  const noDataHtml = `<div style="margin-top:6px;">${i18n.t('battery.noData')}</div>`;
   return `<div style="margin-top:6px;">${sections}</div>`;
 }
 

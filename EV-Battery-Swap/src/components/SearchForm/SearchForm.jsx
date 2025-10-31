@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 export default function SearchForm({ stations, selectedStation, setSelectedStation, onFindPath, mode = 'station', foundStations = [], onFindBattery }) {
+  const { t } = useTranslation();
   const [selectedBattery, setSelectedBattery] = useState("");
   const [msg, setMsg] = useState("");
   const [searching, setSearching] = useState(false);
@@ -39,18 +41,18 @@ export default function SearchForm({ stations, selectedStation, setSelectedStati
         color: '#333'
       }}
     >
-      <h2 style={{ margin: 0, fontSize: '1.3em', fontWeight: 600, color: '#222' }}>
-         Find Station
-      </h2>
+    <h2 style={{ margin: 0, fontSize: '1.3em', fontWeight: 600, color: '#222' }}>
+      {t('search.title')}
+    </h2>
 
       <div style={{ display: 'flex', gap: 8 }}>
-        <button type="button" onClick={() => setViewMode('battery')} style={{ flex: 1, padding: 8, background: viewMode === 'battery' ? '#1976d2' : '#eef2f7', color: viewMode === 'battery' ? '#fff' : '#222', border: 'none', borderRadius: 8, cursor: 'pointer' }}>Find by battery</button>
-        <button type="button" onClick={() => setViewMode('station')} style={{ flex: 1, padding: 8, background: viewMode === 'station' ? '#1976d2' : '#eef2f7', color: viewMode === 'station' ? '#fff' : '#222', border: 'none', borderRadius: 8, cursor: 'pointer' }}>Find by name</button>
+        <button type="button" onClick={() => setViewMode('battery')} style={{ flex: 1, padding: 8, background: viewMode === 'battery' ? '#1976d2' : '#eef2f7', color: viewMode === 'battery' ? '#fff' : '#222', border: 'none', borderRadius: 8, cursor: 'pointer' }}>{t('search.findByBattery')}</button>
+        <button type="button" onClick={() => setViewMode('station')} style={{ flex: 1, padding: 8, background: viewMode === 'station' ? '#1976d2' : '#eef2f7', color: viewMode === 'station' ? '#fff' : '#222', border: 'none', borderRadius: 8, cursor: 'pointer' }}>{t('search.findByName')}</button>
       </div>
 
       {viewMode === 'station' && (
         <label style={{ textAlign: 'left', fontWeight: 500 }}>
-          Station:
+          {t('search.stationLabel')}:
           <select
             value={selectedStation}
             onChange={e => setSelectedStation(e.target.value)}
@@ -64,7 +66,7 @@ export default function SearchForm({ stations, selectedStation, setSelectedStati
               fontSize: '0.95em'
             }}
           >
-            <option value="">Select station...</option>
+            <option value="">{t('search.selectStationPlaceholder')}</option>
             {stations.map(station => (
               <option key={station.id} value={station.name}>{station.name}</option>
             ))}
@@ -75,13 +77,13 @@ export default function SearchForm({ stations, selectedStation, setSelectedStati
       {viewMode === 'battery' && (
         <div>
           <label style={{ textAlign: 'left', fontWeight: 500, display: 'block' }}>
-            Battery type:
+            {t('search.batteryTypeLabel')}:
             <select
               value={selectedBattery}
               onChange={e => setSelectedBattery(e.target.value)}
               style={{ width: '100%', padding: '10px', marginTop: 6, borderRadius: 8, border: '1px solid #ccc' }}
             >
-              <option value="">Select battery type...</option>
+              <option value="">{t('search.batterySelectPlaceholder')}</option>
               <option value="Li-ion">Li-ion</option>
               <option value="LFP">LFP</option>
             </select>
@@ -93,14 +95,14 @@ export default function SearchForm({ stations, selectedStation, setSelectedStati
               try {
                 await onFindBattery(selectedBattery);
               } finally { setSearching(false); }
-            }} style={{ padding: '10px', width: '100%', background: '#0d6efd', color: '#fff', borderRadius: 8, border: 'none', cursor: 'pointer' }}>{searching ? 'Searching…' : 'Find stations with battery'}</button>
+            }} style={{ padding: '10px', width: '100%', background: '#0d6efd', color: '#fff', borderRadius: 8, border: 'none', cursor: 'pointer' }}>{searching ? t('search.searching') : t('search.findStationsButton')}</button>
           </div>
 
           {/* display found stations if provided */}
-          {searching && <div style={{ marginTop: 12 }}>Searching nearby stations…</div>}
+          {searching && <div style={{ marginTop: 12 }}>{t('search.searching')}</div>}
           {!searching && foundStations && foundStations.length > 0 && (
             <div style={{ marginTop: 12 }}>
-              <div style={{ fontWeight: 700, marginBottom: 8 }}>Stations found</div>
+              <div style={{ fontWeight: 700, marginBottom: 8 }}>{t('search.stationsFound')}</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {foundStations.map(fs => (
                   <div
@@ -123,14 +125,14 @@ export default function SearchForm({ stations, selectedStation, setSelectedStati
                       <div style={{ fontWeight: 700 }}>{fs.name}</div>
                       <div style={{ fontSize: '0.9em', color: '#666' }}>{(fs.distanceMeters/1000).toFixed(2)} km</div>
                     </div>
-                    <div style={{ color: '#1976d2', fontWeight: 700 }}>Go</div>
+                    <div style={{ color: '#1976d2', fontWeight: 700 }}>{t('search.go')}</div>
                   </div>
                 ))}
               </div>
             </div>
           )}
           {!searching && foundStations && foundStations.length === 0 && (
-            <div style={{ marginTop: 12, color: '#666' }}>No nearby stations found with that battery type.</div>
+            <div style={{ marginTop: 12, color: '#666' }}>{t('search.noStationsFound')}</div>
           )}
         </div>
       )}
@@ -157,7 +159,7 @@ export default function SearchForm({ stations, selectedStation, setSelectedStati
           onMouseOver={e => e.currentTarget.style.background = '#276c2a'}
           onMouseOut={e => e.currentTarget.style.background = '#2e7d32'}
         >
-          Find path to this station
+          {t('search.findPath')}
         </button>
       )}
 

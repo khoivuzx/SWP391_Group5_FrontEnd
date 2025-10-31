@@ -3,6 +3,9 @@ import { FaUserCircle } from "react-icons/fa";
 import logo from "../../assets/react.svg";
 import "./Header.css";
 import { useNavigate, Link, useLocation } from "react-router-dom";
+import LanguageSwitcher from '../LanguageSwitcher/LanguageSwitcher';
+import { useTranslation } from 'react-i18next';
+import i18n from '../../i18n';
 
 /* ---------------- Brand ---------------- */
 function Brand({ isStaffPage }) {
@@ -37,7 +40,7 @@ function BatteryDropdown({ show, onEnter, onLeave, isActive }) {
   return (
     <div className="nav-dropdown" onMouseEnter={onEnter} onMouseLeave={onLeave}>
       <span className={`nav-link dropdown-trigger ${isActive ? "active" : ""}`}>
-        Pin và Trạm đổi pin
+        {i18n.t('header.batteryAndStations')}
         <svg className="dropdown-arrow" viewBox="0 0 20 20" fill="currentColor">
           <path
             fillRule="evenodd"
@@ -52,7 +55,7 @@ function BatteryDropdown({ show, onEnter, onLeave, isActive }) {
             to="/battery"
             className={`dropdown-item ${isActive === "/battery" ? "active" : ""}`}
           >
-            Trạm đổi pin
+            {i18n.t('header.batteryStations')}
           </Link>
           <Link
             to="/battery-pin"
@@ -60,7 +63,7 @@ function BatteryDropdown({ show, onEnter, onLeave, isActive }) {
               isActive === "/battery-pin" ? "active" : ""
             }`}
           >
-            Công nghệ pin
+            {i18n.t('header.batteryTech')}
           </Link>
         </div>
       )}
@@ -97,7 +100,7 @@ function Navigation({
   return (
     <nav className="main-nav" aria-label="Primary">
       <Link to="/" className={`nav-link ${isActive("/") ? "active" : ""}`}>
-        Trang Chủ
+        {i18n.t('header.home')}
       </Link>
 
       {user && (
@@ -105,7 +108,7 @@ function Navigation({
           to="/dashboard/driver"
           className={`nav-link ${isActive("/dashboard/driver") ? "active" : ""}`}
         >
-          Tìm trạm
+          {i18n.t('header.findStations')}
         </Link>
       )}
 
@@ -121,14 +124,14 @@ function Navigation({
           to="/polices"
           className={`nav-link ${isActive("/polices") ? "active" : ""}`}
         >
-          Gói dịch vụ
+          {i18n.t('header.services')}
         </Link>
       )}
 
       {/*  Chỉ hiển thị “Điều phối pin” nếu đang ở trang staff + role = manager */}
       {isStaffPage && role === "manager" && (
         <Link to="/dashboard/staff?tab=dispatch" className="nav-link admin-only">
-          Điều phối pin
+          {i18n.t('header.dispatch')}
         </Link>
       )}
     </nav>
@@ -137,6 +140,7 @@ function Navigation({
 
 /* ---------------- Header chính ---------------- */
 export default function Header({ onLoginClick, user }) {
+  const { t } = useTranslation();
   const [scrolled, setScrolled] = useState(false);
   const [hovered, setHovered] = useState(false);
   const [showBatteryDropdown, setShowBatteryDropdown] = useState(false);
@@ -195,9 +199,10 @@ export default function Header({ onLoginClick, user }) {
         />
 
         <div className="actions">
+          <LanguageSwitcher />
           {role === "driver" && (
             <Link to="/vehicle-link" className="cta vehicle-link">
-              Liên kết xe
+              {t('header.vehicleLink')}
             </Link>
           )}
           {user && user.fullName ? (
@@ -219,7 +224,7 @@ export default function Header({ onLoginClick, user }) {
                       navigate("/user/info");
                     }}
                   >
-                    Thông tin người dùng
+                    {t('header.userInfo')}
                   </button>
 
                   <button
@@ -229,7 +234,7 @@ export default function Header({ onLoginClick, user }) {
                       handleLogout();
                     }}
                   >
-                    Đăng xuất
+                    {t('header.logout')}
                   </button>
                 </div>
               )}
@@ -243,7 +248,7 @@ export default function Header({ onLoginClick, user }) {
                 onLoginClick();
               }}
             >
-              Đăng Nhập
+              {t('header.login')}
             </a>
           )}
         </div>

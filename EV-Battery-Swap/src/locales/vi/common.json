@@ -1,0 +1,38 @@
+{
+  "search": {
+    "title": "Tìm trạm",
+    "findByBattery": "Tìm theo pin",
+    "findByName": "Tìm theo tên trạm",
+    "selectStationPlaceholder": "Chọn trạm...",
+    "stationLabel": "Trạm",
+    "batterySelectPlaceholder": "Chọn loại pin...",
+    "batteryTypeLabel": "Loại pin",
+    "findStationsButton": "Tìm trạm có pin",
+    "searching": "Đang tìm trạm gần bạn…",
+    "stationsFound": "Các trạm tìm được",
+    "go": "Đến",
+    "noStationsFound": "Không tìm thấy trạm nào gần đây có loại pin đó.",
+    "findPath": "Tìm đường đến trạm này",
+    "pleaseSelectStation": "Vui lòng chọn trạm trước khi tìm đường."
+  },
+  "header": {
+    "login": "Đăng Nhập",
+    "home": "Trang Chủ",
+    "findStations": "Tìm trạm",
+    "services": "Gói dịch vụ",
+    "dispatch": "Điều phối pin",
+    "batteryAndStations": "Pin và Trạm đổi pin",
+    "batteryStations": "Trạm đổi pin",
+    "batteryTech": "Công nghệ pin",
+    "vehicleLink": "Liên kết xe",
+    "userInfo": "Thông tin người dùng",
+    "logout": "Đăng xuất"
+  }
+  ,
+  "locationPermission": {
+    "title": "Cho phép truy cập vị trí?",
+    "description": "Chúng tôi sẽ yêu cầu vị trí thiết bị của bạn để cung cấp hướng dẫn từng bước từ vị trí hiện tại. Trình duyệt sẽ hiển thị một hộp thoại cấp quyền ngay sau đó.",
+    "cancel": "Hủy",
+    "allow": "Cho phép"
+  }
+}

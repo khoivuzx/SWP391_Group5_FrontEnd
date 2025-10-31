@@ -1,0 +1,38 @@
+{
+  "search": {
+    "title": "Find Station",
+    "findByBattery": "Find by battery",
+    "findByName": "Find by name",
+    "selectStationPlaceholder": "Select station...",
+    "stationLabel": "Station",
+    "batterySelectPlaceholder": "Select battery type...",
+    "batteryTypeLabel": "Battery type",
+    "findStationsButton": "Find stations with battery",
+    "searching": "Searching nearby stations…",
+    "stationsFound": "Stations found",
+    "go": "Go",
+    "noStationsFound": "No nearby stations found with that battery type.",
+    "findPath": "Find path to this station",
+    "pleaseSelectStation": "Please select a station first to find the path."
+  },
+  "header": {
+    "login": "Login",
+    "home": "Home",
+    "findStations": "Find Stations",
+    "services": "Services",
+    "dispatch": "Dispatch",
+    "batteryAndStations": "Battery & Stations",
+    "batteryStations": "Battery Stations",
+    "batteryTech": "Battery Technology",
+    "vehicleLink": "Vehicle Link",
+    "userInfo": "User Info",
+    "logout": "Logout"
+  }
+  ,
+  "locationPermission": {
+    "title": "Allow location?",
+    "description": "We will request your device location to provide turn-by-turn guidance from your current position. The browser will show a permission prompt next.",
+    "cancel": "Cancel",
+    "allow": "Allow"
+  }
+}

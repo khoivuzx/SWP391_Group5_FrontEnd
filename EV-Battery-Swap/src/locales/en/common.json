@@ -81,4 +81,26 @@
     "total": "Total",
     "noData": "No data"
   }
+  ,
+  "footer": {
+    "smartVehicles": {
+      "title": "Smart Vehicles",
+      "pulse": "Pulse",
+      "delight": "Delight",
+      "crossover": "Crossover"
+    },
+    "about": {
+      "title": "About Us",
+      "company": "Company",
+      "news": "News",
+      "media": "Media Center"
+    },
+    "support": {
+      "title": "Get Support",
+      "tech": "Tech Support",
+      "contact": "Contact Us",
+      "faq": "FAQ"
+    },
+    "copyrightPrefix": "© {{year}} MyBrand."
+  }
 }

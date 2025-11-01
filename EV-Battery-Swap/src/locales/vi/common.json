@@ -81,4 +81,26 @@
     "total": "Tổng",
     "noData": "Không có dữ liệu"
   }
+  ,
+  "footer": {
+    "smartVehicles": {
+      "title": "Xe Thông Minh",
+      "pulse": "Pulse",
+      "delight": "Delight",
+      "crossover": "CrossOver"
+    },
+    "about": {
+      "title": "Về Chúng Tôi",
+      "company": "Công ty",
+      "news": "Tin tức",
+      "media": "Trung tâm truyền thông"
+    },
+    "support": {
+      "title": "Hỗ trợ",
+      "tech": "Hỗ trợ kỹ thuật",
+      "contact": "Liên hệ",
+      "faq": "Câu hỏi thường gặp"
+    },
+    "copyrightPrefix": "© {{year}} MyBrand."
+  }
 }

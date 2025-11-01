@@ -1,3 +1,4 @@
 .lang-switch{display:flex;gap:6px;align-items:center}
 .lang-btn{background:transparent;border:1px solid rgba(0,0,0,0.08);padding:6px 8px;border-radius:6px;cursor:pointer;font-weight:600}
 .lang-btn:hover{background:rgba(0,0,0,0.04)}
+.lang-btn.active{background:#1976d2;color:#fff;border-color:#1976d2}

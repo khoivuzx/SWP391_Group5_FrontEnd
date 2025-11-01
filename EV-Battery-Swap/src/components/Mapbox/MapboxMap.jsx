@@ -6,6 +6,7 @@ import reactLogo from '../../assets/react.svg';
 import { createMapManager } from '../../utils/mapManager';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../i18n';
+import './MapboxMap.css';
 
 export default function MapboxMap({
   token,
@@ -80,15 +81,18 @@ export default function MapboxMap({
       if ((lat === undefined || lng === undefined) && Array.isArray(station.coords)) { lng = station.coords[0]; lat = station.coords[1]; }
       if (![lat, lng].every(n => typeof n === 'number' && !Number.isNaN(n))) return;
 
-      if (showPopup) {
-        const popup = new mapboxgl.Popup({ offset: 25, closeButton: true, closeOnClick: false });
+  if (showPopup) {
+    // increase popup width so tables and labels have room
+    const popup = new mapboxgl.Popup({ offset: 25, closeButton: true, closeOnClick: false, maxWidth: '360px' });
   const content = document.createElement('div');
-  const title = document.createElement('strong'); title.textContent = station.name;
+  // CSS classes handle sizing and spacing
+  content.className = 'map-popup-content';
+  const title = document.createElement('strong'); title.textContent = station.name; title.className = 'popup-title';
   const body = document.createElement('div'); body.className = 'popup-body'; body.textContent = i18n.t('map.popup.clickToLoadBattery');
-  const actions = document.createElement('div'); actions.style.marginTop = '8px';
+  const actions = document.createElement('div'); actions.className = 'popup-actions';
   const bookBtn = document.createElement('button');
   bookBtn.textContent = i18n.t('map.popup.bookNow');
-        Object.assign(bookBtn.style, { padding: '6px 10px', background: '#1976d2', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer' });
+    bookBtn.className = 'popup-book-btn';
         actions.appendChild(bookBtn);
         content.appendChild(title); content.appendChild(body); content.appendChild(actions);
 
@@ -363,36 +367,35 @@ function renderBatteryTable(_stationName, rows) {
     total: '#37474f'
   };
 
-  const dot = (c) => `
-    <span style="display:inline-block;width:8px;height:8px;border-radius:50%;
-                 background:${c};margin-right:6px;transform:translateY(-1px);"></span>`;
+  const dot = (cls) => `
+    <span class="battery-dot ${cls}"></span>`;
 
   const sections = Object.entries(grouped).map(([type, v]) => `
-    <div style="margin-top:8px;">
-      <div style="font-weight:600">${escapeHtml(type)}</div>
-      <table style="width:100%; border-collapse:collapse; font-size:13px; margin-top:6px;">
+    <div class="battery-section">
+      <div class="battery-type">${escapeHtml(type)}</div>
+      <table class="battery-table">
         <tbody>
           <tr>
-            <td style="padding:2px 0;">${dot(COLOR.good)}${i18n.t('battery.good')}</td>
-            <td style="text-align:right; color:${COLOR.good}; padding:2px 0;">${escapeHtml(String(v.Good))}</td>
-            <td style="padding:2px 0 2px 12px;">${dot(COLOR.avg)}${i18n.t('battery.average')}</td>
-            <td style="text-align:right; color:${COLOR.avg}; padding:2px 0;">${escapeHtml(String(v.Average))}</td>
+            <td class="battery-label">${dot('good')}${i18n.t('battery.good')}</td>
+            <td class="battery-num good">${escapeHtml(String(v.Good))}</td>
+            <td class="battery-label pad-left">${dot('avg')}${i18n.t('battery.average')}</td>
+            <td class="battery-num avg">${escapeHtml(String(v.Average))}</td>
           </tr>
           <tr>
-            <td style="padding:2px 0;">${dot(COLOR.weak)}${i18n.t('battery.weak')}</td>
-            <td style="text-align:right; color:${COLOR.weak}; padding:2px 0;">${escapeHtml(String(v.Weak))}</td>
-            <td style="padding:2px 0 2px 12px;">${dot(COLOR.lt75)}${i18n.t('battery.below75')}</td>
-            <td style="text-align:right; color:${COLOR.lt75}; padding:2px 0;">${escapeHtml(String(v.Below75))}</td>
+            <td class="battery-label">${dot('weak')}${i18n.t('battery.weak')}</td>
+            <td class="battery-num weak">${escapeHtml(String(v.Weak))}</td>
+            <td class="battery-label pad-left">${dot('lt75')}${i18n.t('battery.below75')}</td>
+            <td class="battery-num lt75">${escapeHtml(String(v.Below75))}</td>
           </tr>
           <tr>
-            <td style="padding-top:4px; font-weight:600; color:${COLOR.total}">${i18n.t('battery.total')}</td>
-            <td style="text-align:right; font-weight:600; color:${COLOR.total}; padding-top:4px">${escapeHtml(String(v.Total))}</td>
+            <td class="battery-total">${i18n.t('battery.total')}</td>
+            <td class="battery-num total">${escapeHtml(String(v.Total))}</td>
             <td></td><td></td>
           </tr>
         </tbody>
       </table>
     </div>
-  `).join('') || '<div style="margin-top:6px;">Không có dữ liệu</div>';
+  `).join('') || `<div class="no-data">${i18n.t('battery.noData')}</div>`;
 
   // ⚠️ Không render tên trạm ở đây để tránh trùng với <strong> ở phần title popup
   const noDataHtml = `<div style="margin-top:6px;">${i18n.t('battery.noData')}</div>`;

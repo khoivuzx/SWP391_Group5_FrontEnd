@@ -79,7 +79,114 @@
     "weak": "Weak",
     "below75": "Below 75%",
     "total": "Total",
-    "noData": "No data"
+    "noData": "No data",
+    "hero": {
+      "title": "EV Battery Solutions"
+    },
+    "intro": {
+      "heading": "INTRODUCING THE SOLUTION",
+      "card1": {
+        "title": "Smart mobile swapping",
+        "desc": "A fast-swapping battery ecosystem that makes electric journeys seamless — swap in seconds and get back on the road."
+      },
+      "card2": {
+        "title": "Automated swap stations",
+        "desc": "Modern automated stations with safe energy storage, 24/7 availability and optimized operations to lower costs."
+      },
+      "card3": {
+        "title": "Advanced tech & design",
+        "desc": "Batteries and stations engineered for durability, safety and smart connectivity via AI and IoT."
+      }
+    },
+    "projectCard1Contents": [
+      {
+        "img": "/b1.jpg",
+        "title": "Smart batteries — super-fast swaps",
+        "subtitle": "Seconds to swap, energy to continue your trip.",
+        "desc": "No more waiting to charge. Quick, clean, and convenient swaps powered by modern battery management technology."
+      },
+      {
+        "img": "/b2.jpg",
+        "title": "Next-gen Lithium batteries",
+        "subtitle": "Safe, long-lived.",
+        "desc": "Lithium batteries with intelligent management, safety protections, and extended lifecycle."
+      },
+      {
+        "img": "/a1.jpg",
+        "title": "Swap anywhere, anytime",
+        "subtitle": "Convenient for every journey.",
+        "desc": "A wide station network enables fast swaps so you never run out of energy on the road."
+      }
+    ],
+    "projectCard2Contents": [
+      {
+        "img": "/c2.jpg",
+        "title": "Automated swap stations",
+        "subtitle": "Save time, reduce cost.",
+        "desc": "Intelligent stations operating 24/7 with safe storage and support for many vehicle types."
+      },
+      {
+        "img": "/img-network-feature-2.jpg",
+        "title": "Energy storage hubs",
+        "subtitle": "Safe, modern, eco-friendly.",
+        "desc": "Storage facilities with smart control systems to improve efficiency and reduce operating costs."
+      }
+    ],
+  "projectCard3Contents": [
+      {
+        "img": "/img-network-feature-3.jpg",
+        "title": "Connected management app",
+        "subtitle": "Control battery, trips, and payments in one tap.",
+        "desc": "A mobile app to find nearby stations, monitor battery status and history, pay cashless, and receive support."
+      },
+      {
+        "img": "/d2.jpg",
+        "title": "Smart fleet management",
+        "subtitle": "Track battery and vehicle health.",
+        "desc": "Tools to monitor battery status, usage history, and maintenance notifications for seamless support."
+      }
+    ],
+    "platformHeading": "The world's most advanced energy platform for electric vehicles",
+    "why": {
+      "heading": "Why choose our solution"
+    }
+  }
+  ,
+  "policies": {
+    "header": {
+      "title": "Make your experience more",
+      "subtitle": "Say goodbye to refuelling and start swapping batteries.",
+      "description": "Multiple plans so you can ride the way you want. Change anytime, no hidden fees."
+    },
+    "slideWords": [
+      "Easy and convenient",
+      "Great value",
+      "High competence",
+      "No constraints",
+      "Comprehensive",
+      "More feedback",
+      "Anytime, anywhere",
+      "Efficient",
+      "Many offers",
+      "Understands you",
+      "Fun",
+      "Meaningful",
+      "Future-ready",
+      "Maximum power",
+      "Customizable",
+      "Versatile",
+      "Resilient",
+      "Born for you",
+      "Reliable",
+      "Meets requirements"
+    ],
+    "pricing": {
+      "title": "Battery swap service plans",
+      "description": "Choose the plan that fits your mobility needs. Plans are flexible and transparent."
+    },
+    "choosePackage": "Choose package {{name}}",
+    "loading": "Loading…",
+    "popularBadge": "Most popular"
   }
   ,
   "footer": {

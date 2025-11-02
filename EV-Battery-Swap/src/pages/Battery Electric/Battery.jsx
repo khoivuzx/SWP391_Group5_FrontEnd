@@ -1,12 +1,14 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import "./Battery.css";
+import { useTranslation } from 'react-i18next';
 
 function Battery() {
   // Khi vào trang này, tự động scroll lên đầu trang
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
+  const { t } = useTranslation();
   const videoRef = useRef(null);
   const hasPlayedRef = useRef(false);
 
@@ -61,8 +63,8 @@ function Battery() {
     </div>
   );
 
-  // Nội dung cho project-card-1 dạng slide
-  const projectCard1Contents = [
+  // project-card-1 contents (localized if translations available)
+  const projectCard1Contents = t('battery.projectCard1Contents', { returnObjects: true }) || [
     {
       img: '/b1.jpg',
       title: 'Pin thông minh - Đổi pin siêu tốc',
@@ -93,21 +95,20 @@ function Battery() {
       setTimeout(() => setSlide(''), 300);
     }, 300);
   };
-    // Nội dung cho project-card-2 dạng slide
-  const projectCard2Contents = [
-    {
-      img: '/c2.jpg',
-      title: 'Trạm đổi pin tự động',
-      subtitle: 'Tiết kiệm thời gian, tối ưu chi phí.',
-      desc: 'Trạm đổi pin thông minh vận hành 24/7, lưu trữ năng lượng an toàn, hỗ trợ nhiều loại xe điện. Đảm bảo nguồn pin luôn sẵn sàng, giảm thiểu chi phí bảo trì và vận hành.'
-    },
-    {
-      img: '/img-network-feature-2.jpg',
-      title: 'Trạm lưu trữ năng lượng',
-      subtitle: 'An toàn, hiện đại, thân thiện môi trường.',
-      desc: 'Trạm lưu trữ pin với công nghệ kiểm soát thông minh, tiết kiệm chi phí vận hành, bảo vệ môi trường.'
-    }
-  ];
+    const projectCard2Contents = t('battery.projectCard2Contents', { returnObjects: true }) || [
+      {
+        img: '/c2.jpg',
+        title: 'Trạm đổi pin tự động',
+        subtitle: 'Tiết kiệm thời gian, tối ưu chi phí.',
+        desc: 'Trạm đổi pin thông minh vận hành 24/7, lưu trữ năng lượng an toàn, hỗ trợ nhiều loại xe điện. Đảm bảo nguồn pin luôn sẵn sàng, giảm thiểu chi phí bảo trì và vận hành.'
+      },
+      {
+        img: '/img-network-feature-2.jpg',
+        title: 'Trạm lưu trữ năng lượng',
+        subtitle: 'An toàn, hiện đại, thân thiện môi trường.',
+        desc: 'Trạm lưu trữ pin với công nghệ kiểm soát thông minh, tiết kiệm chi phí vận hành, bảo vệ môi trường.'
+      }
+    ];
 
   const [card2Idx, setCard2Idx] = useState(0);
   const [slide2, setSlide2] = useState('');
@@ -120,8 +121,7 @@ function Battery() {
     }, 300);
   };
 
-  // Nội dung cho project-card-3 dạng slide
-  const projectCard3Contents = [
+  const projectCard3Contents = t('battery.projectCard3Contents', { returnObjects: true }) || [
     {
       img: '/img-network-feature-3.jpg',
       title: 'Ứng dụng quản lý & kết nối',
@@ -177,10 +177,10 @@ function Battery() {
     <div className="battery-page">
       {/* HERO SECTION */}
 
-      <div className="hero" style={{ marginBottom: 40 }}>
+        <div className="hero" style={{ marginBottom: 40 }}>
         <img src="/img-battery.jpg" alt="Battery Swap" className="hero-image" />
         <div className="hero-content">
-          <h1>EV Battery Solutions</h1>
+          <h1>{t('battery.hero.title')}</h1>
         </div>
       </div>
 
@@ -201,24 +201,24 @@ function Battery() {
 
       {/* GIỚI THIỆU VỀ GIẢI PHÁP */}
       <section className="intro-section">
-        <h2>GIỚI THIỆU GIẢI PHÁP</h2>
+        <h2>{t('battery.intro.heading')}</h2>
         <div className="intro-cards">
           <IntroCard
             img="/img-battery3.jpg"
-            title="Giải pháp di động thông minh"
-            desc="Hệ sinh thái pin đổi nhanh giúp mọi hành trình xe điện trở nên liền mạch, không còn lo lắng về thời gian sạc. Đổi pin chỉ trong vài giây, sẵn sàng di chuyển mọi lúc, mọi nơi."
+            title={t('battery.intro.card1.title')}
+            desc={t('battery.intro.card1.desc')}
             onClick={() => scrollToProjectCard(1)}
           />
           <IntroCard
             img="/img-battery4.jpg"
-            title="Trạm lưu trữ & đổi pin tự động"
-            desc="Trạm đổi pin tự động hiện đại, lưu trữ năng lượng an toàn, tối ưu hóa vận hành và tiết kiệm chi phí. Đáp ứng tiêu chuẩn quốc tế, thân thiện với môi trường."
+            title={t('battery.intro.card2.title')}
+            desc={t('battery.intro.card2.desc')}
             onClick={() => scrollToProjectCard(2)}
           />
           <IntroCard
             img="/img-battery2.jpg"
-            title="Công nghệ & thiết kế vượt trội"
-            desc="Pin và trạm được thiết kế tối ưu: bền bỉ, thẩm mỹ, dễ sử dụng, tích hợp công nghệ AI và IoT cho trải nghiệm thông minh, an toàn vượt trội."
+            title={t('battery.intro.card3.title')}
+            desc={t('battery.intro.card3.desc')}
             onClick={() => scrollToProjectCard(3)}
           />
         </div>
@@ -228,7 +228,7 @@ function Battery() {
 
       {/* PROJECT SECTION - BỐ CỤC ẢNH 50% - TEXT 50% */}
       <section className="project-section-single" id="project-section-single">
-        <h2>NỀN TẢNG NĂNG LƯỢNG TIÊN TIẾN NHẤT CHO XE ĐIỆN</h2>
+        <h2>{t('battery.platformHeading')}</h2>
 
         <div className="project-card-gogoro">
           {/* THẺ DỰ ÁN 1: SLIDE NỘI DUNG */}
@@ -299,9 +299,9 @@ function Battery() {
         </div>
       </section>
 
-      {/* TẠI SAO CHỌN GIẢI PHÁP CỦA CHÚNG TÔI */}
+      {/* WHY CHOOSE OUR SOLUTION */}
       <section className="intro-section">
-        <h2>VÌ SAO LỰA CHỌN GIẢI PHÁP CỦA CHÚNG TÔI</h2>
+        <h2>{t('battery.why.heading')}</h2>
         <div className="intro-cards-sumary">
           <ImageSwapper srcA="/pinswap/img-swap1.jpg" srcB="/pinswap/img-swap2.jpg" interval={2000} alt="Pin cho xe điện" />
 

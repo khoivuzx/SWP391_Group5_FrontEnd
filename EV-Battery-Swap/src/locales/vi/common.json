@@ -79,7 +79,114 @@
     "weak": "Yếu",
     "below75": "Dưới 75%",
     "total": "Tổng",
-    "noData": "Không có dữ liệu"
+    "noData": "Không có dữ liệu",
+    "hero": {
+      "title": "EV Battery Solutions"
+    },
+    "intro": {
+      "heading": "GIỚI THIỆU GIẢI PHÁP",
+      "card1": {
+        "title": "Giải pháp di động thông minh",
+        "desc": "Hệ sinh thái pin đổi nhanh giúp mọi hành trình xe điện trở nên liền mạch, đổi pin trong vài giây."
+      },
+      "card2": {
+        "title": "Trạm đổi pin tự động",
+        "desc": "Trạm tự động hiện đại với lưu trữ năng lượng an toàn, phục vụ 24/7 và tối ưu vận hành."
+      },
+      "card3": {
+        "title": "Công nghệ & thiết kế vượt trội",
+        "desc": "Pin và trạm được thiết kế bền bỉ, an toàn và kết nối thông minh qua AI và IoT."
+      }
+    },
+    "projectCard1Contents": [
+      {
+        "img": "/b1.jpg",
+        "title": "Pin thông minh - Đổi pin siêu tốc",
+        "subtitle": "Chỉ vài giây, tiếp năng lượng cho hành trình mới.",
+        "desc": "Không còn chờ đợi sạc. Đổi pin nhanh, sạch, tiện lợi."
+      },
+      {
+        "img": "/b2.jpg",
+        "title": "Pin Lithium thế hệ mới",
+        "subtitle": "An toàn, tuổi thọ cao.",
+        "desc": "Pin Lithium với quản lý thông minh, bảo vệ an toàn và tuổi thọ dài."
+      },
+      {
+        "img": "/a1.jpg",
+        "title": "Đổi pin mọi lúc mọi nơi",
+        "subtitle": "Tiện lợi cho mọi hành trình.",
+        "desc": "Hệ thống trạm phủ rộng, đổi pin nhanh chóng, không lo hết năng lượng giữa đường."
+      }
+    ],
+    "projectCard2Contents": [
+      {
+        "img": "/c2.jpg",
+        "title": "Trạm đổi pin tự động",
+        "subtitle": "Tiết kiệm thời gian, tối ưu chi phí.",
+        "desc": "Trạm thông minh hoạt động 24/7, lưu trữ an toàn và hỗ trợ nhiều loại phương tiện."
+      },
+      {
+        "img": "/img-network-feature-2.jpg",
+        "title": "Trạm lưu trữ năng lượng",
+        "subtitle": "An toàn, hiện đại, thân thiện môi trường.",
+        "desc": "Hệ thống lưu trữ với điều khiển thông minh, nâng cao hiệu quả và giảm chi phí vận hành."
+      }
+    ],
+  "projectCard3Contents": [
+      {
+        "img": "/img-network-feature-3.jpg",
+        "title": "Ứng dụng quản lý & kết nối",
+        "subtitle": "Kiểm soát pin, hành trình và thanh toán chỉ với một chạm.",
+        "desc": "Ứng dụng di động giúp bạn tìm trạm gần nhất, kiểm tra trạng thái pin, thanh toán không tiền mặt và nhận hỗ trợ."
+      },
+      {
+        "img": "/d2.jpg",
+        "title": "Quản lý đội xe thông minh",
+        "subtitle": "Theo dõi pin và tình trạng xe.",
+        "desc": "Công cụ giám sát trạng thái pin, lịch sử sử dụng và thông báo bảo trì cho hỗ trợ liền mạch."
+      }
+    ],
+    "platformHeading": "NỀN TẢNG NĂNG LƯỢNG TIÊN TIẾN NHẤT CHO XE ĐIỆN",
+    "why": {
+      "heading": "VÌ SAO LỰA CHỌN GIẢI PHÁP CỦA CHÚNG TÔI"
+    }
+  }
+  ,
+  "policies": {
+    "header": {
+      "title": "Làm cho trải nghiệm của bạn nhiều hơn",
+      "subtitle": "Hãy tạm biệt việc tiếp nhiên liệu và bắt đầu thay pin.",
+      "description": "Nhiều gói cước khác nhau để bạn lựa chọn. Linh hoạt và minh bạch."
+    },
+    "slideWords": [
+      "Dễ dàng và tiện lợi",
+      "Giá trị tốt cho tiền",
+      "Trình độ cao",
+      "Không có hạn chế",
+      "Toàn diện",
+      "Thêm phản hồi",
+      "Bất cứ lúc nào, bất cứ nơi nào",
+      "Hiệu quả",
+      "Nhiều ưu đãi",
+      "Hiểu bạn",
+      "Vui vẻ",
+      "Có ý nghĩa",
+      "Chuẩn bị cho tương lai",
+      "Công suất tối đa",
+      "Tùy chỉnh",
+      "Đa năng",
+      "Kiên cường",
+      "Sinh ra dành cho bạn",
+      "Đáng tin cậy",
+      "Đáp ứng yêu cầu"
+    ],
+    "pricing": {
+      "title": "Gói cước dịch vụ đổi pin",
+      "description": "Chọn gói phù hợp với nhu cầu di chuyển của bạn. Gói linh hoạt, minh bạch."
+    },
+    "choosePackage": "Chọn gói {{name}}",
+    "loading": "Đang tải…",
+    "popularBadge": "Phổ biến nhất"
   }
   ,
   "footer": {

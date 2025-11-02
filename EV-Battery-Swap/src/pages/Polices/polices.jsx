@@ -2,34 +2,14 @@ import React, { useEffect, useRef, useState } from "react";
 import "./polices.css";
 import API_BASE_URL from "../../config";
 import { GogoroPolicyModern } from "./policesGogoro.jsx";
+import { useTranslation } from 'react-i18next';
 
 /* ===================== SLIDE WORDS ===================== */
-const slideWords = [
-  "Dễ dàng và tiện lợi",
-  "Giá trị tốt cho tiền",
-  "trình độ cao",
-  "Không có hạn chế",
-  "Toàn diện",
-  "Thêm phản hồi",
-  "Bất cứ lúc nào, bất cứ lúc nào",
-  "Hiệu quả",
-  "Nhiều ưu đãi",
-  "Hiểu bạn",
-  "Thật vui",
-  "có ý nghĩa to lớn",
-  "Toàn diện",
-  "tương lai",
-  "Công suất tối đa",
-  "Tùy chỉnh",
-  "Nhiều khả năng",
-  "độ đàn hồi",
-  "Sinh ra là dành cho bạn",
-  "đáng tin cậy",
-  "Đạt yêu cầu",
-  "Dễ dàng và tiện lợi",
-];
+// slideWords are loaded from translations so they can be shown in EN/VI
 
 function PolicesHeader() {
+  const { t } = useTranslation();
+  const slideWords = t('policies.slideWords', { returnObjects: true }) || [];
   const [current, setCurrent] = useState(0);
   const intervalRef = useRef();
 
@@ -44,7 +24,7 @@ function PolicesHeader() {
     <section className="section section-leading">
       <div className="container">
         <h1 className="leading-title texture-solid">
-          Làm cho trải nghiệm của bạn nhiều hơn
+          {t('policies.header.title')}
         </h1>
         <div className="slidewords-row">
           <span className="word-slide sliding" style={{ height: "1.25em" }}>
@@ -60,12 +40,8 @@ function PolicesHeader() {
             </span>
           </span>
         </div>
-        <h2 className="leading-subtitle">
-          Sau đó, hãy tạm biệt việc tiếp nhiên liệu và bắt đầu thay pin.
-        </h2>
-        <p className="leading-description">
-          Nhiều gói cước khác nhau, bạn có thể đi theo bất kỳ cách nào bạn muốn!
-        </p>
+        <h2 className="leading-subtitle">{t('policies.header.subtitle')}</h2>
+        <p className="leading-description">{t('policies.header.description')}</p>
       </div>
     </section>
   );
@@ -141,6 +117,7 @@ const fallbackPackages = [
 /* ===================== MAIN ===================== */
 export function PolicesPricingFAQ({ onLoginClick, user }) {
   const isLoggedIn = !!(user && (user.fullName || user.fullname || user.name));
+  const { t } = useTranslation();
 
   const [loading, setLoading] = useState(true);
   const [tiers, setTiers] = useState([]);
@@ -279,11 +256,8 @@ export function PolicesPricingFAQ({ onLoginClick, user }) {
               />
             </svg>
           </div>
-          <h1 className="header-title">Gói cước dịch vụ đổi pin</h1>
-          <p className="header-subtitle">
-            Chọn gói cước phù hợp với nhu cầu di chuyển của bạn. Tất cả các gói
-            đều có thể thay đổi bất kỳ lúc nào. Không có chi phí ẩn.
-          </p>
+          <h1 className="header-title">{t('policies.pricing.title')}</h1>
+          <p className="header-subtitle">{t('policies.pricing.description')}</p>
         </header>
 
         <main className="pricing-section">
@@ -358,7 +332,7 @@ export function PolicesPricingFAQ({ onLoginClick, user }) {
                       className="w-full"
                       onClick={() => handleChoosePlan(tier)}
                     >
-                      {tier.cta}
+                      {t ? t('policies.choosePackage', { name: tier.nameVi || tier.name }) : tier.cta}
                     </Button>
                   </div>
                 </div>

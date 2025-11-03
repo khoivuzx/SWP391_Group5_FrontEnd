@@ -7,18 +7,13 @@ export default function SearchForm({ stations, selectedStation, setSelectedStati
   const [msg, setMsg] = useState("");
   const [searching, setSearching] = useState(false);
   const [viewMode, setViewMode] = useState(mode); // 'station' or 'battery'
-
-  const batteryOptions = [
-    { id: 'A', label: 'Battery A' },
-    { id: 'B', label: 'Battery B' },
-    { id: 'C', label: 'Battery C' }
-  ];
+  const batteryOptions = t('search.batteryOptions', { returnObjects: true }) || ['Li-ion', 'LFP'];
 
   // Reservations are handled from the map popup now. This form only selects station/battery and finds path.
 
   const handleFindPath = () => {
     if (!selectedStation) {
-      setMsg("Please select a station first to find the path.");
+      setMsg(t('search.pleaseSelectStation'));
       return;
     }
     setMsg("");
@@ -84,8 +79,9 @@ export default function SearchForm({ stations, selectedStation, setSelectedStati
               style={{ width: '100%', padding: '10px', marginTop: 6, borderRadius: 8, border: '1px solid #ccc' }}
             >
               <option value="">{t('search.batterySelectPlaceholder')}</option>
-              <option value="Li-ion">Li-ion</option>
-              <option value="LFP">LFP</option>
+              {batteryOptions.map(opt => (
+                <option key={opt} value={opt}>{opt}</option>
+              ))}
             </select>
           </label>
           <div style={{ marginTop: 10 }}>
@@ -123,7 +119,7 @@ export default function SearchForm({ stations, selectedStation, setSelectedStati
                   >
                     <div>
                       <div style={{ fontWeight: 700 }}>{fs.name}</div>
-                      <div style={{ fontSize: '0.9em', color: '#666' }}>{(fs.distanceMeters/1000).toFixed(2)} km</div>
+                      <div style={{ fontSize: '0.9em', color: '#666' }}>{(fs.distanceMeters/1000).toFixed(2)} {t('search.km')}</div>
                     </div>
                     <div style={{ color: '#1976d2', fontWeight: 700 }}>{t('search.go')}</div>
                   </div>

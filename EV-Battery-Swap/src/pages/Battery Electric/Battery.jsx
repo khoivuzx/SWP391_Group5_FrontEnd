@@ -307,21 +307,18 @@ function Battery() {
 
           <div className="sumary-text-chung">
             <div className="sumary-text-1">
-              <h3 className="text">SỰ TIỆN LỢI</h3>
-              <p>
-Các điểm đổi pin EV sử dụng ít diện tích hơn so với chỗ đỗ xe và lắp đặt nhanh chóng, dễ dàng tại nhiều địa điểm khác nhau. Chỉ cần một điểm đổi pin, bạn có thể phục vụ hàng trăm lượt đổi pin mỗi ngày mà không cần chờ đợi.              </p>
+              <h3 className="text">{t('battery.summary.card1.title')}</h3>
+              <p>{t('battery.summary.card1.desc')}</p>
             </div>
 
             <div className="sumary-text-1">
-              <h3 className="text">DỄ VẬN HÀNH</h3>
-              <p>
-Chống chịu thời tiết. Chống phá hoại. Ít bảo trì. Giám sát 24 giờ, cập nhật từ xa và các biện pháp an toàn tự động mang lại thời gian hoạt động 99%.              </p>
+              <h3 className="text">{t('battery.summary.card2.title')}</h3>
+              <p>{t('battery.summary.card2.desc')}</p>
             </div>
 
             <div className="sumary-text-1">
-              <h3 className="text">XÂY DỰNG ĐỂ TRƯỜNG TỒN</h3>
-              <p>
-Thiết kế chắc chắn, công nghệ tiên tiến và cập nhật liên tục. Được thiết kế để đảm bảo độ tin cậy trong những môi trường đô thị khắc nghiệt nhất. Thay thế liên tục, năm này qua năm khác.              </p>
+              <h3 className="text">{t('battery.summary.card3.title')}</h3>
+              <p>{t('battery.summary.card3.desc')}</p>
             </div>
           </div>
         </div>
@@ -339,10 +336,9 @@ Thiết kế chắc chắn, công nghệ tiên tiến và cập nhật liên t�
           className="video-cover"
         />
         <div className="video-overlay">
-          <div className="eyebrow">SMART &amp; CONNECTED</div>
-          <h2 className="video-title">Thinking ahead.</h2>
-          <p className="video-desc">
-SmartGEN là trung tâm thần kinh kết nối đám mây của chúng tôi. Trí tuệ nhân tạo (AI) của nó liên tục học hỏi từ các kiểu lái xe và hành vi thay đổi để dự đoán thời điểm và địa điểm cần pin đầy. Bằng cách phân phối năng lượng thông minh, chúng tôi giúp hàng trăm nghìn người lái xe di chuyển nhanh chóng trên đường đi.          </p>
+          <div className="eyebrow">{t('battery.video.eyebrow')}</div>
+            <h2 className="video-title">{t('battery.video.title')}</h2>
+            <p className="video-desc">{t('battery.video.desc')}</p>
         </div>
       </section>
 

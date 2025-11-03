@@ -1,5 +1,6 @@
 
 import React from "react";
+import { useTranslation } from 'react-i18next';
 import "./policesGogoro.css";
 import "./policesGogoro.css";
 
@@ -137,7 +138,10 @@ export function renderListGogoro(list) {
 
 export function GogoroPolicyModern() {
   const [tab, setTab] = React.useState(0);
-  const data = tabDataGogoro[tab];
+  const { t } = useTranslation();
+  // Prefer localized tab content from i18n; fall back to static tabDataGogoro
+  const localizedTabs = t('policies.gogoro.tabs', { returnObjects: true });
+  const data = Array.isArray(localizedTabs) && localizedTabs.length > 0 ? localizedTabs[tab] : tabDataGogoro[tab];
   // State để điều khiển modal đăng ký/đăng nhập
   const [showRegister, setShowRegister] = React.useState(false);
   const [showLogin, setShowLogin] = React.useState(false);
@@ -147,15 +151,15 @@ export function GogoroPolicyModern() {
 
   return (
     <div className="gogoro-policy-modern polices-container">
-      <h1>Chính sách thuê pin Gogoro</h1>
+      <h1>{t('policies.gogoro.title')}</h1>
       <div className="gogoro-tabs">
-        {tabDataGogoro.map((t, idx) => (
+        {(Array.isArray(localizedTabs) && localizedTabs.length > 0 ? localizedTabs : tabDataGogoro).map((tb, idx) => (
           <button
-            key={t.label}
+            key={tb.label || idx}
             className={"gogoro-tab" + (tab === idx ? " active" : "")}
             onClick={() => setTab(idx)}
           >
-            {t.label}
+            {tb.label}
           </button>
         ))}
       </div>
@@ -178,8 +182,8 @@ export function GogoroPolicyModern() {
               <div className="plan-note">{plan.note}</div>
             </div>
           ))}
-          {/* Only show VAT and image when NOT viewing the rental policy tab */}
-          {data.label !== 'Chính sách thuê Pin' && (
+          {/* Only show VAT and image when NOT viewing the rental policy tab (use tab index so localization doesn't affect this) */}
+          {tab !== 0 && (
             <>
               {/* Hình minh họa pin Gogoro */}
               <div className="gogoro-image-wrap">
@@ -197,19 +201,19 @@ export function GogoroPolicyModern() {
       {/* Action buttons */}
       <div className="gogoro-actions">
         <button className="btn btn--secondary" onClick={() => { window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
-          Xem chi tiết
+          {t('policies.gogoro.actions.viewDetails')}
         </button>
         <button className="btn btn--primary" onClick={() => setShowLogin(true)}>
-          Đăng ký ngay
+          {t('policies.gogoro.actions.register')}
         </button>
         <button className="btn btn--outline" onClick={() => { window.location.href = 'tel:1900232389'; }}>
-          Liên hệ hỗ trợ
+          {t('policies.gogoro.actions.contact')}
         </button>
       </div>
 
       {/* Modal đăng ký */}
       {showRegister && (
-        <React.Suspense fallback={<div>Đang tải...</div>}>
+        <React.Suspense fallback={<div>{t('policies.loading')}</div>}>
           <RegisterModal
             isOpen={showRegister}
             onClose={() => setShowRegister(false)}
@@ -222,7 +226,7 @@ export function GogoroPolicyModern() {
       )}
       {/* Modal đăng nhập */}
       {showLogin && (
-        <React.Suspense fallback={<div>Đang tải...</div>}>
+        <React.Suspense fallback={<div>{t('policies.loading')}</div>}>
           <LoginModal
             isOpen={showLogin}
             onClose={() => setShowLogin(false)}

@@ -1,5 +1,6 @@
 // src/components/Booking/BookingModal.jsx
 import React, { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import API_BASE_URL from '../../config';
 
 export default function BookingModal({
@@ -9,6 +10,7 @@ export default function BookingModal({
   onRequirePackage,      // ⬅ sẽ được Driver.jsx truyền vào để nhảy sang tab "Gói dịch vụ"
   onRequireLinkVehicle,  // (tuỳ chọn) mở flow liên kết xe
 }) {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [vehicles, setVehicles] = useState([]);
   const [vehLoading, setVehLoading] = useState(true);
@@ -208,28 +210,28 @@ export default function BookingModal({
       style={styles.backdrop}
       role="dialog"
       aria-modal="true"
-      aria-label="Đặt lịch đổi pin"
+      aria-label={t('booking.ariaLabel')}
     >
       <div className="booking-modal__content" style={styles.modal}>
         <div style={styles.header}>
-          <div style={{ fontWeight: 700, fontSize: 18 }}>Đặt lịch đổi pin</div>
+          <div style={{ fontWeight: 700, fontSize: 18 }}>{t('booking.title')}</div>
           <button onClick={onClose} style={styles.closeBtn} aria-label="Đóng">×</button>
         </div>
 
         <div style={{ marginTop: 4, fontSize: 13, color: '#64748b' }}>
-          Trạm: <b style={{ color: '#0f172a' }}>{stationName || '-'}</b>
+          {t('booking.stationPrefix')} <b style={{ color: '#0f172a' }}>{stationName || '-'}</b>
         </div>
 
         {success ? (
           <div style={{ marginTop: 16 }}>
-            <div style={{ color: '#166534', fontWeight: 600, marginBottom: 8 }}>✅ Đặt lịch thành công!</div>
+            <div style={{ color: '#166534', fontWeight: 600, marginBottom: 8 }}>{t('booking.successTitle')}</div>
             {result && (
               <div style={styles.resultBox}>
-                <div><b>Mã đặt lịch:</b> {result.bookingId}</div>
-                <div><b>Vehicle ID:</b> {result.vehicleId}</div>
-                <div><b>Loại pin:</b> {result.batteryType}</div>
-                <div><b>Thời gian:</b> {result.bookingTime}</div>
-                <div><b>Hết hạn:</b> {result.expiredTime}</div>
+                <div><b>{t('booking.labels.bookingId')}</b> {result.bookingId}</div>
+                <div><b>{t('booking.labels.vehicleId')}</b> {result.vehicleId}</div>
+                <div><b>{t('booking.labels.batteryType')}</b> {result.batteryType}</div>
+                <div><b>{t('booking.labels.bookingTime')}</b> {result.bookingTime}</div>
+                <div><b>{t('booking.labels.expiredTime')}</b> {result.expiredTime}</div>
                 {result.qrCode ? (
                   <div style={{ marginTop: 10, textAlign: 'center' }}>
                     <img alt="QR" src={`data:image/png;base64,${result.qrCode}`} style={{ width: 164, height: 164 }} />
@@ -238,7 +240,7 @@ export default function BookingModal({
               </div>
             )}
             <div style={{ marginTop: 16, textAlign: 'right' }}>
-              <button onClick={onClose} style={styles.primaryBtn}>Đóng</button>
+              <button onClick={onClose} style={styles.primaryBtn}>{t('booking.close')}</button>
             </div>
           </div>
         ) : (
@@ -253,7 +255,7 @@ export default function BookingModal({
                       style={styles.linkBtn}
                       onClick={goToServiceTab}
                     >
-                      Thuê gói ngay
+                      {t('booking.rentPackage')}
                     </button>
                   </div>
                 )}
@@ -269,7 +271,7 @@ export default function BookingModal({
                 onChange={(e) => setVehicleId(e.target.value)}
                 style={styles.input}
               >
-                <option value="">-- Chọn xe --</option>
+                <option value="">{t('booking.selectVehiclePlaceholder')}</option>
                 {vehicleOptions.map(v => (
                   <option key={v.id} value={String(v.id)}>
                     {v.label}
@@ -281,7 +283,7 @@ export default function BookingModal({
             {/* Gợi ý liên kết xe (không cho nhập ID thủ công) */}
             {!vehLoading && vehicles.length === 0 && (
               <div style={styles.info}>
-                Bạn chưa liên kết xe. Vui lòng liên kết xe để có thể đặt lịch.
+                {t('booking.noVehicleLinked')}
                 {typeof onRequireLinkVehicle === 'function' && (
                   <button
                     type="button"
@@ -291,14 +293,14 @@ export default function BookingModal({
                       onRequireLinkVehicle();
                     }}
                   >
-                    Liên kết xe
+                    {t('booking.linkVehicle')}
                   </button>
                 )}
               </div>
             )}
 
-            <label style={styles.label}>
-              Ngày đổi pin:
+              <label style={styles.label}>
+              {t('booking.labels.date')}:
               <input
                 required
                 type="date"
@@ -309,7 +311,7 @@ export default function BookingModal({
             </label>
 
             <label style={styles.label}>
-              Giờ đổi pin:
+              {t('booking.labels.time')}:
               <input
                 required
                 type="time"
@@ -320,9 +322,9 @@ export default function BookingModal({
             </label>
 
             <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 8 }}>
-              <button type="button" onClick={onClose} style={styles.ghostBtn}>Hủy</button>
+              <button type="button" onClick={onClose} style={styles.ghostBtn}>{t('booking.cancel')}</button>
               <button disabled={!canSubmit} type="submit" style={styles.primaryBtn}>
-                {loading ? 'Đang đặt…' : 'Đặt lịch'}
+                {loading ? t('booking.placing') : t('booking.place')}
               </button>
             </div>
           </form>

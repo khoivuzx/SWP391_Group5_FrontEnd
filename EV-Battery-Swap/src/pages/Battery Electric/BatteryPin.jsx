@@ -1,5 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import './BatteryPin.css';
@@ -11,6 +12,7 @@ gsap.registerPlugin(ScrollTrigger);
 
 
 export default function BatteryPin() {
+  const { t } = useTranslation();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isStatsModalOpen, setIsStatsModalOpen] = useState(false);
   const [selectedBatteryIndex, setSelectedBatteryIndex] = useState(null);
@@ -108,13 +110,13 @@ export default function BatteryPin() {
           playsInline
         >
           <source src="/Pin.mp4" type="video/mp4" />
-          Your browser does not support the video tag.
+          {t('battery.pin.videoFallback')}
         </video>
         
         {/* Left Side - Text Content */}
         <div className="text-content">
-          <h1>Always quick. Always ready.</h1>
-          <p>GoStation Sites make swapping batteries a breeze. Way cleaner than gas. Infinitely faster than charging. Full batteries are ready when you are. No waiting. No fumes. No fuss.</p>
+          <h1>{t('battery.pin.heroTitle')}</h1>
+          <p>{t('battery.pin.heroDesc')}</p>
         </div>
 
         {/* Right Side - Battery Station */}
@@ -139,10 +141,8 @@ export default function BatteryPin() {
       <section className="vinfast-intro-section">
         {/* Left: Text */}
         <div className="vinfast-intro-text">
-          <div className="vinfast-intro-label">GIỚI THIỆU CHUNG</div>
-          <h2 className="vinfast-intro-title">
-            Gogoro Energy là <span className="vinfast-highlight">đơn vị hàng đầu</span> về cung cấp giải pháp lưu trữ năng lượng với <span className="vinfast-highlight">năng lực toàn diện từ nghiên cứu phát triển đến sản xuất</span>. Gogoro Energy ứng dụng công nghệ pin Lithium-ion hiện đại để cung cấp <span className="vinfast-highlight">giải pháp lưu trữ năng lượng đáp ứng các tiêu chuẩn quốc tế về an toàn và hiệu quả</span>.
-          </h2>
+          <div className="vinfast-intro-label">{t('battery.pin.introLabel')}</div>
+          <h2 className="vinfast-intro-title" dangerouslySetInnerHTML={{ __html: t('battery.pin.introHtml') }} />
         </div>
         {/* Right: Hình ảnh pin */}
         <div className="vinfast-intro-image-wrap">
@@ -162,7 +162,7 @@ export default function BatteryPin() {
           <div className="battery-modal-content" onClick={e => e.stopPropagation()}>
             <button className="battery-modal-close" onClick={closeModal}>&times;</button>
             <div className="battery-modal-header">
-              <h2>Thông số kỹ thuật Pin Gogoro</h2>
+              <h2>{t('battery.pin.modalHeader')}</h2>
             </div>
             <div className="battery-modal-body">
               <div>
@@ -172,12 +172,12 @@ export default function BatteryPin() {
                 <div className="battery-modal-right">
                   <table className="battery-spec-table">
                     <tbody>
-                      <tr><td>Trọng lượng</td><td>~ 9 kg</td></tr>
-                      <tr><td>Kích thước</td><td>220 x 180 x 120 mm</td></tr>
-                      <tr><td>Cấp độ bảo vệ</td><td>IP55 (Chống bụi và chống nước tia nước áp suất thấp)</td></tr>
-                      <tr><td>Công nghệ làm mát</td><td>Làm mát thụ động</td></tr>
-                      <tr><td>Nhiệt độ hoạt động</td><td>-20°C đến 55°C</td></tr>
-                      <tr><td>Độ ẩm cho phép</td><td>0 - 95%</td></tr>
+                      <tr><td>{t('battery.pin.specs.weight.label')}</td><td>{t('battery.pin.specs.weight.value')}</td></tr>
+                      <tr><td>{t('battery.pin.specs.dimensions.label')}</td><td>{t('battery.pin.specs.dimensions.value')}</td></tr>
+                      <tr><td>{t('battery.pin.specs.ip.label')}</td><td>{t('battery.pin.specs.ip.value')}</td></tr>
+                      <tr><td>{t('battery.pin.specs.cooling.label')}</td><td>{t('battery.pin.specs.cooling.value')}</td></tr>
+                      <tr><td>{t('battery.pin.specs.operatingTemp.label')}</td><td>{t('battery.pin.specs.operatingTemp.value')}</td></tr>
+                      <tr><td>{t('battery.pin.specs.humidity.label')}</td><td>{t('battery.pin.specs.humidity.value')}</td></tr>
                     </tbody>
                   </table>
                 </div>
@@ -190,7 +190,7 @@ export default function BatteryPin() {
       {/* Section pin nổi bật với animation cuộn ảnh */}
       <section ref={sectionRef} className="battery-pin-highlight">
         <div className="bph-text-content">
-          <h2 className="bph-title">Power Packed.</h2>
+          <h2 className="bph-title">{t('battery.pin.powerPacked')}</h2>
         </div>
         <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%'}}>
           <canvas ref={canvasRef} className="bph-canvas" style={{display: 'block', margin: '32px auto 0 auto', maxWidth: '700px', width: '100%', height: 'auto', background: 'none'}}></canvas>
@@ -199,28 +199,28 @@ export default function BatteryPin() {
       {/* Section ảnh và số liệu nổi bật */}
       <section className="statsSection">
         <h2 className="title">
-          Nền tảng năng lượng tiên tiến cho xe điện hai bánh
+          {t('battery.pin.stats.title')}
         </h2>
         <p className="subtitle">
-          Hơn 50 thành phố | Một nền tảng | Hơn 55 mẫu xe điện hỗ trợ
+          {t('battery.pin.stats.subtitle')}
         </p>
         <div className="statsRow">
           <div className="statBlock">
             <div className="statNumber blue">50<sup>+</sup></div>
-            <div className="statLabel">Thành phố</div>
+            <div className="statLabel">{t('battery.pin.stats.cityLabel')}</div>
           </div>
           <div className="statBlock">
             <div className="statNumber green">ONE</div>
-            <div className="statLabel">Nền tảng</div>
+            <div className="statLabel">{t('battery.pin.stats.platformLabel')}</div>
           </div>
           <div className="statBlock">
             <div className="statNumber blue">55<sup>+</sup></div>
-            <div className="statLabel">Mẫu xe</div>
+            <div className="statLabel">{t('battery.pin.stats.modelsLabel')}</div>
           </div>
         </div>
         <img
           src="/img-pbgn-avengers@2x.jpg"
-          alt="EV Battery Platform"
+          alt={t('battery.pin.stats.imageAlt')}
           className="statsImage"
           style={{cursor: 'pointer'}}
           onClick={() => setIsStatsModalOpen(true)}
@@ -229,7 +229,7 @@ export default function BatteryPin() {
 
       {/* Modal hiển thị thông tin khi click ảnh stats */}
             <div style={{width: '100%', textAlign: 'center', margin: '0 auto', background: 'none'}}>
-        <img src="/img-underfooter.jpg" alt="Banner dưới footer" style={{width: '100%', maxWidth: '100vw', display: 'block', margin: '0 auto'}} />
+  <img src="/img-underfooter.jpg" alt={t('battery.pin.bannerAlt')} style={{width: '100%', maxWidth: '100vw', display: 'block', margin: '0 auto'}} />
       </div>
     </div>
     

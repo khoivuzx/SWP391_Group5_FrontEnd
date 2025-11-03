@@ -1,8 +1,10 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { useTranslation } from 'react-i18next';
 import API_BASE_URL from "../../config";
 import "./TransactionHistory.css";
 
 export default function TransactionHistory() {
+  const { t } = useTranslation();
   const jwt =
     localStorage.getItem("authToken") || localStorage.getItem("jwt_token");
 
@@ -241,7 +243,7 @@ export default function TransactionHistory() {
   // ====== Submit comment ======
   const submitComment = async () => {
     if (!cSwap?.id || !cText.trim()) {
-      setCError("Vui lòng nhập nội dung nhận xét.");
+      setCError(t('transaction.comment.errors.empty'));
       return;
     }
     setCLoading(true);
@@ -260,15 +262,15 @@ export default function TransactionHistory() {
       });
       const data = await safeJson(res);
       if (!res.ok) {
-        throw new Error(data?.message || "Không gửi được nhận xét.");
+        throw new Error(data?.message || t('transaction.comment.errors.sendFailed'));
       }
-      setCSuccess("Đã gửi nhận xét. Cảm ơn bạn!");
+      setCSuccess(t('transaction.comment.success'));
       setCommentedMap((m) => ({ ...m, [cSwap.id]: true }));
       setTimeout(() => {
         setCOpen(false);
       }, 800);
     } catch (e) {
-      setCError(e.message || "Có lỗi khi gửi nhận xét.");
+      setCError(e.message || t('transaction.comment.errors.sendFailed'));
     } finally {
       setCLoading(false);
     }
@@ -284,11 +286,11 @@ export default function TransactionHistory() {
     <div className="th-page">
       <div className="th-card">
         <div className="th-header">
-          <h1 className="th-title">Lịch sử thanh toán</h1>
+          <h1 className="th-title">{t('transaction.title')}</h1>
 
           <form className="th-filters" onSubmit={onFilter}>
             <div className="th-field">
-              <label>Từ ngày</label>
+              <label>{t('transaction.filters.from')}</label>
               <input
                 type="date"
                 value={from}
@@ -296,7 +298,7 @@ export default function TransactionHistory() {
               />
             </div>
             <div className="th-field">
-              <label>Đến ngày</label>
+              <label>{t('transaction.filters.to')}</label>
               <input
                 type="date"
                 value={to}
@@ -304,7 +306,7 @@ export default function TransactionHistory() {
               />
             </div>
             <button className="th-btn th-btn-primary" type="submit">
-              Lọc
+              {t('transaction.filters.filter')}
             </button>
           </form>
         </div>
@@ -315,37 +317,37 @@ export default function TransactionHistory() {
             className={`th-tab ${activeTab === "swap" ? "active" : ""}`}
             onClick={() => setActiveTab("swap")}
           >
-            Đổi pin (Swap)
+            {t('transaction.tabs.swap')}
           </button>
           <button
             className={`th-tab ${activeTab === "package" ? "active" : ""}`}
             onClick={() => setActiveTab("package")}
           >
-            Mua/Thuê gói pin (Package)
+            {t('transaction.tabs.package')}
           </button>
         </div>
 
         {error && <div className="th-alert">{error}</div>}
-        {loading && <div className="th-loading">Đang tải dữ liệu…</div>}
+  {loading && <div className="th-loading">{t('transaction.loading')}</div>}
 
         {/* Bảng Đổi pin */}
         {!loading && activeTab === "swap" && (
           <>
             {swapItems.length === 0 ? (
-              <Empty text="Chưa có lịch sử đổi pin." />
+              <Empty text={t('transaction.empty.swap')} />
             ) : (
               <div className="th-table-wrap">
                 <table className="th-table">
                   <thead>
                     <tr>
-                      <th>ID</th>
-                      <th>Trạm</th>
-                      <th>Kiosk</th>
-                      <th>SoH cũ → mới</th>
-                      <th>Phí</th>
-                      <th>Mô tả</th>
-                      <th>Thời gian</th>
-                      <th style={{ width: 140 }}>Nhận xét</th>
+                      <th>{t('transaction.table.id')}</th>
+                      <th>{t('transaction.table.station')}</th>
+                      <th>{t('transaction.table.kiosk')}</th>
+                      <th>{t('transaction.table.soh')}</th>
+                      <th>{t('transaction.table.fee')}</th>
+                      <th>{t('transaction.table.desc')}</th>
+                      <th>{t('transaction.table.time')}</th>
+                      <th style={{ width: 140 }}>{t('transaction.table.comment')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -366,15 +368,15 @@ export default function TransactionHistory() {
                           <td>{dateTime(r.time)}</td>
                           <td>
                             {already ? (
-                              <span className="th-badge th-badge-success">
-                                Đã nhận xét
+                                <span className="th-badge th-badge-success">
+                                {t('transaction.labels.commented')}
                               </span>
                             ) : allow ? (
                               <button
                                 className="th-btn th-btn-secondary"
                                 onClick={() => openComment(r)}
                               >
-                                Nhận xét
+                                {t('transaction.labels.comment')}
                               </button>
                             ) : (
                               <span>—</span>
@@ -394,18 +396,18 @@ export default function TransactionHistory() {
         {!loading && activeTab === "package" && (
           <>
             {packageItems.length === 0 ? (
-              <Empty text="Chưa có lịch sử mua/thuê gói pin." />
+              <Empty text={t('transaction.empty.package')} />
             ) : (
               <div className="th-table-wrap">
                 <table className="th-table">
                   <thead>
                     <tr>
-                      <th>ID</th>
-                      <th>Gói</th>
-                      <th>Số tiền</th>
-                      <th>PTTT</th>
-                      <th>Mô tả</th>
-                      <th>Thời gian</th>
+                      <th>{t('transaction.table.id')}</th>
+                      <th>{t('transaction.table.package')}</th>
+                      <th>{t('transaction.table.amount')}</th>
+                      <th>{t('transaction.table.paymentMethod')}</th>
+                      <th>{t('transaction.table.desc')}</th>
+                      <th>{t('transaction.table.time')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -443,11 +445,11 @@ export default function TransactionHistory() {
                 💬
               </span>
               <h3 className="th-msgbox-title">
-                Nhận xét cho swap #{cSwap?.id}
+                {t('transaction.comment.title', { id: cSwap?.id })}
               </h3>
               <button
                 className="th-msgbox-close"
-                title="Đóng"
+                title={t('transaction.close')}
                 onClick={() => setCOpen(false)}
               >
                 ×
@@ -458,7 +460,7 @@ export default function TransactionHistory() {
               <textarea
                 className="th-input th-input-textarea"
                 rows={5}
-                placeholder="Nhập nhận xét của bạn về dịch vụ…"
+                placeholder={t('transaction.comment.placeholder')}
                 value={cText}
                 onChange={(e) => setCText(e.target.value)}
               />
@@ -474,14 +476,14 @@ export default function TransactionHistory() {
                 onClick={() => setCOpen(false)}
                 disabled={cLoading}
               >
-                Hủy
+                {t('transaction.actions.cancel')}
               </button>
               <button
                 className="th-btn th-btn-primary"
                 onClick={submitComment}
                 disabled={cLoading}
               >
-                {cLoading ? "Đang gửi…" : "Gửi nhận xét"}
+                {cLoading ? t('transaction.actions.sending') : t('transaction.actions.send')}
               </button>
             </div>
           </div>

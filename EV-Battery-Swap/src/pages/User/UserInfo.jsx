@@ -1,7 +1,9 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { useTranslation } from 'react-i18next';
 import API_BASE_URL from "../../config"; // ví dụ: https://442a6c8156af.ngrok-free.app
 
 export default function UserInfo() {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
   const [profile, setProfile] = useState(null);
@@ -16,7 +18,7 @@ export default function UserInfo() {
 
     if (!token) {
       setLoading(false);
-      setErr("Bạn chưa đăng nhập. Vui lòng đăng nhập lại.");
+      setErr(t('user.notLoggedIn'));
       return;
     }
 
@@ -55,7 +57,7 @@ export default function UserInfo() {
           setSelectedVehicleId(data.vehicles[0].Vehicle_ID);
         }
       } catch (e) {
-        setErr(e.message || "Không thể tải hồ sơ");
+        setErr(e.message || t('user.cannotLoadProfile'));
       } finally {
         if (alive) setLoading(false);
       }
@@ -91,21 +93,21 @@ export default function UserInfo() {
     }
   };
 
-  if (loading) return <div style={{ padding: 24 }}>Đang tải hồ sơ...</div>;
+  if (loading) return <div style={{ padding: 24 }}>{t('user.loadingProfile')}</div>;
   if (err)
     return (
       <div style={{ padding: 24, color: "red" }}>
-        <h3>Lỗi:</h3>
+        <h3>{t('user.errorTitle')}</h3>
         <pre style={{ whiteSpace: "pre-wrap" }}>{err}</pre>
       </div>
     );
-  if (!profile) return <div style={{ padding: 24 }}>Không có dữ liệu</div>;
+  if (!profile) return <div style={{ padding: 24 }}>{t('user.noData')}</div>;
 
   const { user, package: pkg } = profile;
 
   return (
     <div style={{ padding: "32px 20px", maxWidth: 960, margin: "0 auto" }}>
-      <h1 style={{ marginBottom: 16 }}>Thông tin người dùng</h1>
+  <h1 style={{ marginBottom: 16 }}>{t('user.title')}</h1>
 
       {/* USER */}
       <div style={card}>
@@ -140,33 +142,33 @@ export default function UserInfo() {
 
       {/* PACKAGE */}
       <div style={card}>
-        <h2 style={{ margin: 0 }}>Gói hiện tại</h2>
+        <h2 style={{ margin: 0 }}>{t('user.currentPackage')}</h2>
         {pkg ? (
           <div style={{ marginTop: 10 }}>
             <div>
-              Tên gói: <b>{pkg.packageName}</b>
+              {t('user.package.name')}: <b>{pkg.packageName}</b>
             </div>
             <div>
-              Hiệu lực: {pkg.startDate} → {pkg.endDate}
+              {t('user.package.validity')}: {pkg.startDate} → {pkg.endDate}
             </div>
           </div>
         ) : (
           <div style={{ marginTop: 10, color: "#6b7280" }}>
-            Bạn chưa đăng ký gói nào
+            {t('user.package.none')}
           </div>
         )}
       </div>
 
       {/* VEHICLES */}
       <div style={card}>
-        <h2 style={{ marginTop: 0 }}>Xe của bạn</h2>
+  <h2 style={{ marginTop: 0 }}>{t('user.yourVehicles')}</h2>
 
         {vehicles.length === 0 ? (
-          <div style={{ color: "#6b7280" }}>Bạn chưa liên kết xe nào</div>
+          <div style={{ color: "#6b7280" }}>{t('user.noVehiclesLinked')}</div>
         ) : (
           <>
             <label htmlFor="vehicleSelect" style={{ fontSize: 14 }}>
-              Chọn xe
+              {t('user.selectVehicle')}
             </label>
             <select
               id="vehicleSelect"
@@ -184,11 +186,11 @@ export default function UserInfo() {
             {selectedVehicle && (
               <div style={kv}>
                 <div style={kvRow}>
-                  <span style={kvKey}>Model:</span>
+                  <span style={kvKey}>{t('user.vehicle.model')}:</span>
                   <span style={kvVal}>{selectedVehicle.Model_Name}</span>
                 </div>
                 <div style={kvRow}>
-                  <span style={kvKey}>Biển số:</span>
+                  <span style={kvKey}>{t('user.vehicle.plate')}:</span>
                   <span style={kvVal}>{selectedVehicle.License_Plate}</span>
                 </div>
               </div>

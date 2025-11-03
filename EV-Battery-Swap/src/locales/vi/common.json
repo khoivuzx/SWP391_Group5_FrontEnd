@@ -12,6 +12,8 @@
     "stationsFound": "Các trạm tìm được",
     "go": "Đến",
     "noStationsFound": "Không tìm thấy trạm nào gần đây có loại pin đó.",
+    "batteryOptions": ["Li-ion", "LFP"],
+    "km": "km",
     "findPath": "Tìm đường đến trạm này",
     "pleaseSelectStation": "Vui lòng chọn trạm trước khi tìm đường."
   },
@@ -146,9 +148,151 @@
         "desc": "Công cụ giám sát trạng thái pin, lịch sử sử dụng và thông báo bảo trì cho hỗ trợ liền mạch."
       }
     ],
+    "summary": {
+      "card1": {
+        "title": "SỰ TIỆN LỢI",
+        "desc": "Các điểm đổi pin EV sử dụng ít diện tích hơn so với chỗ đỗ xe và lắp đặt nhanh chóng, dễ dàng tại nhiều địa điểm khác nhau. Chỉ cần một điểm đổi pin, bạn có thể phục vụ hàng trăm lượt đổi pin mỗi ngày mà không cần chờ đợi."
+      },
+      "card2": {
+        "title": "DỄ VẬN HÀNH",
+        "desc": "Chống chịu thời tiết. Chống phá hoại. Ít bảo trì. Giám sát 24 giờ, cập nhật từ xa và các biện pháp an toàn tự động mang lại thời gian hoạt động 99%."
+      },
+      "card3": {
+        "title": "XÂY DỰNG ĐỂ TRƯỜNG TỒN",
+        "desc": "Thiết kế chắc chắn, công nghệ tiên tiến và cập nhật liên tục. Được thiết kế để đảm bảo độ tin cậy trong những môi trường đô thị khắc nghiệt nhất. Thay thế liên tục, năm này qua năm khác."
+      }
+    },
     "platformHeading": "NỀN TẢNG NĂNG LƯỢNG TIÊN TIẾN NHẤT CHO XE ĐIỆN",
     "why": {
       "heading": "VÌ SAO LỰA CHỌN GIẢI PHÁP CỦA CHÚNG TÔI"
+    },
+    "video": {
+      "eyebrow": "SMART & CONNECTED",
+      "title": "Thinking ahead.",
+      "desc": "SmartGEN là trung tâm thần kinh kết nối đám mây của chúng tôi. Trí tuệ nhân tạo (AI) của nó liên tục học hỏi từ các kiểu lái xe và hành vi thay đổi để dự đoán thời điểm và địa điểm cần pin đầy. Bằng cách phân phối năng lượng thông minh, chúng tôi giúp hàng trăm nghìn người lái xe di chuyển nhanh chóng trên đường đi."
+    }
+    ,
+    "pin": {
+      "videoFallback": "Trình duyệt của bạn không hỗ trợ thẻ video.",
+      "heroTitle": "Luôn nhanh. Luôn sẵn sàng.",
+      "heroDesc": "GoStation Sites giúp việc đổi pin trở nên dễ dàng. Sạch hơn xăng. Nhanh hơn sạc rất nhiều. Pin đầy sẵn sàng khi bạn cần. Không chờ đợi. Không khói. Không phiền phức.",
+      "introLabel": "GIỚI THIỆU CHUNG",
+      "introHtml": "Gogoro Energy là <span class=\"vinfast-highlight\">đơn vị hàng đầu</span> về cung cấp giải pháp lưu trữ năng lượng với <span class=\"vinfast-highlight\">năng lực toàn diện từ nghiên cứu phát triển đến sản xuất</span>. Gogoro Energy ứng dụng công nghệ pin Lithium-ion hiện đại để cung cấp <span class=\"vinfast-highlight\">giải pháp lưu trữ năng lượng đáp ứng các tiêu chuẩn quốc tế về an toàn và hiệu quả</span>.",
+      "modalHeader": "Thông số kỹ thuật Pin Gogoro",
+      "specs": {
+        "weight": { "label": "Trọng lượng", "value": "~ 9 kg" },
+        "dimensions": { "label": "Kích thước", "value": "220 x 180 x 120 mm" },
+        "ip": { "label": "Cấp độ bảo vệ", "value": "IP55 (Chống bụi và chống nước tia nước áp suất thấp)" },
+        "cooling": { "label": "Công nghệ làm mát", "value": "Làm mát thụ động" },
+        "operatingTemp": { "label": "Nhiệt độ hoạt động", "value": "-20°C đến 55°C" },
+        "humidity": { "label": "Độ ẩm cho phép", "value": "0 - 95%" }
+      },
+      "powerPacked": "Power Packed.",
+      "stats": {
+        "title": "Nền tảng năng lượng tiên tiến cho xe điện hai bánh",
+        "subtitle": "Hơn 50 thành phố | Một nền tảng | Hơn 55 mẫu xe điện hỗ trợ",
+        "cityLabel": "Thành phố",
+        "platformLabel": "Nền tảng",
+        "modelsLabel": "Mẫu xe",
+        "imageAlt": "Nền tảng Pin EV"
+      },
+      "bannerAlt": "Banner dưới footer"
+    }
+    ,
+    "booking": {
+      "ariaLabel": "Đặt lịch đổi pin",
+      "title": "Đặt lịch đổi pin",
+      "stationPrefix": "Trạm:",
+      "successTitle": "✅ Đặt lịch thành công!",
+      "labels": {
+        "bookingId": "Mã đặt lịch:",
+        "vehicleId": "Vehicle ID:",
+        "batteryType": "Loại pin:",
+        "bookingTime": "Thời gian:",
+        "expiredTime": "Hết hạn:",
+        "date": "Ngày",
+        "time": "Giờ"
+      },
+      "close": "Đóng",
+      "rentPackage": "Thuê gói ngay",
+      "selectVehiclePlaceholder": "-- Chọn xe --",
+      "noVehicleLinked": "Bạn chưa liên kết xe. Vui lòng liên kết xe để có thể đặt lịch.",
+      "linkVehicle": "Liên kết xe",
+      "cancel": "Hủy",
+      "placing": "Đang đặt…",
+      "place": "Đặt lịch"
+    }
+    ,
+    "user": {
+      "loadingProfile": "Đang tải hồ sơ...",
+      "notLoggedIn": "Bạn chưa đăng nhập. Vui lòng đăng nhập lại.",
+      "cannotLoadProfile": "Không thể tải hồ sơ.",
+      "errorTitle": "Lỗi:",
+      "noData": "Không có dữ liệu",
+      "title": "Thông tin người dùng",
+      "currentPackage": "Gói hiện tại",
+      "package": {
+        "name": "Tên gói",
+        "validity": "Hiệu lực",
+        "none": "Bạn chưa đăng ký gói nào"
+      },
+      "yourVehicles": "Xe của bạn",
+      "noVehiclesLinked": "Bạn chưa liên kết xe nào",
+      "selectVehicle": "Chọn xe",
+      "vehicle": {
+        "model": "Model",
+        "plate": "Biển số"
+      }
+    }
+    ,
+    "transaction": {
+      "title": "Lịch sử thanh toán",
+      "filters": {
+        "from": "Từ ngày",
+        "to": "Đến ngày",
+        "filter": "Lọc"
+      },
+      "tabs": {
+        "swap": "Đổi pin (Swap)",
+        "package": "Mua/Thuê gói pin (Package)"
+      },
+      "loading": "Đang tải dữ liệu…",
+      "empty": {
+        "swap": "Chưa có lịch sử đổi pin.",
+        "package": "Chưa có lịch sử mua/thuê gói pin."
+      },
+      "table": {
+        "id": "ID",
+        "station": "Trạm",
+        "kiosk": "Kiosk",
+        "soh": "SoH cũ → mới",
+        "fee": "Phí",
+        "desc": "Mô tả",
+        "time": "Thời gian",
+        "comment": "Nhận xét",
+        "package": "Gói",
+        "amount": "Số tiền",
+        "paymentMethod": "PTTT"
+      },
+      "labels": {
+        "commented": "Đã nhận xét",
+        "comment": "Nhận xét"
+      },
+      "comment": {
+        "errors": {
+          "empty": "Vui lòng nhập nội dung nhận xét.",
+          "sendFailed": "Không gửi được nhận xét."
+        },
+        "success": "Đã gửi nhận xét. Cảm ơn bạn!",
+        "title": "Nhận xét cho swap #{{id}}",
+        "placeholder": "Nhập nhận xét của bạn về dịch vụ…"
+      },
+      "close": "Đóng",
+      "actions": {
+        "cancel": "Hủy",
+        "sending": "Đang gửi…",
+        "send": "Gửi nhận xét"
+      }
     }
   }
   ,
@@ -187,6 +331,86 @@
     "choosePackage": "Chọn gói {{name}}",
     "loading": "Đang tải…",
     "popularBadge": "Phổ biến nhất"
+    ,
+    "gogoro": {
+      "title": "Chính sách thuê pin Gogoro",
+      "tabs": [
+        {
+          "label": "Chính sách thuê Pin",
+          "leftTitle": "Áp dụng cho các dòng xe Gogoro (ví dụ: Ludo, Theon, Vento) và các mẫu tương thích",
+          "left": [
+            "Đặt cọc pin: 1.200.000 VNĐ/pin",
+            "Khách hàng sẽ được hoàn trả khoản cọc khi thanh lý hợp đồng thuê pin.",
+            "Phí chuyển đổi gói cước: Không áp dụng.",
+            "Thời hạn hợp đồng thuê: Vô thời hạn đến khi khách hàng hết nhu cầu hoặc hủy xe.",
+            "Thời gian & hình thức thanh toán:",
+            [
+              "Chu kỳ tính cước: Tròn tháng, tính từ ngày đầu tiên của tháng tới ngày cuối cùng của tháng.",
+              "Phí thuê bao pin được thu trước ngày 01 của tháng. Khách hàng có thể đóng 1 tháng hoặc nhiều tháng một lúc.",
+              "Lịch sử thanh toán: Thanh toán tại đại lý/ứng dụng của nhà cung cấp hoặc các đại lý ủy quyền."
+            ]
+          ],
+          "rightTitle": "Phí thuê pin hàng tháng",
+          "rightNote": "Liên hệ hotline hoặc đại lý để chuyển đổi gói. Giá bên dưới mang tính tham khảo theo gói hiện hành.",
+          "plans": [
+            {
+              "name": "GÓI CƠ BẢN",
+              "price": [ { "pin": 1, "value": 200000 }, { "pin": 1, "value": 300000 } ],
+              "note": "Phù hợp người dùng di chuyển trung bình. Đã bao gồm dịch vụ hỗ trợ và đổi pin theo chu kỳ."
+            },
+            {
+              "name": "GÓI TIÊU CHUẨN",
+              "price": [ { "Standard": 1, "value": 400000 }, { "Premium": 2, "value": 800000 } ],
+              "note": "Gói phổ biến cho người dùng thường xuyên. Không giới hạn quãng đường."
+            }
+          ]
+        },
+        {
+          "label": "Quy định về pin",
+          "leftTitle": "Quy định về pin",
+          "left": [
+            {
+              "section": "Quy định chung",
+              "items": [
+                "Để nhận pin đảm bảo, Quý khách lưu ý chỉ nhận pin từ nhân viên tại điểm đổi pin và/hoặc từ nhân viên vận hành của Gogoro khi có yêu cầu cứu hộ pin trên đường.",
+                "Quý khách chỉ nhận pin hoạt động tốt, nguyên vẹn, không móp, méo, hỏng hóc, có dấu hiệu cạy mở hoặc xuất hiện các dấu hiệu bất thường trên vỏ pin."
+              ]
+            },
+            {
+              "section": "Điều kiện đổi/trả pin không mất phí đền bù",
+              "items": [
+                "Pin phải đầy đủ phụ kiện, đúng chủng loại của hãng.",
+                "Pin không có chỗ nào cháy sùi có thể quan sát bằng mắt thường.",
+                "Pin không có chỗ nào biến dạng, khe hở giữa các thành phần nhỏ hơn 01 mm, có thể quan sát bằng mắt thường.",
+                "Pin không có chỗ nào móp, méo có thể dễ dàng quan sát bằng mắt thường.",
+                "Pin không có chỗ nào có vết nứt, vỡ có thể dễ dàng quan sát bằng mắt thường.",
+                "Pin không có chỗ nào rỉ, sét, ố do bị ngấm nước hoặc tiếp xúc với hóa chất.",
+                "Pin không có vết xước nào có độ sâu trên 01 mm.",
+                "Khách hàng tuân thủ quy định về sử dụng và bảo quản pin mà nhà cung cấp đã ban hành."
+              ]
+            },
+            {
+              "section": "Quy định đền bù pin",
+              "items": [
+                "Trường hợp phải đền bù (một trong các điều kiện): Khách hàng làm mất pin; khách hàng đã tháo vỏ pin hoặc các bộ phận của pin; khách hàng làm vỏ pin bị biến dạng dẫn tới pin không hoạt động; khách hàng làm mất Zplug trên phần vỏ nắp pin.",
+                "Đền nguyên giá pin (khi pin bị mất hoặc hỏng nặng): 8.600.000 VNĐ / pin (Bao gồm VAT).",
+                "Trường hợp vỏ pin bị biến dạng ở phần nắp, thân hoặc đế nhưng pin vẫn còn hoạt động: bồi thường theo bộ phận vỏ bị biến dạng — 770.000 VNĐ / bộ phận (Bao gồm VAT).",
+                "Trường hợp pin không hoạt động do khách hàng không tuân thủ Quy định về sử dụng và bảo quản: mức đền bù tùy theo mức độ thiệt hại (đơn vị cung cấp sẽ thẩm định).",
+                "Nếu vỏ pin không bị biến dạng và khách hàng đã tuân thủ Quy định về sử dụng và bảo quản nhưng pin vẫn không hoạt động khi đổi/trả hợp lệ: khách hàng không phải đền bù."
+              ]
+            }
+          ],
+          "rightTitle": "",
+          "rightNote": "",
+          "plans": []
+        }
+      ],
+      "actions": {
+        "viewDetails": "Xem chi tiết",
+        "register": "Đăng ký ngay",
+        "contact": "Liên hệ hỗ trợ"
+      }
+    }
   }
   ,
   "footer": {

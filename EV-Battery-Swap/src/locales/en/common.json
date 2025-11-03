@@ -12,6 +12,8 @@
     "stationsFound": "Stations found",
     "go": "Go",
     "noStationsFound": "No nearby stations found with that battery type.",
+    "batteryOptions": ["Li-ion", "LFP"],
+    "km": "km",
     "findPath": "Find path to this station",
     "pleaseSelectStation": "Please select a station first to find the path."
   },
@@ -146,9 +148,151 @@
         "desc": "Tools to monitor battery status, usage history, and maintenance notifications for seamless support."
       }
     ],
+    "summary": {
+      "card1": {
+        "title": "Convenience",
+        "desc": "EV swap stations use less space than parking and can be installed quickly at many locations. A single swap point can serve hundreds of swaps per day without customers waiting."
+      },
+      "card2": {
+        "title": "Easy to operate",
+        "desc": "Weather-resistant and tamper-proof designs require little maintenance. Remote monitoring and automated safety measures deliver high uptime."
+      },
+      "card3": {
+        "title": "Built to last",
+        "desc": "Robust design, advanced technology, and continuous updates ensure reliability in harsh urban environments, year after year."
+      }
+    },
     "platformHeading": "The world's most advanced energy platform for electric vehicles",
     "why": {
       "heading": "Why choose our solution"
+    },
+    "video": {
+      "eyebrow": "SMART & CONNECTED",
+      "title": "Thinking ahead.",
+      "desc": "SmartGEN is our cloud-connected neural center. Its AI continuously learns from driving patterns and changing behavior to predict when and where full batteries are needed. By distributing energy intelligently, we help hundreds of thousands of riders keep moving quickly on the road."
+    }
+    ,
+    "pin": {
+      "videoFallback": "Your browser does not support the video tag.",
+      "heroTitle": "Always quick. Always ready.",
+      "heroDesc": "GoStation Sites make swapping batteries a breeze. Way cleaner than gas. Infinitely faster than charging. Full batteries are ready when you are. No waiting. No fumes. No fuss.",
+      "introLabel": "INTRODUCTION",
+      "introHtml": "Gogoro Energy is <span class=\"vinfast-highlight\">a leading provider</span> of energy storage solutions with <span class=\"vinfast-highlight\">end-to-end capabilities from R&D to manufacturing</span>. Gogoro Energy applies modern Lithium-ion battery technology to deliver <span class=\"vinfast-highlight\">energy storage solutions that meet international safety and performance standards</span>.",
+      "modalHeader": "Gogoro Battery Specifications",
+      "specs": {
+        "weight": { "label": "Weight", "value": "~ 9 kg" },
+        "dimensions": { "label": "Dimensions", "value": "220 x 180 x 120 mm" },
+        "ip": { "label": "Ingress protection", "value": "IP55 (Dustproof and low-pressure water jets)" },
+        "cooling": { "label": "Cooling", "value": "Passive cooling" },
+        "operatingTemp": { "label": "Operating temperature", "value": "-20°C to 55°C" },
+        "humidity": { "label": "Allowed humidity", "value": "0 - 95%" }
+      },
+      "powerPacked": "Power Packed.",
+      "stats": {
+        "title": "Advanced energy platform for two-wheeler EVs",
+        "subtitle": "50+ cities | One platform | 55+ supported models",
+        "cityLabel": "Cities",
+        "platformLabel": "Platform",
+        "modelsLabel": "Models",
+        "imageAlt": "EV Battery Platform"
+      },
+      "bannerAlt": "Banner under footer"
+    }
+    ,
+    "booking": {
+      "ariaLabel": "Book a battery swap",
+      "title": "Book a battery swap",
+      "stationPrefix": "Station:",
+      "successTitle": "✅ Booking successful!",
+      "labels": {
+        "bookingId": "Booking ID:",
+        "vehicleId": "Vehicle ID:",
+        "batteryType": "Battery type:",
+        "bookingTime": "Booking time:",
+        "expiredTime": "Expires:",
+        "date": "Date",
+        "time": "Time"
+      },
+      "close": "Close",
+      "rentPackage": "Rent package now",
+      "selectVehiclePlaceholder": "-- Select vehicle --",
+      "noVehicleLinked": "You have no linked vehicles. Please link a vehicle to be able to book.",
+      "linkVehicle": "Link vehicle",
+      "cancel": "Cancel",
+      "placing": "Placing…",
+      "place": "Place booking"
+    }
+    ,
+    "user": {
+      "loadingProfile": "Loading profile...",
+      "notLoggedIn": "You are not logged in. Please log in again.",
+      "cannotLoadProfile": "Unable to load profile.",
+      "errorTitle": "Error:",
+      "noData": "No data",
+      "title": "User information",
+      "currentPackage": "Current package",
+      "package": {
+        "name": "Package name",
+        "validity": "Validity",
+        "none": "You have no active package"
+      },
+      "yourVehicles": "Your vehicles",
+      "noVehiclesLinked": "You have no linked vehicles",
+      "selectVehicle": "Select vehicle",
+      "vehicle": {
+        "model": "Model",
+        "plate": "License plate"
+      }
+    }
+    ,
+    "transaction": {
+      "title": "Payment & Swap history",
+      "filters": {
+        "from": "From",
+        "to": "To",
+        "filter": "Filter"
+      },
+      "tabs": {
+        "swap": "Swap (Pin)",
+        "package": "Package history"
+      },
+      "loading": "Loading data…",
+      "empty": {
+        "swap": "No swap history found.",
+        "package": "No package purchase/rental history found."
+      },
+      "table": {
+        "id": "ID",
+        "station": "Station",
+        "kiosk": "Kiosk",
+        "soh": "SoH old → new",
+        "fee": "Fee",
+        "desc": "Description",
+        "time": "Time",
+        "comment": "Comments",
+        "package": "Package",
+        "amount": "Amount",
+        "paymentMethod": "Payment"
+      },
+      "labels": {
+        "commented": "Commented",
+        "comment": "Comment"
+      },
+      "comment": {
+        "errors": {
+          "empty": "Please enter a comment.",
+          "sendFailed": "Failed to send comment."
+        },
+        "success": "Comment sent. Thank you!",
+        "title": "Comment for swap #{{id}}",
+        "placeholder": "Enter your comment about the service…"
+      },
+      "close": "Close",
+      "actions": {
+        "cancel": "Cancel",
+        "sending": "Sending…",
+        "send": "Send comment"
+      }
     }
   }
   ,
@@ -187,6 +331,82 @@
     "choosePackage": "Choose package {{name}}",
     "loading": "Loading…",
     "popularBadge": "Most popular"
+    ,
+    "gogoro": {
+      "title": "Gogoro battery rental policy",
+      "tabs": [
+        {
+          "label": "Battery Rental Policy",
+          "leftTitle": "Applies to Gogoro models (e.g. Ludo, Theon, Vento) and compatible models",
+          "left": [
+            "Deposit per battery: 1,200,000 VND",
+            "The deposit will be returned when the rental contract is terminated.",
+            "No package change fee applies.",
+            "Rental contract duration: open-ended until the customer cancels or no longer requires the service.",
+            "Payment timing & method:",
+            [
+              "Billing cycle: full calendar months, from the first day to the last day of each month.",
+              "Subscription fees are collected before the 1st of each month. Customers may pay for one or multiple months in advance.",
+              "Payment channels: at authorized dealers or in the provider's app."
+            ]
+          ],
+          "rightTitle": "Monthly rental fees",
+          "rightNote": "Contact the hotline or an agent to switch packages. Prices below are illustrative and subject to change.",
+          "plans": [
+            {
+              "name": "BASIC PACKAGE",
+              "price": [ { "pin": 1, "value": 200000 }, { "pin": 1, "value": 300000 } ],
+              "note": "Suitable for average usage; includes basic support and periodic swap service."
+            },
+            {
+              "name": "STANDARD PACKAGE",
+              "price": [ { "Standard": 1, "value": 400000 }, { "Premium": 2, "value": 800000 } ],
+              "note": "Popular package for frequent riders. Unlimited distance included."
+            }
+          ]
+        },
+        {
+          "label": "Battery Regulations",
+          "leftTitle": "Battery regulations",
+          "left": [
+            {
+              "section": "General rules",
+              "items": [
+                "Only accept batteries handed over by station staff or authorized personnel.",
+                "Receive batteries that are intact, not dented, and show no signs of tampering."
+              ]
+            },
+            {
+              "section": "Conditions for free return/exchange",
+              "items": [
+                "Batteries must include original accessories and be the correct model.",
+                "No visible burn spots or deformation beyond 1 mm.",
+                "No deep scratches (>1 mm), rust, or chemical damage.",
+                "Customers must follow the provider's usage and storage guidelines."
+              ]
+            },
+            {
+              "section": "Compensation rules",
+              "items": [
+                "Examples requiring compensation: lost battery, removed casing, or damage rendering the battery nonfunctional.",
+                "Full replacement price: 8,600,000 VND per battery (incl. VAT).",
+                "Minor casing deformation compensation: 770,000 VND per affected part (incl. VAT).",
+                "If damage is due to misuse, compensation is assessed case-by-case by the provider.",
+                "If the battery is nonfunctional despite proper use, no compensation is required."
+              ]
+            }
+          ],
+          "rightTitle": "",
+          "rightNote": "",
+          "plans": []
+        }
+      ],
+      "actions": {
+        "viewDetails": "View details",
+        "register": "Register now",
+        "contact": "Contact support"
+      }
+    }
   }
   ,
   "footer": {

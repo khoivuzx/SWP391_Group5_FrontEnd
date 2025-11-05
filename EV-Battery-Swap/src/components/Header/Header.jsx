@@ -3,32 +3,11 @@ import { FaUserCircle } from "react-icons/fa";
 import logo from "../../assets/react.svg";
 import "./Header.css";
 import { useNavigate, Link, useLocation } from "react-router-dom";
-import LanguageSwitcher from '../LanguageSwitcher/LanguageSwitcher';
-import { useTranslation } from 'react-i18next';
-import i18n from '../../i18n';
 
 /* ---------------- Brand ---------------- */
-function Brand({ isStaffPage }) {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const handleClick = (e) => {
-    if (isStaffPage) {
-      e.preventDefault();
-      // Reload lại trang staff
-      navigate("/dashboard/staff", { replace: true });
-      return;
-    }
-    // Nếu không phải staff thì chuyển về home
-    navigate("/");
-  };
+function Brand() {
   return (
-    <a
-      className="brand"
-      href={isStaffPage ? "/dashboard/staff" : "/"}
-      aria-label="home"
-      onClick={handleClick}
-      style={{ cursor: "pointer" }}
-    >
+    <a className="brand" href="/" aria-label="home">
       <img src={logo} alt="Logo" className="brand-logo" />
       <span className="brand-title">GogoRo Battery Swapping</span>
     </a>
@@ -40,7 +19,7 @@ function BatteryDropdown({ show, onEnter, onLeave, isActive }) {
   return (
     <div className="nav-dropdown" onMouseEnter={onEnter} onMouseLeave={onLeave}>
       <span className={`nav-link dropdown-trigger ${isActive ? "active" : ""}`}>
-        {i18n.t('header.batteryAndStations')}
+        Pin và Trạm đổi pin
         <svg className="dropdown-arrow" viewBox="0 0 20 20" fill="currentColor">
           <path
             fillRule="evenodd"
@@ -55,15 +34,13 @@ function BatteryDropdown({ show, onEnter, onLeave, isActive }) {
             to="/battery"
             className={`dropdown-item ${isActive === "/battery" ? "active" : ""}`}
           >
-            {i18n.t('header.batteryStations')}
+            Trạm đổi pin
           </Link>
           <Link
             to="/battery-pin"
-            className={`dropdown-item ${
-              isActive === "/battery-pin" ? "active" : ""
-            }`}
+            className={`dropdown-item ${isActive === "/battery-pin" ? "active" : ""}`}
           >
-            {i18n.t('header.batteryTech')}
+            Công nghệ pin
           </Link>
         </div>
       )}
@@ -77,40 +54,41 @@ function Navigation({
   isBatteryActive,
   showBatteryDropdown,
   setShowBatteryDropdown,
-  hideService,
   user,
-  isStaffPage,
 }) {
   const role = user?.role?.toLowerCase() || "";
 
-  // Nếu là driver: chỉ hiện "Tìm trạm" duy nhất
-  if (role === "driver") {
+  // Staff/Admin/Driver: không có tab nào
+  if (role === "staff" || role === "admin" || role === "driver") {
+    return <nav className="main-nav" aria-label="Primary" />;
+  }
+
+  // Manager: chỉ 2 mục
+  if (role === "manager") {
     return (
       <nav className="main-nav" aria-label="Primary">
-        {/* Không hiển thị Trang Chủ cho driver */}
+        <Link
+          to="/dashboard/Staff/Comment"
+          className={`nav-link ${isActive("/dashboard/Staff/Comment") ? "active" : ""}`}
+        >
+          Xem Nhận Xét
+        </Link>
+        <Link
+          to="/dashboard/staff?tab=dispatch"
+          className={`nav-link ${isActive("/dashboard/staff") ? "active" : ""}`}
+        >
+          Điều phối pin
+        </Link>
       </nav>
     );
   }
 
-  // Nếu là staff page: ẩn toàn bộ nav
-  if (isStaffPage) {
-    return <nav className="main-nav" aria-label="Primary" />;
-  }
-
+  // Khách (chưa đăng nhập): tab public
   return (
     <nav className="main-nav" aria-label="Primary">
       <Link to="/" className={`nav-link ${isActive("/") ? "active" : ""}`}>
-        {i18n.t('header.home')}
+        Trang Chủ
       </Link>
-
-      {user && (
-        <Link
-          to="/dashboard/driver"
-          className={`nav-link ${isActive("/dashboard/driver") ? "active" : ""}`}
-        >
-          {i18n.t('header.findStations')}
-        </Link>
-      )}
 
       <BatteryDropdown
         show={showBatteryDropdown}
@@ -119,28 +97,18 @@ function Navigation({
         isActive={isBatteryActive()}
       />
 
-      {!hideService && (
-        <Link
-          to="/polices"
-          className={`nav-link ${isActive("/polices") ? "active" : ""}`}
-        >
-          {i18n.t('header.services')}
-        </Link>
-      )}
-
-      {/*  Chỉ hiển thị “Điều phối pin” nếu đang ở trang staff + role = manager */}
-      {isStaffPage && role === "manager" && (
-        <Link to="/dashboard/staff?tab=dispatch" className="nav-link admin-only">
-          {i18n.t('header.dispatch')}
-        </Link>
-      )}
+      <Link
+        to="/polices"
+        className={`nav-link ${isActive("/polices") ? "active" : ""}`}
+      >
+        Gói dịch vụ
+      </Link>
     </nav>
   );
 }
 
 /* ---------------- Header chính ---------------- */
 export default function Header({ onLoginClick, user }) {
-  const { t } = useTranslation();
   const [scrolled, setScrolled] = useState(false);
   const [hovered, setHovered] = useState(false);
   const [showBatteryDropdown, setShowBatteryDropdown] = useState(false);
@@ -160,7 +128,6 @@ export default function Header({ onLoginClick, user }) {
     location.pathname === "/battery" || location.pathname === "/battery-pin";
 
   const role = user?.role?.toLowerCase() || "";
-  const isStaffPage = location.pathname.startsWith("/dashboard/staff");
 
   const handleLogout = () => {
     localStorage.removeItem("authToken");
@@ -186,25 +153,24 @@ export default function Header({ onLoginClick, user }) {
       onMouseLeave={() => setHovered(false)}
     >
       <div className="header-inner">
-        <Brand isStaffPage={isStaffPage} />
+        <Brand />
 
         <Navigation
           isActive={isActive}
           isBatteryActive={isBatteryActive}
           showBatteryDropdown={showBatteryDropdown}
           setShowBatteryDropdown={setShowBatteryDropdown}
-          hideService={role === "driver"}
           user={user}
-          isStaffPage={isStaffPage}
         />
 
         <div className="actions">
-          <LanguageSwitcher />
+          {/* Driver có "Liên kết xe" + User menu */}
           {role === "driver" && (
             <Link to="/vehicle-link" className="cta vehicle-link">
-              {t('header.vehicleLink')}
+              Liên kết xe
             </Link>
           )}
+
           {user && user.fullName ? (
             <div className="user-menu-wrap" ref={userMenuRef}>
               <button
@@ -224,9 +190,8 @@ export default function Header({ onLoginClick, user }) {
                       navigate("/user/info");
                     }}
                   >
-                    {t('header.userInfo')}
+                    Tài khoản
                   </button>
-
                   <button
                     className="user-menu-btn logout"
                     onClick={() => {
@@ -234,7 +199,7 @@ export default function Header({ onLoginClick, user }) {
                       handleLogout();
                     }}
                   >
-                    {t('header.logout')}
+                    Đăng xuất
                   </button>
                 </div>
               )}
@@ -248,7 +213,7 @@ export default function Header({ onLoginClick, user }) {
                 onLoginClick();
               }}
             >
-              {t('header.login')}
+              Đăng Nhập
             </a>
           )}
         </div>

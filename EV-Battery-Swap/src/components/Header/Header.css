@@ -161,11 +161,6 @@
 .cta.login{
   background: linear-gradient(90deg,var(--accent), hsl(228, 81%, 48%));
   color:#071019;
-
-  /*This part make the login button on the header suitable for all language*/
-  width: 160px;
-  text-align: center;
-  
   padding:8px 14px;
   border-radius:10px;
   text-decoration:none;

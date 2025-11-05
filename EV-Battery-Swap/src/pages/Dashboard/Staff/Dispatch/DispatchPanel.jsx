@@ -8,20 +8,30 @@ export default function DispatchPanel({ user }) {
   const [requests, setRequests] = useState([]);
 
   const [form, setForm] = useState({
-    stationName: "",
     batteryName: "",
     qtyGood: 0,
     qtyAverage: 0,
     qtyBad: 0,
   });
 
+  // loading khi ấn xác nhận từng dòng
+  const [confirmingId, setConfirmingId] = useState(null);
+
   /* ======= Handle input ======= */
   const onChange = (e) => {
     const { name, value } = e.target;
+
+    // Chuẩn hóa riêng cho input số: ép >= 0, integer
+    if (name === "qtyGood" || name === "qtyAverage" || name === "qtyBad") {
+      let v = String(value || "0").replace(/[^\d]/g, "");
+      const n = Math.max(0, parseInt(v || "0", 10));
+      setForm((prev) => ({ ...prev, [name]: n }));
+      return;
+    }
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  /* ======= Load danh sách yêu cầu ======= */
+  /* ======= Load danh sách yêu cầu (đang dùng /dispatchPending) ======= */
   const loadRequests = async () => {
     try {
       const token = localStorage.getItem("authToken") || "";
@@ -52,6 +62,11 @@ export default function DispatchPanel({ user }) {
     setResult(null);
 
     try {
+      // Validate cơ bản phía FE
+      if (!form.batteryName) throw new Error("Vui lòng chọn loại pin.");
+      const total = Number(form.qtyGood || 0) + Number(form.qtyAverage || 0) + Number(form.qtyBad || 0);
+      if (total === 0) throw new Error("Tổng số lượng phải > 0.");
+
       const token = localStorage.getItem("authToken") || "";
       const res = await fetch(`${API_BASE_URL}/webAPI/api/secure/dispatchRequest`, {
         method: "POST",
@@ -59,12 +74,12 @@ export default function DispatchPanel({ user }) {
           "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
           Authorization: `Bearer ${token}`,
         },
+        // ❗ Không gửi stationName nữa — BE tự lấy Station_ID theo Manager đăng nhập
         body: new URLSearchParams({
-          stationName: form.stationName,
           batteryName: form.batteryName,
-          qtyGood: form.qtyGood,
-          qtyAverage: form.qtyAverage,
-          qtyBad: form.qtyBad,
+          qtyGood: String(form.qtyGood),
+          qtyAverage: String(form.qtyAverage),
+          qtyBad: String(form.qtyBad),
         }),
       });
 
@@ -75,7 +90,9 @@ export default function DispatchPanel({ user }) {
         type: "success",
         message: `Gửi yêu cầu thành công (Mã #${data.requestId || "?"})`,
       });
-      setForm({ stationName: "", batteryName: "", qtyGood: 0, qtyAverage: 0, qtyBad: 0 });
+
+      // Reset form (không reset loại pin để thao tác nhanh)
+      setForm((prev) => ({ ...prev, qtyGood: 0, qtyAverage: 0, qtyBad: 0 }));
       await loadRequests();
     } catch (err) {
       setResult({ type: "error", message: err.message });
@@ -84,7 +101,46 @@ export default function DispatchPanel({ user }) {
     }
   };
 
-  /* ======= Format ngày & tổng số lượng ======= */
+  /* ======= Xác nhận đã nhận pin (Manager trạm request) ======= */
+  const handleConfirm = async (dispatchId) => {
+    if (!dispatchId) return;
+    setConfirmingId(dispatchId);
+    setResult(null);
+
+    try {
+      const token = localStorage.getItem("authToken") || "";
+      const res = await fetch(`${API_BASE_URL}/webAPI/api/secure/dispatchConfirm`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+          Authorization: `Bearer ${token}`,
+          "ngrok-skip-browser-warning": "true",
+        },
+        credentials: "include",
+        body: new URLSearchParams({ dispatchId: String(dispatchId) }),
+      });
+
+      const text = await res.text();
+      let data = {};
+      try { data = JSON.parse(text); } catch { data = { success: false, message: text }; }
+
+      if (!res.ok || data.success === false) {
+        throw new Error(data.message || `Xác nhận thất bại (HTTP ${res.status})`);
+      }
+
+      const moved = `Đã chuyển Good:${data.movedGood ?? 0} / Avg:${data.movedAverage ?? data.movedAvg ?? 0} / Weak:${data.movedBad ?? 0}`;
+      const warn = data.warning ? ` — Cảnh báo: ${data.warning}` : "";
+      setResult({ type: "success", message: `Xác nhận thành công. ${moved}${warn}` });
+
+      await loadRequests();
+    } catch (err) {
+      setResult({ type: "error", message: err.message || "Xác nhận thất bại." });
+    } finally {
+      setConfirmingId(null);
+    }
+  };
+
+  /* ======= Helper ======= */
   const formatDate = (iso) => {
     if (!iso) return "-";
     const d = iso.includes("T") ? iso.split("T")[0] : iso;
@@ -94,11 +150,11 @@ export default function DispatchPanel({ user }) {
   const totalOf = (r) =>
     Number(r?.qtyGood || 0) + Number(r?.qtyAverage || 0) + Number(r?.qtyBad || 0);
 
-  /* ======= Render status (có hỗ trợ tiếng Việt) ======= */
   const renderStatus = (status) => {
     const key = String(status || "pending").toLowerCase();
     const map = {
       pending: "Đang chờ",
+      preparing: "Đang chuẩn bị",
       approved: "Đã duyệt",
       rejected: "Từ chối",
       complete: "Hoàn tất",
@@ -108,6 +164,9 @@ export default function DispatchPanel({ user }) {
     return map[key] || status || "Không rõ";
   };
 
+  const canConfirm = (row) =>
+    String(row?.status || "").toLowerCase() === "preparing";
+
   /* ======= JSX ======= */
   return (
     <div className="dispatch-panel">
@@ -116,21 +175,18 @@ export default function DispatchPanel({ user }) {
         Quản lý gửi yêu cầu điều phối pin về cho <b>Admin</b> phê duyệt.
       </p>
 
+      {/* Banner: nhắc không cần nhập tên trạm */}
+      <div className="info-banner" role="status" aria-live="polite">
+        <span className="info-dot" aria-hidden>ℹ️</span>
+        <div>
+          <div><b>Gợi ý:</b> Bạn không cần chọn trạm.</div>
+          <div>Hệ thống sẽ tự gắn yêu cầu với <b>trạm của Manager đang đăng nhập</b>.</div>
+        </div>
+      </div>
+
       {/* ==== FORM ==== */}
       <form className="dispatch-form" onSubmit={handleSubmit}>
         <div className="form-grid">
-          <div className="form-group">
-            <label>Tên trạm</label>
-            <input
-              type="text"
-              name="stationName"
-              placeholder="VD: Trạm Central Park"
-              value={form.stationName}
-              onChange={onChange}
-              required
-            />
-          </div>
-
           <div className="form-group">
             <label>Loại pin</label>
             <select
@@ -140,9 +196,11 @@ export default function DispatchPanel({ user }) {
               required
             >
               <option value="">-- Chọn loại pin --</option>
+              {/* Giá trị nên khớp với tên trong bảng Battery_Type (Model) để DAO map chính xác */}
               <option value="Lithium-ion">Lithium-ion</option>
               <option value="LFP">LFP</option>
             </select>
+            <small className="hint">Tên hiển thị phải trùng “Model”/tên loại mà BE đang map.</small>
           </div>
 
           <div className="form-group soh-col">
@@ -154,6 +212,8 @@ export default function DispatchPanel({ user }) {
                   type="number"
                   name="qtyGood"
                   min="0"
+                  step="1"
+                  inputMode="numeric"
                   value={form.qtyGood}
                   onChange={onChange}
                 />
@@ -164,6 +224,8 @@ export default function DispatchPanel({ user }) {
                   type="number"
                   name="qtyAverage"
                   min="0"
+                  step="1"
+                  inputMode="numeric"
                   value={form.qtyAverage}
                   onChange={onChange}
                 />
@@ -174,11 +236,16 @@ export default function DispatchPanel({ user }) {
                   type="number"
                   name="qtyBad"
                   min="0"
+                  step="1"
+                  inputMode="numeric"
                   value={form.qtyBad}
                   onChange={onChange}
                 />
               </div>
             </div>
+            <small className="hint">
+              Tổng số lượng phải &gt; 0. Hệ thống sẽ kiểm tra thêm ở máy chủ.
+            </small>
           </div>
         </div>
 
@@ -207,12 +274,13 @@ export default function DispatchPanel({ user }) {
               <th>Số lượng<br /><small>(Good/Avg/Weak • Tổng)</small></th>
               <th>Thời gian Request</th>
               <th>Tình trạng</th>
+              <th>Thao tác</th>
             </tr>
           </thead>
           <tbody>
             {requests.length === 0 && (
               <tr>
-                <td colSpan="7" className="empty-cell">
+                <td colSpan="8" className="empty-cell">
                   Chưa có yêu cầu nào.
                 </td>
               </tr>
@@ -238,6 +306,27 @@ export default function DispatchPanel({ user }) {
                   >
                     {renderStatus(r.status)}
                   </span>
+                </td>
+                <td>
+                  <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                    <button
+                      type="button"
+                      onClick={() => handleConfirm(r.requestId)}
+                      disabled={!canConfirm(r) || confirmingId === r.requestId}
+                      className="btn-confirm"
+                      title="Xác nhận đã nhận pin"
+                    >
+                      {confirmingId === r.requestId ? "Đang xác nhận…" : "Xác nhận"}
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-outline"
+                      onClick={loadRequests}
+                      title="Tải lại"
+                    >
+                      ↻
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}

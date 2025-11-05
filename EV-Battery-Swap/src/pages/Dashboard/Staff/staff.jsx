@@ -68,8 +68,7 @@ function PinStationMockup({ slots, title, onReload }) {
     return "#d1d5db";
   }
 
-  const [msg, setMsg] = useState({ open: false, title: '', body: '', tone: 'info' });
-
+  // ====== Lấy danh sách pin có sẵn, chuẩn hoá và hiển thị loại pin ======
   async function openAddBattery() {
     try {
       const token = localStorage.getItem("authToken") || "";
@@ -86,18 +85,35 @@ function PinStationMockup({ slots, title, onReload }) {
       const raw = await res.json();
       const list = Array.isArray(raw) ? raw : [];
 
-      const normalized = list.map((x) => ({
-        id: x.batteryId ?? x.Battery_ID ?? x.id,
-        serial: x.serialNumber ?? x.Serial_Number ?? x.serial,
-        soh: x.soH ?? x.SoH ?? 0,
-        resistance: x.resistance ?? x.Resistance ?? null,
-        typeId: x.typeId ?? x.Type_ID ?? null,
-      }));
+      const normalized = list.map((x) => {
+        const id = x.batteryId ?? x.Battery_ID ?? x.id;
+        const serial = x.serialNumber ?? x.Serial_Number ?? x.serial;
+        const soh = x.soH ?? x.SoH ?? 0;
+        const resistance = x.resistance ?? x.Resistance ?? null;
+        const typeId = x.typeId ?? x.Type_ID ?? null;
+
+        // cố gắng lấy nhãn loại pin từ nhiều key phổ biến (backend có thể trả khác nhau)
+        const typeRaw =
+          x.batteryType ??
+          x.BatteryType ??
+          x.typeName ??
+          x.TypeName ??
+          x.Model ??
+          x.model ??
+          null;
+
+        // fallback từ typeId nếu không có nhãn
+        const typeLabel = String(
+          typeRaw || (typeId === 1 ? "Lithium" : typeId === 2 ? "LFP" : "—")
+        ).trim();
+
+        return { id, serial, soh, resistance, typeId, typeLabel };
+      });
 
       setAvail(normalized);
       setShowSelect(true);
     } catch (e) {
-      setMsg({ open: true, title: 'Lỗi', body: "Không tải được danh sách pin khả dụng: " + (e?.message || e), tone: 'error' });
+      alert("Không tải được danh sách pin khả dụng: " + (e?.message || e));
     }
   }
 
@@ -120,16 +136,16 @@ function PinStationMockup({ slots, title, onReload }) {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok || data.success === false) throw new Error(data.error || `HTTP ${res.status}`);
-      setMsg({ open: true, title: 'Thành công', body: '✅ Gắn pin thành công!', tone: 'success' });
+      alert("✅ Gắn pin thành công!");
       setShowSelect(false);
       setSelectedIndex(null);
       onReload && onReload();
     } catch (e) {
-      setMsg({ open: true, title: 'Lỗi', body: "❌ Gắn pin thất bại: " + (e?.message || e), tone: 'error' });
+      alert("❌ Gắn pin thất bại: " + (e?.message || e));
     }
   }
 
-  // ====== (MỚI) Gỡ pin khỏi slot: gọi /api/secure/removeBattery ======
+  // ====== Gỡ pin khỏi slot ======
   async function removeBattery() {
     try {
       if (!selected?.slotId) return;
@@ -144,53 +160,68 @@ function PinStationMockup({ slots, title, onReload }) {
         body: new URLSearchParams({ slotId: String(selected.slotId) }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok || data.ok === false) {
-        throw new Error(data.message || `HTTP ${res.status}`);
-      }
-      setMsg({ open: true, title: 'Thành công', body: '✅ Đã gỡ pin khỏi ô.', tone: 'success' });
+      if (!res.ok) throw new Error(data.message || `HTTP ${res.status}`);
+      alert("✅ Đã gỡ pin khỏi ô.");
       setSelectedIndex(null);
       onReload && onReload();
     } catch (e) {
-      setMsg({ open: true, title: 'Lỗi', body: "❌ Không thể gỡ pin: " + (e?.message || e), tone: 'error' });
+      alert("❌ Không thể gỡ pin: " + (e?.message || e));
     }
   }
 
+  // helper: nhãn loại pin cho slot đang chọn
+  const selectedTypeLabel = useMemo(() => {
+    if (!selected) return "—";
+    const raw =
+      selected.batteryType ??
+      selected.BatteryType ??
+      selected.typeName ??
+      selected.TypeName ??
+      selected.chemistry ??
+      selected.Chemistry ??
+      null;
+    if (raw) return String(raw).trim();
+    const tId = Number(selected.batteryTypeId ?? selected.Type_ID ?? selected.typeId ?? 0);
+    if (tId === 1) return "Lithium";
+    if (tId === 2) return "LFP";
+    // fallback dùng suy luận chemistry
+    const bc = String(selected.batteryChemistry || "").toLowerCase();
+    if (bc.includes("lfp")) return "LFP";
+    if (bc.includes("lithium") || bc === "li") return "Lithium";
+    return "—";
+  }, [selected]);
+
   return (
-    <React.Fragment>
-      <MessageBox open={msg.open} title={msg.title} tone={msg.tone} onClose={() => setMsg({ ...msg, open: false })}>
-        {msg.body}
-      </MessageBox>
-      <div className="station-mockup-minimal">
-        {title && <div className="station-mockup-minimal-header">{title}</div>}
-        <div className="station-mockup-minimal-inner">
-          <div className="station-mockup-minimal-grid">
-            {gridSlots.map((s, i) => {
-              const color = colorOf(s);
-              return (
-                <div
-                  key={s.slotId || s.code || i}
-                  className={
-                    "station-mockup-minimal-battery" +
-                    (selectedIndex === i ? " selected" : "") +
-                    (!s.batteryId ? " empty" : "")
-                  }
-                  onClick={() => setSelectedIndex(i)}
-                  title={s.code || s.slotId}
-                  style={{ cursor: "pointer" }}
-                >
-                  <span
-                    className="station-mockup-minimal-dot"
-                    style={{
-                      background: color,
-                      border: `2.5px solid ${color}`,
-                      boxShadow: !s.batteryId || color === "#000000" ? "none" : `0 0 14px 3px ${color}55`,
-                      opacity: !s.batteryId ? 0.6 : 1,
-                    }}
-                  />
-                </div>
-              );
-            })}
-          </div>
+    <div className="station-mockup-minimal">
+      {title && <div className="station-mockup-minimal-header">{title}</div>}
+      <div className="station-mockup-minimal-inner">
+        <div className="station-mockup-minimal-grid">
+          {gridSlots.map((s, i) => {
+            const color = colorOf(s);
+            return (
+              <div
+                key={s.slotId || s.code || i}
+                className={
+                  "station-mockup-minimal-battery" +
+                  (selectedIndex === i ? " selected" : "") +
+                  (!s.batteryId ? " empty" : "")
+                }
+                onClick={() => setSelectedIndex(i)}
+                title={s.code || s.slotId}
+                style={{ cursor: "pointer" }}
+              >
+                <span
+                  className="station-mockup-minimal-dot"
+                  style={{
+                    background: color,
+                    border: `2.5px solid ${color}`,
+                    boxShadow: !s.batteryId || color === "#000000" ? "none" : `0 0 14px 3px ${color}55`,
+                    opacity: !s.batteryId ? 0.6 : 1,
+                  }}
+                />
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -225,7 +256,7 @@ function PinStationMockup({ slots, title, onReload }) {
             onClick={(e) => e.stopPropagation()}
           >
             {!selected.batteryId ? (
-              <React.Fragment>
+              <>
                 <strong>{selected.code || `Slot #${selected.slotId || "-"}`}</strong> — <em>Ô trống</em>
                 <p>Hiện tại chưa có pin trong ô này.</p>
                 <div>Vị trí: <b>{selected.chargingStationName || "-"}</b></div>
@@ -238,17 +269,18 @@ function PinStationMockup({ slots, title, onReload }) {
                 {selected.__placeholder && (
                   <small className="hint">Ô này là placeholder (API không trả slot). Không thể gán pin.</small>
                 )}
-              </React.Fragment>
+              </>
             ) : (
-              <React.Fragment>
+              <>
                 <strong>{selected.serial || selected.code || `Slot #${selected.slotId}`}</strong> — {selected.chargingSlotType || "—"}
                 <div>Trạng thái: <b>{selected.state || "-"}</b></div>
                 <div>Sức khỏe: <b>{Number(selected.soh || 0)}%</b></div>
                 <div>Vị trí: <b>{selected.chargingStationName || "-"}</b></div>
                 <div>Mã slot: <b>{selected.code || "-"}</b></div>
                 <div>Sạc lần cuối: <b>{selected.lastUpdate || "-"}</b></div>
+                {/* 🔋 Loại pin */}
+                <div>Loại pin: <b>{selectedTypeLabel}</b></div>
                 <div style={{ marginTop: 8, display: "flex", gap: 8 }}>
-                  {/* (MỚI) Nút Gỡ pin */}
                   <button
                     className="detail-btn"
                     onClick={removeBattery}
@@ -263,7 +295,7 @@ function PinStationMockup({ slots, title, onReload }) {
                   </button>
                   <button className="btn-secondary" onClick={() => setSelectedIndex(null)}>Đóng</button>
                 </div>
-              </React.Fragment>
+              </>
             )}
           </div>
         </div>
@@ -307,8 +339,32 @@ function PinStationMockup({ slots, title, onReload }) {
                     key={b.id}
                     style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 0" }}
                   >
-                    <span style={{ minWidth: 200 }}>
-                      {b.serial || `Battery #${b.id}`} — SoH {Number(b.soh ?? 0).toFixed(1)}%
+                    <span
+                      style={{
+                        minWidth: 260,
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 8,
+                        flexWrap: "wrap",
+                      }}
+                    >
+                      <b>{b.serial || `Battery #${b.id}`}</b>
+                      {/* Badge loại pin */}
+                      <span
+                        aria-label="Loại pin"
+                        style={{
+                          fontSize: 12,
+                          padding: "2px 8px",
+                          borderRadius: 999,
+                          background: "#eef2ff",
+                          border: "1px solid #e5e7eb",
+                          lineHeight: 1.8,
+                        }}
+                      >
+                        {b.typeLabel || (b.typeId === 1 ? "Lithium" : b.typeId === 2 ? "LFP" : "—")}
+                      </span>
+                      <span>SoH {Number(b.soh ?? 0).toFixed(1)}%</span>
+                      {b.resistance != null && <span>• R {Number(b.resistance).toFixed(3)} Ω</span>}
                     </span>
                     <button className="detail-btn" onClick={() => assignBattery(b.id)}>Gắn</button>
                   </li>
@@ -321,7 +377,7 @@ function PinStationMockup({ slots, title, onReload }) {
           </div>
         </div>
       )}
-    </React.Fragment>
+    </div>
   );
 }
 
@@ -399,6 +455,8 @@ export default function StaffDashboard({ user }) {
           lastUpdate: firstDefined(x.Last_Update, x.last_Update, x.lastUpdate, ""),
           batteryTypeId: firstDefined(x.BatteryTypeId, x.batteryTypeId, x.Type_ID, x.type_ID, x.typeId, null),
           batteryChemistry: String(firstDefined(x.BatteryChemistry, x.batteryChemistry, x.Chemistry, "")).toLowerCase(),
+          // nếu backend có trả trực tiếp loại pin:
+          batteryType: firstDefined(x.BatteryType, x.batteryType, x.TypeName, x.typeName, x.Model, x.model, null),
         };
       });
 
@@ -476,7 +534,6 @@ export default function StaffDashboard({ user }) {
   // ====== Helper chuẩn hoá chữ thường ======
   const norm = useMemo(() => (v) => String(v || "").trim().toLowerCase(), []);
 
-  // ====== MẢNG HIỂN THỊ CHO MODAL (có Empty / Reserved / Charging(Weak) / Occupied) ======
   // ====== MẢNG HIỂN THỊ CHO MODAL (ổn định theo batteryTypeId khi có pin) ======
   const lithiumDisplaySlots = useMemo(() => {
     return slots.filter(s => {
@@ -512,7 +569,7 @@ export default function StaffDashboard({ user }) {
     });
   }, [slots]);
 
-  // ====== BIẾN ĐẾM CHUẨN DRIVER (khớp Driver: 10–9) ======
+  // ====== BIẾN ĐẾM CHUẨN DRIVER ======
   const { liionReady, lfpReady, totalReady } = useMemo(() => {
     const eligible = slots.filter(s =>
       norm(s.state) === "occupied" &&
@@ -553,59 +610,162 @@ export default function StaffDashboard({ user }) {
     { icon: "🟡", label: "Đặt trước", value: summary.reserved, sub: "Reserved/Reversed" },
   ];
 
-  // ====== Check-in ======
+  /* ===================== CHECK-IN (ONE-CLICK) ===================== */
   const [bookingId, setBookingId] = useState("");
   const [checkingIn, setCheckingIn] = useState(false);
-  const handleCheckIn = async (e) => {
-    e.preventDefault();
+
+  // tiện hiển thị row trong popup
+  const Row = ({ label, children }) => (
+    <div style={{ display: "flex", gap: 8, margin: "4px 0" }}>
+      <div style={{ minWidth: 160, color: "#475569" }}>{label}</div>
+      <div style={{ fontWeight: 600 }}>{children ?? "—"}</div>
+    </div>
+  );
+
+  // Nhấn 1 lần → GET info (Model/Plate/Slot/SoH) → POST xử lý → ghép dữ liệu bật popup
+  const handleProcessCheckin = async () => {
     const id = bookingId.trim();
     if (!id) return;
 
+    const token = localStorage.getItem("authToken") || "";
+    const baseHeaders = {
+      Accept: "application/json",
+      "ngrok-skip-browser-warning": "1",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    };
+
     try {
       setCheckingIn(true);
-      const token = localStorage.getItem("authToken") || "";
-      const headers = {
-        Accept: "application/json",
+
+      // 1) GET trước để có đủ info
+      let pre = {};
+      try {
+        const r = await fetch(
+          `${API_BASE_URL}/webAPI/api/checkin?bookingId=${encodeURIComponent(id)}`,
+          { method: "GET", credentials: "include", headers: baseHeaders }
+        );
+        const ct = r.headers.get("content-type") || "";
+        pre = ct.includes("application/json") ? await r.json().catch(() => ({})) : {};
+        if (!r.ok || pre.error) throw new Error(pre.error || `HTTP ${r.status}`);
+      } catch {
+        pre = {};
+      }
+      // console.debug("[FE] /api/checkin GET =", pre);
+
+      // 2) POST xử lý check-in/thanh toán
+      const postHeaders = {
+        ...baseHeaders,
         "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-        "ngrok-skip-browser-warning": "1",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       };
       const body = new URLSearchParams({ bookingId: id });
-
       const res = await fetch(`${API_BASE_URL}/webAPI/api/checkin`, {
         method: "POST",
         credentials: "include",
-        headers,
+        headers: postHeaders,
         body,
       });
-
-      let data = {};
       const ct = res.headers.get("content-type") || "";
-      if (ct.includes("application/json")) data = await res.json().catch(() => ({}));
-      else data = { error: await res.text() };
+      const data = ct.includes("application/json")
+        ? await res.json().catch(() => ({}))
+        : { error: await res.text() };
 
       if (!res.ok || data.error) {
         setCheckinPopup({ title: "Check In thất bại", body: data.error || `HTTP ${res.status}` });
         return;
       }
 
-      if (data.paymentUrl) {
-        setCheckinPopup({
-          title: "Cần thanh toán trước khi đổi pin",
-          body: (
-            <>
-              <div>Mã thanh toán: <b>{data.txnRef || "—"}</b></div>
-              <div>Số tiền: <b>{Number(data.fee || 0).toLocaleString("vi-VN")} đ</b></div>
-              <div style={{ marginTop: 8 }}>
-                <a href={data.paymentUrl} target="_blank" rel="noreferrer" className="detail-btn">Mở VNPay</a>
-              </div>
-            </>
-          ),
-        });
-        return;
-      }
+      // 3) Gộp dữ liệu cho popup (map chắc chắn Model & Plate từ BE)
+      const bi = pre || {};
+      const vehicle = bi.vehicle || {};
+      const slot = bi.slot || {};
 
-      setCheckinPopup({ title: "Check In thành công", body: data.message || "Đã xác nhận check-in." });
+      const display = {
+        bookingId: bi.bookingId ?? data.bookingId ?? id,
+        userName:  bi.bookerName ?? data.userName ?? data.customerName ?? "—",
+
+        // BE trả: vehicle.modelName, vehicle.licensePlate (đã có trong code BE bạn gửi)
+        vehicleModel:
+             vehicle.modelName
+          ?? data.vehicleModel
+          ?? "Xe",
+
+        licensePlate:
+             vehicle.licensePlate
+          ?? data.licensePlate
+          ?? "—",
+
+        slotText: (slot.slotCode || slot.slotId) ? `${slot.slotCode || `#${slot.slotId}`}` : "—",
+        kiosk: slot.chargingStationName || "—",
+        slotType: slot.chargingSlotType || "—",
+        batteryType: bi.requestedBattery || slot.batteryTypeAtSlot || data.batteryType || "—",
+        sohOld:
+          bi.sohOldEstimate != null
+            ? `${Number(bi.sohOldEstimate)}%`
+            : (slot.batterySoHAtSlot != null ? `${Number(slot.batterySoHAtSlot)}%` : "—"),
+        serialAtSlot: slot.batterySerialAtSlot || "—",
+        txnRef: data.txnRef || "—",
+        fee: data.fee != null ? Number(data.fee).toLocaleString("vi-VN") + " đ" : "—",
+        paymentUrl: data.paymentUrl,
+        message: data.message,
+      };
+
+      setCheckinPopup({
+        title: display.paymentUrl ? "Chi tiết Check-in & Thanh toán" : "Chi tiết Check-in",
+        body: (
+          <div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 4 }}>
+              <Row label="Booking ID">{display.bookingId}</Row>
+              <Row label="Khách hàng">{display.userName}</Row>
+              <Row label="Xe / Biển số">
+                {`${display.vehicleModel}${display.licensePlate !== "—" ? " — " + display.licensePlate : ""}`}
+              </Row>
+              <Row label="Slot pin">{display.slotText}</Row>
+              <Row label="Kiosk">{display.kiosk}</Row>
+              <Row label="Loại khe">{display.slotType}</Row>
+              <Row label="Loại pin">{display.batteryType}</Row>
+              <Row label="SoH pin cũ">{display.sohOld}</Row>
+              <Row label="Serial tại ô">{display.serialAtSlot}</Row>
+            </div>
+
+            {display.paymentUrl ? (
+              <>
+                <div style={{ height: 10 }} />
+                <div style={{ fontWeight: 700, marginBottom: 6 }}>Thanh toán</div>
+                <Row label="Mã thanh toán">{display.txnRef}</Row>
+                <Row label="Số tiền">{display.fee}</Row>
+                <div style={{ marginTop: 8 }}>
+                  <a href={display.paymentUrl} target="_blank" rel="noreferrer" className="detail-btn">
+                    Mở VNPay
+                  </a>
+                </div>
+                <small className="hint" style={{ display: "block", marginTop: 6 }}>
+                  Sau khi khách thanh toán và VNPay redirect về hệ thống, giao dịch sẽ tự hoàn tất.
+                </small>
+              </>
+            ) : display.message ? (
+              <>
+                <div style={{ height: 10 }} />
+                <div
+                  style={{
+                    padding: 8,
+                    borderRadius: 8,
+                    background: "#ecfdf5",
+                    color: "#065f46",
+                    border: "1px solid #d1fae5",
+                  }}
+                >
+                  {display.message}
+                </div>
+              </>
+            ) : null}
+          </div>
+        ),
+      });
+
+      // 4) nếu miễn phí thì đã hoàn tất, reload tồn kho
+      if (!data.paymentUrl) {
+        loadSlots();
+      }
     } catch (err) {
       setCheckinPopup({ title: "Lỗi kết nối", body: String(err?.message || err) });
     } finally {
@@ -613,94 +773,7 @@ export default function StaffDashboard({ user }) {
     }
   };
 
-  // ====== Tạo Booking ======
-  const fetchVehiclesByEmail = async () => {
-    const mail = email.trim();
-    if (!mail) return;
-    try {
-      setLoadingVehicles(true);
-      const token = localStorage.getItem("authToken") || "";
-      const qs = new URLSearchParams({ email: mail, station: selectedStation || "" }).toString();
-      const res = await fetch(`${API_BASE_URL}/webAPI/api/secure/staffBooking?${qs}`, {
-        method: "GET",
-        credentials: "include",
-        headers: {
-          Accept: "application/json",
-          "ngrok-skip-browser-warning": "1",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok || data.error) throw new Error(data.error || `HTTP ${res.status}`);
-      const vs = Array.isArray(data.vehicles) ? data.vehicles : [];
-      setVehicles(vs);
-      setSelectedVehicle(vs.length > 0 ? String(vs[0].vehicleId) : "");
-      setCreatePopup({
-        title: "Đã tải danh sách xe",
-        body: vs.length ? `Tìm thấy ${vs.length} xe. Hãy chọn 1 xe để tạo booking.` : "Không có xe nào cho email này.",
-      });
-    } catch (e) {
-      setVehicles([]);
-      setSelectedVehicle("");
-      setCreatePopup({ title: "Lỗi", body: e.message || "Không tải được xe" });
-    } finally {
-      setLoadingVehicles(false);
-    }
-  };
-
-  const handleCreateBooking = async () => {
-    const mail = email.trim();
-    if (!mail || !selectedStation || !selectedVehicle) {
-      setCreatePopup({ title: "Thiếu thông tin", body: "Vui lòng nhập Email, chọn Trạm và chọn Xe trước khi tạo booking." });
-      return;
-    }
-    try {
-      setCreatingBooking(true);
-      const token = localStorage.getItem("authToken") || "";
-      const res = await fetch(`${API_BASE_URL}/webAPI/api/secure/staffBooking`, {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json;charset=UTF-8",
-          "ngrok-skip-browser-warning": "1",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({
-          email: mail,
-          stationName: selectedStation,
-          vehicleId: Number(selectedVehicle),
-        }),
-      });
-
-      let data = {};
-      const ct = res.headers.get("content-type") || "";
-      if (ct.includes("application/json")) data = await res.json().catch(() => ({}));
-      else data = { error: await res.text() };
-
-      if (!res.ok || data.error) throw new Error(data.error || `HTTP ${res.status}`);
-
-      setCreatePopup({
-        title: "Tạo booking thành công",
-        body: (
-          <div>
-            <div>Booking ID: <b>{data.bookingId}</b></div>
-            <div>Trạng thái: <b>{data.status}</b></div>
-            <div>Hết hạn: <b>{data.expiredTime}</b></div>
-            {data.qrCode && (
-              <div style={{ marginTop: 8 }}>
-                <img alt="QR" src={`data:image/png;base64,${data.qrCode}`} style={{ maxWidth: 180 }} />
-              </div>
-            )}
-          </div>
-        ),
-      });
-    } catch (e) {
-      setCreatePopup({ title: "Tạo booking thất bại", body: e.message || "Không tạo được booking" });
-    } finally {
-      setCreatingBooking(false);
-    }
-  };
+  /* ===================== /CHECK-IN ===================== */
 
   return (
     <div className="staff-dashboard-wrap">
@@ -778,8 +851,12 @@ export default function StaffDashboard({ user }) {
           {activeTab === "checkin" && (
             <div className="staff-transaction-section">
               <div className="staff-transaction-title">Check In</div>
-              <div className="staff-transaction-desc">Nhập Booking ID của khách để tiến hành Check In.</div>
-              <form onSubmit={handleCheckIn} className="checkin-form">
+              <div className="staff-transaction-desc">
+                Nhập Booking ID → nhấn <b>Xử lý Check-in</b>. Popup sẽ hiển thị đầy đủ thông tin & thanh toán (nếu có).
+              </div>
+
+              {/* Nhập Booking ID + nút Xử lý */}
+              <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 8 }}>
                 <input
                   type="text"
                   inputMode="numeric"
@@ -787,12 +864,18 @@ export default function StaffDashboard({ user }) {
                   value={bookingId}
                   onChange={(e) => setBookingId(e.target.value)}
                   className="input"
-                  style={{ maxWidth: 280, marginRight: 12 }}
+                  style={{ maxWidth: 280 }}
                 />
-                <button type="submit" className="detail-btn" disabled={checkingIn || !bookingId.trim()}>
-                  {checkingIn ? "Đang xử lý…" : "Check In"}
+                <button
+                  type="button"
+                  className="detail-btn"
+                  onClick={handleProcessCheckin}
+                  disabled={!bookingId.trim() || checkingIn}
+                  title="Tạo giao dịch (nếu cần thanh toán sẽ phát sinh VNPay)"
+                >
+                  {checkingIn ? "Đang xử lý…" : "Xử lý Check-in"}
                 </button>
-              </form>
+              </div>
             </div>
           )}
 
@@ -817,7 +900,39 @@ export default function StaffDashboard({ user }) {
                   <button
                     type="button"
                     className="btn-secondary"
-                    onClick={fetchVehiclesByEmail}
+                    onClick={async () => {
+                      const mail = email.trim();
+                      if (!mail) return;
+                      try {
+                        setLoadingVehicles(true);
+                        const token = localStorage.getItem("authToken") || "";
+                        const qs = new URLSearchParams({ email: mail, station: selectedStation || "" }).toString();
+                        const res = await fetch(`${API_BASE_URL}/webAPI/api/secure/staffBooking?${qs}`, {
+                          method: "GET",
+                          credentials: "include",
+                          headers: {
+                            Accept: "application/json",
+                            "ngrok-skip-browser-warning": "1",
+                            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                          },
+                        });
+                        const data = await res.json().catch(() => ({}));
+                        if (!res.ok || data.error) throw new Error(data.error || `HTTP ${res.status}`);
+                        const vs = Array.isArray(data.vehicles) ? data.vehicles : [];
+                        setVehicles(vs);
+                        setSelectedVehicle(vs.length > 0 ? String(vs[0].vehicleId) : "");
+                        setCreatePopup({
+                          title: "Đã tải danh sách xe",
+                          body: vs.length ? `Tìm thấy ${vs.length} xe. Hãy chọn 1 xe để tạo booking.` : "Không có xe nào cho email này.",
+                        });
+                      } catch (e) {
+                        setVehicles([]);
+                        setSelectedVehicle("");
+                        setCreatePopup({ title: "Lỗi", body: e.message || "Không tải được xe" });
+                      } finally {
+                        setLoadingVehicles(false);
+                      }
+                    }}
                     disabled={!email.trim() || loadingVehicles}
                     title="Tải xe theo email"
                   >
@@ -859,7 +974,59 @@ export default function StaffDashboard({ user }) {
                 <button
                   type="button"
                   className="detail-btn"
-                  onClick={handleCreateBooking}
+                  onClick={async () => {
+                    const mail = email.trim();
+                    if (!mail || !selectedStation || !selectedVehicle) {
+                      setCreatePopup({ title: "Thiếu thông tin", body: "Vui lòng nhập Email, chọn Trạm và chọn Xe trước khi tạo booking." });
+                      return;
+                    }
+                    try {
+                      setCreatingBooking(true);
+                      const token = localStorage.getItem("authToken") || "";
+                      const res = await fetch(`${API_BASE_URL}/webAPI/api/secure/staffBooking`, {
+                        method: "POST",
+                        credentials: "include",
+                        headers: {
+                          Accept: "application/json",
+                          "Content-Type": "application/json;charset=UTF-8",
+                          "ngrok-skip-browser-warning": "1",
+                          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                        },
+                        body: JSON.stringify({
+                          email: mail,
+                          stationName: selectedStation,
+                          vehicleId: Number(selectedVehicle),
+                        }),
+                      });
+
+                      let data = {};
+                      const ct = res.headers.get("content-type") || "";
+                      if (ct.includes("application/json")) data = await res.json().catch(() => ({}));
+                      else data = { error: await res.text() };
+
+                      if (!res.ok || data.error) throw new Error(data.error || `HTTP ${res.status}`);
+
+                      setCreatePopup({
+                        title: "Tạo booking thành công",
+                        body: (
+                          <div>
+                            <div>Booking ID: <b>{data.bookingId}</b></div>
+                            <div>Trạng thái: <b>{data.status}</b></div>
+                            <div>Hết hạn: <b>{data.expiredTime}</b></div>
+                            {data.qrCode && (
+                              <div style={{ marginTop: 8 }}>
+                                <img alt="QR" src={`data:image/png;base64,${data.qrCode}`} style={{ maxWidth: 180 }} />
+                              </div>
+                            )}
+                          </div>
+                        ),
+                      });
+                    } catch (e) {
+                      setCreatePopup({ title: "Tạo booking thất bại", body: e.message || "Không tạo được booking" });
+                    } finally {
+                      setCreatingBooking(false);
+                    }
+                  }}
                   disabled={creatingBooking || !email.trim() || !selectedStation || !selectedVehicle}
                 >
                   {creatingBooking ? "Đang tạo…" : "Tạo Booking"}

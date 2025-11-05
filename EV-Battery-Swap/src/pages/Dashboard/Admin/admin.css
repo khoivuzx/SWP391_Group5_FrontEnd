@@ -104,3 +104,21 @@
 		font-size: 1.2rem;
 	}
 }
+
+/* ====== Hỗ trợ scroll ngang + scrollbar đẹp cho bar chart ====== */
+.simple-bar-wrap {
+  width: 100%;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+.simple-bar-wrap::-webkit-scrollbar {
+  height: 8px;
+}
+.simple-bar-wrap::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 6px;
+}
+.simple-bar-wrap::-webkit-scrollbar-track {
+  background: transparent;
+}
+.simple-bar-track { min-height: 160px; }

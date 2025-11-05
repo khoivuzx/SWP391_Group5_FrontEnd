@@ -4,29 +4,39 @@ import API_BASE_URL from '../../../config';
 import './admin.css';
 
 /* ---------------- Mini BarChart (no lib) ---------------- */
+/* Fix chồng chéo: auto width + scroll ngang khi nhiều cột, nhãn rút gọn */
 function SimpleBarChart({ data = [], height = 220, yLabel = 'Lượt đổi' }) {
-  const max = useMemo(() => Math.max(1, ...data.map(d => d.value || 0)), [data]);
+  const max = useMemo(() => Math.max(1, ...data.map(d => Number(d.value) || 0)), [data]);
+  const needScroll = (data?.length || 0) > 10;
+  const chartWidth = needScroll ? Math.max(800, (data?.length || 0) * 80) : '100%';
+
   return (
-    <div style={{ width: '100%' }}>
+    <div className="simple-bar-wrap" style={{ width: '100%' }}>
       <div style={{ fontSize: 12, color: '#64748b', marginBottom: 6 }}>{yLabel}</div>
       <div
+        className="simple-bar-track"
         style={{
           height,
+          width: chartWidth,
           display: 'grid',
           gridTemplateColumns: `repeat(${data.length || 1}, 1fr)`,
-          gap: 10,
+          gap: 12,
           alignItems: 'end',
-          padding: '8px 4px',
+          padding: '8px 6px',
           background: '#f7fafc',
           borderRadius: 12,
         }}
       >
         {data.map((d, idx) => {
-          const h = Math.round(((d.value || 0) / max) * (height - 50));
+          const val = Number(d.value) || 0;
+          const h = Math.round((val / max) * (height - 50));
           return (
-            <div key={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <div
+              key={idx}
+              style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 70, maxWidth: 100 }}
+            >
               <div
-                title={`${d.label}: ${d.value.toLocaleString('vi-VN')}`}
+                title={`${d.label}: ${val.toLocaleString('vi-VN')}`}
                 style={{
                   height: Math.max(6, h),
                   width: '100%',
@@ -36,10 +46,32 @@ function SimpleBarChart({ data = [], height = 220, yLabel = 'Lượt đổi' }) 
                   transition: 'height .25s ease',
                 }}
               />
-              <div style={{ fontSize: 12, color: '#0f172a', marginTop: 6, textAlign: 'center', wordBreak: 'break-word' }}>
-                {d.value.toLocaleString('vi-VN')}
+              <div
+                style={{
+                  fontSize: 12,
+                  color: '#0f172a',
+                  marginTop: 6,
+                  textAlign: 'center',
+                  wordBreak: 'break-word',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {val.toLocaleString('vi-VN')}
               </div>
-              <div style={{ fontSize: 12, color: '#64748b', marginTop: 2, textAlign: 'center', maxWidth: 120 }}>
+              <div
+                style={{
+                  fontSize: 11,
+                  color: '#64748b',
+                  marginTop: 2,
+                  textAlign: 'center',
+                  width: '100%',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  maxWidth: 100,
+                }}
+                title={d.label}
+              >
                 {d.label}
               </div>
             </div>
@@ -55,124 +87,401 @@ function normalizeStations(rows = []) {
   return rows.map((r) => {
     const name =
       r.Station_Name || r.station_name || r.stationName || r.Name || r.name || `Trạm ${r.Station_ID || r.id || ''}`;
-    const count = r.swapCount ?? r.total_swaps ?? r.TotalSwaps ?? r.totalSwaps ?? r.swaps ?? r.Swaps ?? r.count ?? 0;
+    const count =
+      r.swapCount ?? r.total_swaps ?? r.TotalSwaps ?? r.totalSwaps ?? r.swaps ?? r.Swaps ?? r.count ?? 0;
     return { label: String(name), value: Number(count) || 0 };
   });
 }
 
-const summaryCards = [
-  { label: 'Tổng doanh thu tháng này', value: '65,000,000 đ', sub: '+12% so với tháng trước', icon: '📈' },
-  { label: 'Tổng số trạm', value: '4', sub: '3 hoạt động, 1 bảo trì', icon: '🏢' },
-  { label: 'Khách hàng', value: '1,234', sub: '+85 người dùng mới', icon: '🧑‍🤝‍🧑' },
-  { label: 'Lượt đổi pin', value: '2,600', sub: 'Trung bình 87/ngày', icon: '🔄' },
-];
+// ❌ BỎ mảng summaryCards vì bạn muốn xóa 4 ô vuông đầu
+// const summaryCards = [...]
 
 const tabs = [
   { label: 'Tổng quan', value: 'overview' },
   { label: 'Quản lý trạm', value: 'station' },
   { label: 'Pin', value: 'user' },
-  { label: 'Phân tích', value: 'analytics' },
+  { label: 'Nâng cấp hạ tầng', value: 'upgrade' },
 ];
 
-/* ================== Panel Xem điều phối pin (trong cùng file) ================== */
+/* ================== Panel Xem điều phối pin (Admin) ================== */
 function AdminDispatchPanel() {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [err, setErr] = useState('');
+  const [err, setErr] = useState("");
+
+  // Modal Chọn trạm khi Chấp nhận + AI
+  const [approveModal, setApproveModal] = useState({
+    open: false,
+    requestId: null,
+    stations: [],
+    selectedStationId: "",
+    loading: false,
+    error: "",
+    ai: { loading: false, error: "", items: [], rawText: "" }, // gợi ý AI
+  });
 
   const token =
-    localStorage.getItem('authToken') ||
-    localStorage.getItem('jwt_token') ||
-    '';
+    localStorage.getItem("authToken") ||
+    localStorage.getItem("jwt_token") ||
+    "";
 
+  const withAuth = (headers = {}) => ({
+    Accept: "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    "ngrok-skip-browser-warning": "1",
+    ...headers,
+  });
+
+  // ===== Helpers để chuẩn hóa tên pin về format BE hiểu =====
+  const norm = (s) => (s || "").toString().trim().toLowerCase();
+  const normalizeBatteryNameForBE = (batteryName) => {
+    const b = norm(batteryName);
+    if (b.includes("lfp")) return "LFP";
+    // Các biến thể phổ biến
+    if (b.includes("li-ion") || b.includes("li ion") || b.includes("lithium")) return "Lithium-ion";
+    // Mặc định: trả nguyên như BE đang dùng
+    return batteryName || "Lithium-ion";
+  };
+
+  // ===== Fetch các yêu cầu đang chờ =====
   const fetchPending = async () => {
     try {
       setLoading(true);
-      setErr('');
+      setErr("");
       const res = await fetch(`${API_BASE_URL}/webAPI/api/secure/admindispatchPending`, {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          Accept: 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          'ngrok-skip-browser-warning': '1',
-        },
+        method: "GET",
+        credentials: "include",
+        headers: withAuth(),
       });
       const text = await res.text();
       let data = [];
-      try { data = text ? JSON.parse(text) : []; } catch { data = []; }
+      try {
+        data = text ? JSON.parse(text) : [];
+      } catch {
+        data = [];
+      }
       if (!res.ok) throw new Error(data?.message || `HTTP ${res.status}`);
       setRows(Array.isArray(data) ? data : []);
     } catch (e) {
-      setErr(e.message || 'Không tải được danh sách yêu cầu.');
+      setErr(e.message || "Không tải được danh sách yêu cầu.");
       setRows([]);
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => { fetchPending(); }, []);
+  useEffect(() => {
+    fetchPending();
+  }, []);
 
-  const doAction = async (requestId, action) => {
+  // --- mở modal chọn trạm
+  const openApproveModal = async (requestId) => {
     try {
-      if (!token) throw new Error('Bạn chưa đăng nhập Admin.');
-      let body = new URLSearchParams();
-      body.set('requestId', String(requestId));
-      body.set('action', action);
+      setApproveModal((prev) => ({
+        ...prev,
+        open: true,
+        requestId,
+        loading: true,
+        error: "",
+        stations: [],
+        selectedStationId: "",
+        ai: { loading: false, error: "", items: [], rawText: "" },
+      }));
 
-      if (action === 'approve') {
-        const name = window.prompt('Nhập tên trạm xuất pin (stationRespondName):');
-        if (!name) return;
-        body.set('stationRespondName', name.trim());
+      const res = await fetch(`${API_BASE_URL}/webAPI/api/getstations`, {
+        method: "GET",
+        credentials: "include",
+        headers: { Accept: "application/json", "ngrok-skip-browser-warning": "1" },
+      });
+      const text = await res.text();
+      let data = {};
+      try {
+        data = text ? JSON.parse(text) : {};
+      } catch {}
+      if (!res.ok) throw new Error(data?.message || `HTTP ${res.status}`);
+
+      let stations = [];
+      if (data?.status === "success" && Array.isArray(data?.data)) {
+        stations = data.data.map((s) => ({
+          id: s.Station_ID ?? s.StationId ?? s.id,
+          name: s.Name ?? s.Station_Name ?? s.name ?? `Trạm #${s.Station_ID}`,
+          address: s.Address ?? s.address ?? "",
+        }));
+      } else if (Array.isArray(data)) {
+        stations = data.map((s) => ({
+          id: s.Station_ID ?? s.StationId ?? s.id,
+          name: s.Name ?? s.Station_Name ?? s.name ?? `Trạm #${s.Station_ID}`,
+          address: s.Address ?? s.address ?? "",
+        }));
+      } else {
+        throw new Error(data?.message || "Không có dữ liệu trạm.");
       }
 
-      const res = await fetch(`${API_BASE_URL}/webAPI/api/secure/dispatchApprove`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          'ngrok-skip-browser-warning': '1',
+      setApproveModal((prev) => ({
+        ...prev,
+        stations,
+        loading: false,
+        selectedStationId: stations[0]?.id ?? "",
+      }));
+    } catch (e) {
+      setApproveModal((prev) => ({
+        ...prev,
+        loading: false,
+        error: e.message || "Không tải được danh sách trạm.",
+      }));
+    }
+  };
+
+  // --- gọi AI gợi ý trạm theo nội dung yêu cầu + gửi kèm context số liệu
+  const runAiSuggest = async () => {
+    const row = rows.find((r) => String(r.requestId) === String(approveModal.requestId));
+    try {
+      if (!token) throw new Error("Bạn chưa đăng nhập Admin.");
+      if (!row) throw new Error("Không tìm thấy yêu cầu điều phối.");
+
+      setApproveModal((prev) => ({
+        ...prev,
+        ai: { ...prev.ai, loading: true, error: "", items: [], rawText: "" },
+      }));
+
+      // Chuẩn hóa loại pin cho BE
+      const pinType = normalizeBatteryNameForBE(row.batteryName);
+
+      // ===== 1) Thu thập số liệu để gửi kèm lên BE/Gemini =====
+      // 1.1. Tồn kho theo trạm & loại pin & SoH
+      const stockRes = await fetch(`${API_BASE_URL}/webAPI/api/getStationBatteryReportGuest`, {
+        method: "GET",
+        credentials: "include",
+        headers: { Accept: "application/json", "ngrok-skip-browser-warning": "1" },
+      });
+      const stockJson = await stockRes.text().then(t => (t ? JSON.parse(t) : {}));
+
+      // 1.2. Doanh thu theo trạm (tháng hiện tại)
+      const revRes = await fetch(`${API_BASE_URL}/webAPI/api/secure/analyticsRevenue`, {
+        method: "GET",
+        credentials: "include",
+        headers: withAuth(),
+      });
+      const revJson = await revRes.text().then(t => (t ? JSON.parse(t) : {}));
+
+      // 1.3. Lượt đổi pin theo trạm (tháng hiện tại)
+      const swapRes = await fetch(`${API_BASE_URL}/webAPI/api/secure/analyticsSwap`, {
+        method: "GET",
+        credentials: "include",
+        headers: withAuth(),
+      });
+      const swapJson = await swapRes.text().then(t => (t ? JSON.parse(t) : {}));
+
+      // Chuẩn hóa mảnh dữ liệu gửi lên BE
+      const stockRows =
+        stockJson?.payload?.data && Array.isArray(stockJson.payload.data)
+          ? stockJson.payload.data
+          : [];
+
+      const revenueStations =
+        Array.isArray(revJson?.stations)
+          ? revJson.stations.map(r => ({
+              stationName: r.stationName ?? r.Station_Name ?? "Trạm",
+              swapRevenue: Number(r.swapRevenue ?? 0),
+            }))
+          : [];
+
+      const swapStations =
+        Array.isArray(swapJson?.stations)
+          ? swapJson.stations.map(r => ({
+              stationName: r.stationName ?? r.Station_Name ?? "Trạm",
+              totalSwaps: Number(r.total_swaps ?? r.totalSwaps ?? r.swaps ?? 0),
+            }))
+          : [];
+
+      // ===== 2) Tạo request + context gửi lên assistant/chat =====
+      const requestSpec = {
+        stationRequestName: row.stationRequestName,
+        batteryType: pinType, // "Lithium-ion" | "LFP"
+        needGood: Number(row.qtyGood || 0),
+        needAvg: Number(row.qtyAverage || 0),
+        needWeak: Number(row.qtyBad || 0),
+      };
+
+      // "message" vẫn giữ format cũ để BE backward-compatible
+      const ask = {
+        message: `Đơn điều phối: từ ${row.stationRequestName}, pin ${pinType} số lượng tốt/trung bình/xấu: ${row.qtyGood}/${row.qtyAverage}/${row.qtyBad}.`,
+        context: {
+          request: requestSpec,
+          metrics: {
+            stock: stockRows,            // [{stationName,batteryType,Good,Average,Weak}, ...]
+            revenueStations,             // [{stationName, swapRevenue}]
+            swapStations,                // [{stationName, totalSwaps}]
+          },
         },
+      };
+
+      const res = await fetch(`${API_BASE_URL}/webAPI/api/secure/assistant/chat`, {
+        method: "POST",
+        credentials: "include",
+        headers: withAuth({ "Content-Type": "application/json;charset=UTF-8" }),
+        body: JSON.stringify(ask),
+      });
+
+      const text = await res.text();
+      let data = {};
+      try { data = text ? JSON.parse(text) : {}; } catch {}
+
+      if (!res.ok || data?.success === false) throw new Error(data?.message || `HTTP ${res.status}`);
+
+      const suggestions = Array.isArray(data?.suggestions) ? data.suggestions : [];
+      const stations = approveModal.stations;
+      const n = (s) => (s || "").toString().trim().toLowerCase();
+
+      let bestPick = "";
+      for (const sg of suggestions) {
+        const sName = n(sg.station);
+        const found = stations.find(
+          (st) => n(st.name) === sName || n(st.name).includes(sName) || sName.includes(n(st.name))
+        );
+        if (found) {
+          bestPick = found.id;
+          break;
+        }
+      }
+
+      setApproveModal((prev) => ({
+        ...prev,
+        selectedStationId: bestPick || prev.selectedStationId,
+        ai: {
+          loading: false,
+          error: "",
+          items: suggestions.map((sg, i) => ({
+            idx: i + 1,
+            stationName: sg.station || "",
+            reason: sg.reason || "",
+            confidence: null,
+            matchedId: (() => {
+              const sName = n(sg.station || "");
+              const found = prev.stations.find(
+                (st) => n(st.name) === sName || n(st.name).includes(sName) || sName.includes(n(st.name))
+              );
+              return found?.id || null;
+            })(),
+            quantity: Number(sg.quantity ?? 0), // BE đã kèm quantity khả dụng
+          })),
+          rawText: data?.answer || "",
+        },
+      }));
+    } catch (e) {
+      setApproveModal((prev) => ({
+        ...prev,
+        ai: { ...prev.ai, loading: false, error: e.message || "AI lỗi." },
+      }));
+    }
+  };
+
+  // --- gửi duyệt với stationRespondName là tên trạm đã chọn
+  const approveWithStation = async () => {
+    const { requestId, selectedStationId, stations } = approveModal;
+    if (!requestId || !selectedStationId) {
+      setApproveModal((prev) => ({ ...prev, error: "Vui lòng chọn trạm xuất pin." }));
+      return;
+    }
+
+    try {
+      const stationObj = stations.find((s) => String(s.id) === String(selectedStationId));
+      const stationRespondName = stationObj?.name?.trim();
+      if (!stationRespondName) {
+        setApproveModal((prev) => ({ ...prev, error: "Vui lòng chọn trạm xuất pin hợp lệ." }));
+        return;
+      }
+
+      if (!token) throw new Error("Bạn chưa đăng nhập Admin.");
+      const body = new URLSearchParams();
+      body.set("requestId", String(requestId));
+      body.set("action", "approve");
+      body.set("stationRespondName", stationRespondName);
+
+      const res = await fetch(`${API_BASE_URL}/webAPI/api/secure/dispatchApprove`, {
+        method: "POST",
+        credentials: "include",
+        headers: withAuth({ "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8" }),
         body: body.toString(),
       });
 
       const text = await res.text();
       let data = {};
-      try { data = text ? JSON.parse(text) : {}; } catch { data = {}; }
-
+      try {
+        data = text ? JSON.parse(text) : {};
+      } catch {}
       if (!res.ok || data?.success === false) {
         throw new Error(data?.message || `HTTP ${res.status}`);
       }
 
+      setApproveModal({
+        open: false,
+        requestId: null,
+        stations: [],
+        selectedStationId: "",
+        loading: false,
+        error: "",
+        ai: { loading: false, error: "", items: [], rawText: "" },
+      });
       await fetchPending();
-      alert(action === 'approve' ? 'Đã chuyển yêu cầu sang PREPARING.' : 'Đã hủy yêu cầu.');
+      alert("Đã chuyển yêu cầu sang PREPARING.");
     } catch (e) {
-      alert(e.message || 'Xử lý thất bại.');
+      setApproveModal((prev) => ({ ...prev, error: e.message || "Xử lý thất bại." }));
     }
   };
 
-  const table = {
-    width: '100%',
-    borderCollapse: 'separate',
-    borderSpacing: 0,
-    boxShadow: '0 0 0 1px #e5e7eb',
-    borderRadius: 10,
-    overflow: 'hidden',
+  // --- hủy yêu cầu
+  const cancelRequest = async (requestId) => {
+    try {
+      if (!token) throw new Error("Bạn chưa đăng nhập Admin.");
+      const body = new URLSearchParams({ requestId: String(requestId), action: "cancel" });
+
+      const res = await fetch(`${API_BASE_URL}/webAPI/api/secure/dispatchApprove`, {
+        method: "POST",
+        credentials: "include",
+        headers: withAuth({ "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8" }),
+        body: body.toString(),
+      });
+
+      const text = await res.text();
+      let data = {};
+      try {
+        data = text ? JSON.parse(text) : {};
+      } catch {}
+      if (!res.ok || data?.success === false) throw new Error(data?.message || `HTTP ${res.status}`);
+
+      await fetchPending();
+      alert("Đã hủy yêu cầu.");
+    } catch (e) {
+      alert(e.message || "Xử lý thất bại.");
+    }
   };
-  const boxInfo = { padding: 12, borderRadius: 10, background: '#f7fafc', color: '#475569' };
-  const boxError = { padding: 12, borderRadius: 10, background: '#fef2f2', color: '#b91c1c' };
-  const badge = { background: '#eff6ff', color: '#1d4ed8', padding: '2px 8px', borderRadius: 6, fontSize: 12 };
-  const baseBtn = { padding: '8px 10px', borderRadius: 8, border: '1px solid #e2e8f0', cursor: 'pointer', fontWeight: 600 };
-  const btnApprove = { ...baseBtn, background: '#16a34a', color: '#fff', borderColor: '#16a34a' };
-  const btnCancel  = { ...baseBtn, background: '#fff', color: '#b91c1c', borderColor: '#fca5a5' };
-  const btnRefresh = { ...baseBtn, background: '#fff', color: '#0f172a' };
+
+  // ===== UI =====
+  const table = {
+    width: "100%",
+    borderCollapse: "separate",
+    borderSpacing: 0,
+    boxShadow: "0 0 0 1px #e5e7eb",
+    borderRadius: 10,
+    overflow: "hidden",
+  };
+  const boxInfo = { padding: 12, borderRadius: 10, background: "#f7fafc", color: "#475569" };
+  const boxError = { padding: 12, borderRadius: 10, background: "#fef2f2", color: "#b91c1c" };
+  const badge = { background: "#eff6ff", color: "#1d4ed8", padding: "2px 8px", borderRadius: 6, fontSize: 12 };
+  const baseBtn = { padding: "8px 10px", borderRadius: 8, border: "1px solid #e2e8f0", cursor: "pointer", fontWeight: 600 };
+  const btnApprove = { ...baseBtn, background: "#16a34a", color: "#fff", borderColor: "#16a34a" };
+  const btnCancel = { ...baseBtn, background: "#fff", color: "#b91c1c", borderColor: "#fca5a5" };
+  const btnRefresh = { ...baseBtn, background: "#fff", color: "#0f172a" };
+  const btnAi = { ...baseBtn, background: "#0ea5e9", color: "#fff", borderColor: "#0ea5e9" };
 
   return (
-    <div style={{ marginTop: 24, background: '#fff', borderRadius: 12, padding: 18, boxShadow: '0 1px 4px rgba(33,150,243,0.06)' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+    <div style={{ marginTop: 24, background: "#fff", borderRadius: 12, padding: 18, boxShadow: "0 1px 4px rgba(33,150,243,0.06)" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
         <div style={{ fontWeight: 700, fontSize: 16 }}>📦 Xem điều phối pin (yêu cầu đang chờ)</div>
-        <button onClick={fetchPending} style={btnRefresh}>Làm mới</button>
+        <button onClick={fetchPending} style={btnRefresh}>
+          Làm mới
+        </button>
       </div>
 
       {loading && <div style={boxInfo}>Đang tải danh sách…</div>}
@@ -180,7 +489,7 @@ function AdminDispatchPanel() {
       {!loading && !err && rows.length === 0 && <div style={boxInfo}>Không có yêu cầu nào đang chờ.</div>}
 
       {!loading && !err && rows.length > 0 && (
-        <div style={{ overflowX: 'auto' }}>
+        <div style={{ overflowX: "auto" }}>
           <table style={table}>
             <thead>
               <tr>
@@ -204,12 +513,18 @@ function AdminDispatchPanel() {
                   <td>{r.qtyGood}</td>
                   <td>{r.qtyAverage}</td>
                   <td>{r.qtyBad}</td>
-                  <td><span style={badge}>{r.status}</span></td>
+                  <td>
+                    <span style={badge}>{r.status}</span>
+                  </td>
                   <td>{r.requestTime}</td>
                   <td>
-                    <div style={{ display: 'flex', gap: 8 }}>
-                      <button onClick={() => doAction(r.requestId, 'approve')} style={btnApprove}>Chấp nhận</button>
-                      <button onClick={() => doAction(r.requestId, 'cancel')} style={btnCancel}>Hủy</button>
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <button onClick={() => openApproveModal(r.requestId)} style={btnApprove}>
+                        Chấp nhận
+                      </button>
+                      <button onClick={() => cancelRequest(r.requestId)} style={btnCancel}>
+                        Hủy
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -218,17 +533,140 @@ function AdminDispatchPanel() {
           </table>
         </div>
       )}
+
+      {/* Modal chọn trạm xuất pin + AI suggest */}
+      {approveModal.open && (
+        <div
+          onClick={() =>
+            setApproveModal({
+              open: false,
+              requestId: null,
+              stations: [],
+              selectedStationId: "",
+              loading: false,
+              error: "",
+              ai: { loading: false, error: "", items: [], rawText: "" },
+            })
+          }
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.25)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 70 }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{ width: 560, background: "#fff", borderRadius: 12, padding: 16, boxShadow: "0 10px 24px rgba(0,0,0,0.18)" }}
+          >
+            <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 12 }}>Chọn trạm xuất pin</div>
+
+            {approveModal.loading && <div style={{ padding: 12, borderRadius: 8, background: "#f7fafc", color: "#475569" }}>Đang tải danh sách trạm…</div>}
+
+            {!approveModal.loading && approveModal.error && (
+              <div style={{ padding: 12, borderRadius: 8, background: "#fef2f2", color: "#b91c1c" }}>{approveModal.error}</div>
+            )}
+
+            {!approveModal.loading && !approveModal.error && (
+              <>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 12, alignItems: "end" }}>
+                  <label style={{ display: "flex", flexDirection: "column", gap: 6, fontSize: 13 }}>
+                    Trạm
+                    <select
+                      value={approveModal.selectedStationId}
+                      onChange={(e) => setApproveModal((prev) => ({ ...prev, selectedStationId: e.target.value }))}
+                      style={{ padding: "10px 12px", borderRadius: 8, border: "1.5px solid #cbd5e1", outline: "none" }}
+                    >
+                      {approveModal.stations.map((s) => (
+                        <option key={s.id} value={s.id}>
+                          {s.name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <button onClick={runAiSuggest} style={btnAi} disabled={approveModal.ai.loading}>
+                    {approveModal.ai.loading ? "Đang gợi ý…" : "AI gợi ý trạm"}
+                  </button>
+                </div>
+
+                {/* Khu vực hiển thị gợi ý AI */}
+                {(approveModal.ai.items.length > 0 || approveModal.ai.rawText || approveModal.ai.error) && (
+                  <div style={{ marginTop: 12, padding: 12, borderRadius: 10, background: "#f7fafc" }}>
+                    <div style={{ fontWeight: 600, marginBottom: 8 }}>Gợi ý từ AI</div>
+
+                    {approveModal.ai.error && (
+                      <div style={{ padding: 10, borderRadius: 8, background: "#fef2f2", color: "#b91c1c" }}>{approveModal.ai.error}</div>
+                    )}
+
+                    {approveModal.ai.items.length > 0 && (
+                      <div style={{ display: "grid", gap: 10 }}>
+                        {approveModal.ai.items.map((sug) => (
+                          <div key={sug.idx} style={{ padding: 10, border: "1px solid #e2e8f0", borderRadius: 8, background: "#fff" }}>
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+                              <div>
+                                <div style={{ fontWeight: 600 }}>
+                                  {sug.idx}. {sug.stationName}
+                                </div>
+                                {sug.reason ? <div style={{ fontSize: 13, color: "#475569", marginTop: 4 }}>{sug.reason}</div> : null}
+                              </div>
+                              {sug.matchedId ? (
+                                <button
+                                  onClick={() => setApproveModal((prev) => ({ ...prev, selectedStationId: sug.matchedId }))}
+                                  style={{ padding: "8px 10px", borderRadius: 8, border: "1px solid #16a34a", background: "#16a34a", color: "#fff", fontWeight: 600 }}
+                                >
+                                  Chọn trạm này
+                                </button>
+                              ) : (
+                                <span style={{ fontSize: 12, color: "#64748b" }}>Không khớp tên trạm trong hệ thống</span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {!approveModal.ai.items.length && approveModal.ai.rawText && (
+                      <pre style={{ whiteSpace: "pre-wrap", margin: 0, fontSize: 13, color: "#334155" }}>{approveModal.ai.rawText}</pre>
+                    )}
+                  </div>
+                )}
+
+                <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 14 }}>
+                  <button
+                    onClick={() =>
+                      setApproveModal({
+                        open: false,
+                        requestId: null,
+                        stations: [],
+                        selectedStationId: "",
+                        loading: false,
+                        error: "",
+                        ai: { loading: false, error: "", items: [], rawText: "" },
+                      })
+                    }
+                    style={{ padding: "8px 10px", border: "1px solid #e2e8f0", borderRadius: 8, background: "#fff" }}
+                  >
+                    Hủy
+                  </button>
+                  <button
+                    onClick={approveWithStation}
+                    style={{ padding: "8px 10px", borderRadius: 8, border: "1px solid #16a34a", background: "#16a34a", color: "#fff", fontWeight: 600 }}
+                  >
+                    Xác nhận
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-/* ================== Station Manager Panel (NEW) ================== */
+/* ================== Station Manager Panel ================== */
 function StationManagerPanel() {
   const [data, setData] = useState({ stations: [], totals: null });
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState('');
-  const [expanded, setExpanded] = useState({}); // stationId -> bool
-  const [editing, setEditing] = useState(null); // { station: {...}, list: [...], deleteMissing: false, saving: false }
+  const [expanded, setExpanded] = useState({});
+  const [editing, setEditing] = useState(null);
 
   const token =
     localStorage.getItem('authToken') ||
@@ -271,44 +709,25 @@ function StationManagerPanel() {
 
   const toggle = (id) => setExpanded(prev => ({ ...prev, [id]: !prev[id] }));
 
-  /* ---------- mở modal sửa ---------- */
-  const openEdit = (st) => {
-    const stationId = st.Station_ID ?? st.stationId ?? st.id;
-    const station = {
-      Station_ID: stationId,
-      Name: st.Name ?? st.Station_Name ?? '',
-      Address: st.Address ?? ''
-    };
-    const list = (Array.isArray(st.chargingStations) ? st.chargingStations : []).map(cs => ({
-      ChargingStation_ID: cs.ChargingStation_ID ?? cs.chargingStationId ?? 0,
-      Station_ID: stationId,
-      Name: cs.Name ?? '',
-      Slot_Capacity: Number(cs.Slot_Capacity ?? 0) || 0,
-      Slot_Type: (cs.Slot_Type ?? '').toString(),
-      // ⚠️ Power_Rating là string (đã normalize ở BE), giữ nguyên chuỗi
-      Power_Rating: cs.Power_Rating == null ? '' : String(cs.Power_Rating)
-    }));
-    setEditing({ station, list, deleteMissing: false, saving: false });
+const openEdit = (st) => {
+  const stationId = st.Station_ID ?? st.stationId ?? st.id;
+  const station = {
+    Station_ID: stationId,
+    Name: st.Name ?? st.Station_Name ?? '',
+    Address: st.Address ?? '',
   };
 
-  /* ---------- thêm/xoá/sửa hàng ---------- */
-  const addRow = () => {
-    setEditing(prev => ({
-      ...prev,
-      list: [
-        ...prev.list,
-        {
-          ChargingStation_ID: 0,                // 0 => insert mới
-          Station_ID: prev.station.Station_ID,
-          Name: '',
-          Slot_Capacity: 0,
-          Slot_Type: 'li',
-          Power_Rating: ''                      // chuỗi
-        }
-      ]
-    }));
-  };
+  const list = (Array.isArray(st.chargingStations) ? st.chargingStations : []).map(cs => ({
+    ChargingStation_ID: cs.ChargingStation_ID ?? cs.chargingStationId ?? 0,
+    Station_ID: stationId,
+    Name: cs.Name ?? '',
+    Slot_Capacity: Number(cs.Slot_Capacity ?? 0) || 0,
+    Slot_Type: (cs.Slot_Type ?? '').toString(),
+    Power_Rating: cs.Power_Rating == null ? '' : String(cs.Power_Rating)
+  }));
 
+  setEditing({ station, list, deleteMissing: false, saving: false });
+};
   const removeRowLocal = (idx) => {
     setEditing(prev => {
       const copy = prev.list.slice();
@@ -325,7 +744,6 @@ function StationManagerPanel() {
     });
   };
 
-  /* ---------- gọi API update ---------- */
   const saveUpdate = async () => {
     try {
       if (!token) throw new Error('Vui lòng đăng nhập Admin.');
@@ -338,11 +756,10 @@ function StationManagerPanel() {
           Address: editing.station.Address ?? null
         },
         chargingStations: editing.list.map(cs => ({
-          ChargingStation_ID: Number(cs.ChargingStation_ID || 0), // 0 => insert
+          ChargingStation_ID: Number(cs.ChargingStation_ID || 0),
           Name: (cs.Name || '').trim(),
           Slot_Capacity: Number(cs.Slot_Capacity || 0),
           Slot_Type: (cs.Slot_Type || '').toString(),
-          // ⚠️ giữ Power_Rating là string (không ép số, không thêm "kW")
           Power_Rating: (cs.Power_Rating ?? '').toString().trim()
         })),
         syncMode: editing.deleteMissing ? 'delete-missing' : 'keep-missing'
@@ -376,7 +793,6 @@ function StationManagerPanel() {
     }
   };
 
-  /* ---------- UI helpers ---------- */
   const shell = {
     background: '#fff',
     borderRadius: 12,
@@ -483,7 +899,6 @@ function StationManagerPanel() {
                               const nm = cs.Name ?? cs.name ?? `CS-${id}`;
                               const cap = cs.Slot_Capacity ?? cs.slotCapacity ?? 0;
                               const type = cs.Slot_Type ?? cs.slotType ?? '';
-                              // ⚠️ power là string — hiển thị nguyên văn, không Number()
                               const power = cs.Power_Rating ?? cs.powerRating ?? '';
                               return (
                                 <tr key={id}>
@@ -507,7 +922,6 @@ function StationManagerPanel() {
         </div>
       )}
 
-      {/* ===== Modal Sửa Station + Charging Stations ===== */}
       {editing && (
         <div
           onClick={() => setEditing(null)}
@@ -523,11 +937,10 @@ function StationManagerPanel() {
                   checked={editing.deleteMissing}
                   onChange={e => setEditing(prev => ({ ...prev, deleteMissing: e.target.checked }))}
                 />
-                Xoá các trụ **không có** trong danh sách (syncMode = delete-missing)
+                Xoá các trụ <b>không có</b> trong danh sách (syncMode = delete-missing)
               </label>
             </div>
 
-            {/* Station fields */}
             <div className="grid" style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:12 }}>
               <label style={{ display:'flex', flexDirection:'column', fontSize:13 }}>
                 Tên trạm
@@ -545,7 +958,6 @@ function StationManagerPanel() {
               </label>
             </div>
 
-            {/* Charging Stations editable table */}
             <div style={{ marginTop: 6, marginBottom: 10, fontWeight: 600 }}>Trụ sạc</div>
             <div style={{ overflowX:'auto' }}>
               <table style={{ width:'100%', borderCollapse:'separate', borderSpacing:0, boxShadow:'0 0 0 1px #e5e7eb', borderRadius:10 }}>
@@ -580,7 +992,6 @@ function StationManagerPanel() {
                           placeholder="vd: 7.5 hoặc 11"
                           value={cs.Power_Rating}
                           onChange={e=>changeCell(idx,'Power_Rating', e.target.value)}
-                          // ⚠️ không format số, giữ y nguyên chuỗi
                         />
                       </td>
                       <td style={{ padding:10, borderBottom:'1px solid #eef2f7' }}>
@@ -617,14 +1028,12 @@ function StationManagerPanel() {
   );
 }
 
-/* ================== /Station Manager Panel ================== */
-
-/* ================== PIN PACKAGES (list + update + delete) ================== */
+/* ================== PIN PACKAGES ================== */
 function PinPackagesPanel() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState('');
-  const [editing, setEditing] = useState(null); // object gói đang sửa
+  const [editing, setEditing] = useState(null);
 
   const token =
     localStorage.getItem('authToken') ||
@@ -674,7 +1083,8 @@ function PinPackagesPanel() {
 
   const saveEdit = async () => {
     try {
-      if (!token) throw new Error('Vui lòng đăng nhập Admin.');
+      const t = localStorage.getItem('authToken') || localStorage.getItem('jwt_token') || '';
+      if (!t) throw new Error('Vui lòng đăng nhập Admin.');
       const b = editing;
       if (!b.name?.trim()) throw new Error('Tên gói không được trống.');
       if (b.price < 0) throw new Error('Giá phải >= 0.');
@@ -686,7 +1096,7 @@ function PinPackagesPanel() {
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json;charset=UTF-8',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          Authorization: `Bearer ${t}`,
           'ngrok-skip-browser-warning': '1',
         },
         body: JSON.stringify({
@@ -718,13 +1128,14 @@ function PinPackagesPanel() {
   const deletePkg = async (id) => {
     if (!window.confirm(`Xóa (soft delete) gói #${id}?`)) return;
     try {
-      if (!token) throw new Error('Vui lòng đăng nhập Admin.');
+      const t = localStorage.getItem('authToken') || localStorage.getItem('jwt_token') || '';
+      if (!t) throw new Error('Vui lòng đăng nhập Admin.');
       let res = await fetch(`${API_BASE_URL}/webAPI/api/secure/package`, {
         method: 'DELETE',
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json;charset=UTF-8',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          Authorization: `Bearer ${t}`,
           'ngrok-skip-browser-warning': '1',
         },
         body: JSON.stringify({ packageId: id }),
@@ -735,7 +1146,7 @@ function PinPackagesPanel() {
           credentials: 'include',
           headers: {
             'Content-Type': 'application/json;charset=UTF-8',
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            Authorization: `Bearer ${t}`,
             'ngrok-skip-browser-warning': '1',
           },
           body: JSON.stringify({ packageId: id }),
@@ -834,7 +1245,6 @@ function PinPackagesPanel() {
         </div>
       )}
 
-      {/* Modal edit đơn giản */}
       {editing && (
         <div
           onClick={() => setEditing(null)}
@@ -890,6 +1300,115 @@ function PinPackagesPanel() {
 }
 /* ================== /PIN PACKAGES ================== */
 
+/* ================== NÂNG CẤP HẠ TẦNG ================== */
+function UpgradeSuggestionPanel() {
+  const [rows, setRows] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const token = localStorage.getItem('authToken') || localStorage.getItem('jwt_token') || '';
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      setError('');
+
+      if (!token) throw new Error('Vui lòng đăng nhập Admin.');
+      const res = await fetch(`${API_BASE_URL}/webAPI/api/secure/upgrade_suggestions`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          Accept: 'application/json',
+          Authorization: `Bearer ${token}`,
+          'ngrok-skip-browser-warning': '1',
+        },
+      });
+
+      const text = await res.text();
+      const data = text ? JSON.parse(text) : [];
+      if (!res.ok) throw new Error(data?.error || `HTTP ${res.status}`);
+
+      setRows(Array.isArray(data) ? data : []);
+    } catch (e) {
+      setError(e.message || 'Không tải được dữ liệu.');
+      setRows([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { fetchData(); }, []);
+
+  const baseBtn = { padding: '8px 10px', borderRadius: 8, border: '1px solid #e2e8f0', cursor: 'pointer', fontWeight: 600 };
+  const btnRefresh = { ...baseBtn, background: '#fff', color: '#0f172a' };
+  const boxInfo = { padding: 12, borderRadius: 10, background: '#f7fafc', color: '#475569' };
+  const boxError = { padding: 12, borderRadius: 10, background: '#fef2f2', color: '#b91c1c' };
+  const badge = (status) => {
+    const map = {
+      OK: ['#dcfce7', '#166534'],
+      WARNING: ['#fef9c3', '#854d0e'],
+      CRITICAL: ['#fee2e2', '#b91c1c'],
+      WARNING_DATA: ['#fef9c3', '#78350f'],
+    };
+    const [bg, color] = map[status] || ['#f1f5f9', '#334155'];
+    return { background: bg, color, padding: '2px 8px', borderRadius: 6, fontSize: 12, fontWeight: 600 };
+  };
+
+  return (
+    <div style={{ background:'#fff', borderRadius:12, padding:18, boxShadow:'0 1px 4px rgba(33,150,243,0.06)' }}>
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:10 }}>
+        <div style={{ fontWeight:700, fontSize:16 }}>🏗️ Gợi ý nâng cấp hạ tầng trạm</div>
+        <button onClick={fetchData} style={btnRefresh}>Làm mới</button>
+      </div>
+
+      {loading && <div style={boxInfo}>Đang tải dữ liệu…</div>}
+      {!loading && error && <div style={boxError}>{error}</div>}
+      {!loading && !error && rows.length === 0 && <div style={boxInfo}>Không có dữ liệu.</div>}
+
+      {!loading && !error && rows.length > 0 && (
+        <div style={{ overflowX:'auto' }}>
+          <table style={{
+            width:'100%',
+            borderCollapse:'separate',
+            borderSpacing:0,
+            boxShadow:'0 0 0 1px #e5e7eb',
+            borderRadius:10,
+            overflow:'hidden'
+          }}>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Tên trạm</th>
+                <th>Sức chứa</th>
+                <th>TB 7 ngày</th>
+                <th>Tăng trưởng (%)</th>
+                <th>Fail rate</th>
+                <th>Trạng thái</th>
+                <th>Gợi ý</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((r, i) => (
+                <tr key={r.stationId ?? i}>
+                  <td>{r.stationId}</td>
+                  <td>{r.stationName}</td>
+                  <td>{r.slotCapacity}</td>
+                  <td>{r.last7Avg?.toFixed?.(1) || '-'}</td>
+                  <td>{r.growthPercent?.toFixed?.(1)}%</td>
+                  <td>{r.failRate}</td>
+                  <td><span style={badge(r.status)}>{r.status}</span></td>
+                  <td style={{ fontSize:13, color:'#334155' }}>{r.recommendation}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+/* ================== /NÂNG CẤP HẠ TẦNG ================== */
+
 /* ================== /Panels ================== */
 
 export default function AdminDashboard({ user, onLoginClick }) {
@@ -904,6 +1423,11 @@ export default function AdminDashboard({ user, onLoginClick }) {
   const [revenueData, setRevenueData] = useState({ stations: [], packages: [], totals: null });
   const [revenueLoading, setRevenueLoading] = useState(false);
   const [revenueError, setRevenueError] = useState('');
+
+  // ---- NEW: Giờ cao điểm theo trạm (API /api/secure/analytics/peak-hours/stations) ----
+  const [peakLoading, setPeakLoading] = useState(false);
+  const [peakError, setPeakError] = useState('');
+  const [peakData, setPeakData] = useState([]); // [{stationId, stationName, timeSlot, hitRate, totalSwaps, activeDays, totalDays, avgPerActiveDay}]
 
   /* ================= fetch /analyticsSwap ================= */
   useEffect(() => {
@@ -1039,6 +1563,64 @@ export default function AdminDashboard({ user, onLoginClick }) {
     };
   }, [activeTab]);
 
+  /* ================= fetch /api/secure/analytics/peak-hours/stations ================= */
+  useEffect(() => {
+    if (activeTab !== 'overview') return;
+
+    let aborted = false;
+    (async () => {
+      try {
+        setPeakLoading(true);
+        setPeakError('');
+
+        const token =
+          localStorage.getItem('authToken') ||
+          localStorage.getItem('jwt_token') ||
+          '';
+
+        if (!token) throw new Error('Vui lòng đăng nhập Admin.');
+
+        // nếu muốn lọc ngày thì gắn ?startDate=2025-10-01&endDate=2025-10-30&minRate=0.6
+        const url = `${API_BASE_URL}/webAPI/api/secure/analytics/peak-hours/stations?minRate=0`;
+
+        const res = await fetch(url, {
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+            Accept: 'application/json',
+            Authorization: `Bearer ${token}`,
+            'ngrok-skip-browser-warning': '1',
+          },
+        });
+
+        if (aborted) return;
+
+        if (res.status === 401) throw new Error('401 Unauthorized — vui lòng đăng nhập lại.');
+        if (res.status === 403) throw new Error('403 Forbidden — chỉ Admin/Staff được xem giờ cao điểm.');
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+        const text = await res.text();
+        const json = text ? JSON.parse(text) : {};
+
+        if (!json?.success) throw new Error(json?.message || 'Không lấy được dữ liệu giờ cao điểm.');
+
+        const list = Array.isArray(json.stations) ? json.stations : [];
+        // sắp xếp trạm nào hitRate cao lên đầu
+        list.sort((a, b) => (b.hitRate || 0) - (a.hitRate || 0));
+        setPeakData(list);
+      } catch (err) {
+        setPeakError(err.message || 'Lỗi không xác định');
+        setPeakData([]);
+      } finally {
+        !aborted && setPeakLoading(false);
+      }
+    })();
+
+    return () => {
+      aborted = true;
+    };
+  }, [activeTab]);
+
   return (
     <>
       <Header user={user} onLoginClick={onLoginClick} pageTitle="Hệ thống quản lí" />
@@ -1047,16 +1629,8 @@ export default function AdminDashboard({ user, onLoginClick }) {
           <h2 className="admin-dashboard-title">Hệ thống quản lí</h2>
           <div className="admin-dashboard-subtitle">Tổng quan hệ thống, báo cáo và phân tích dữ liệu</div>
 
-          {/* Summary cards */}
-          <div className="admin-dashboard-summary">
-            {summaryCards.map((c, i) => (
-              <div key={i} className="admin-dashboard-summary-card">
-                <div style={{ fontSize: 15, color: '#7c8c8f', marginBottom: 6 }}>{c.label}</div>
-                <div style={{ fontSize: 26, fontWeight: 700, color: '#1976d2', marginBottom: 2 }}>{c.value}</div>
-                <div style={{ fontSize: 13, color: '#10b981' }}>{c.sub}</div>
-              </div>
-            ))}
-          </div>
+          {/* ❌ SUMMARY CARDS ĐÃ GỠ BỎ */}
+          {/* <div className="admin-dashboard-summary">...</div> */}
 
           {/* Tabs */}
           <div className="admin-dashboard-tabs">
@@ -1075,9 +1649,8 @@ export default function AdminDashboard({ user, onLoginClick }) {
           <div>
             {activeTab === 'overview' && (
               <>
-                {/* HÀNG 1: 2 biểu đồ cũ */}
+                {/* HÀNG 1 */}
                 <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap' }}>
-                  {/* Biểu đồ đã gắn API */}
                   <div
                     style={{
                       flex: 2,
@@ -1145,7 +1718,7 @@ export default function AdminDashboard({ user, onLoginClick }) {
                     )}
                   </div>
 
-                  {/* Giờ cao điểm (demo) */}
+                  {/* BOX GIỜ CAO ĐIỂM - ĐÃ KẾT NỐI API */}
                   <div
                     style={{
                       flex: 1,
@@ -1158,22 +1731,99 @@ export default function AdminDashboard({ user, onLoginClick }) {
                   >
                     <div style={{ fontWeight: 600, marginBottom: 8 }}>Giờ cao điểm</div>
                     <div style={{ color: '#64748b', fontSize: 13, marginBottom: 8 }}>
-                      Phân bổ lượt đổi pin theo giờ trong ngày
+                      Phân bổ lượt đổi pin theo giờ trong ngày (trạm có tần suất ổn định)
                     </div>
-                    <div
-                      style={{
-                        height: 180,
-                        background: '#f7fafc',
-                        borderRadius: 12,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: '#bdbdbd',
-                        fontSize: 18,
-                      }}
-                    >
-                      Bar Chart (Demo)
-                    </div>
+
+                    {peakLoading && (
+                      <div
+                        style={{
+                          height: 180,
+                          background: '#f7fafc',
+                          borderRadius: 12,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: '#94a3b8',
+                          fontSize: 14,
+                        }}
+                      >
+                        Đang tải giờ cao điểm…
+                      </div>
+                    )}
+
+                    {!peakLoading && peakError && (
+                      <div
+                        style={{
+                          padding: 12,
+                          borderRadius: 10,
+                          background: '#fef2f2',
+                          color: '#b91c1c',
+                          fontSize: 13,
+                        }}
+                      >
+                        {peakError}
+                      </div>
+                    )}
+
+                    {!peakLoading && !peakError && peakData.length === 0 && (
+                      <div
+                        style={{
+                          height: 180,
+                          background: '#f7fafc',
+                          borderRadius: 12,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: '#94a3b8',
+                          fontSize: 14,
+                        }}
+                      >
+                        Chưa có dữ liệu giờ cao điểm.
+                      </div>
+                    )}
+
+                    {!peakLoading && !peakError && peakData.length > 0 && (
+                      <div style={{ maxHeight: 180, overflowY: 'auto', display: 'grid', gap: 8 }}>
+                        {peakData.map((row, idx) => (
+                          <div
+                            key={idx}
+                            style={{
+                              background: idx === 0 ? '#eff6ff' : '#f7fafc',
+                              border: '1px solid rgba(148, 163, 184, 0.12)',
+                              borderRadius: 10,
+                              padding: '8px 10px',
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              gap: 10,
+                              alignItems: 'center',
+                            }}
+                          >
+                            <div>
+                              <div style={{ fontWeight: 600, fontSize: 13 }}>
+                                {row.stationName || `Trạm #${row.stationId}`}
+                              </div>
+                              <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>
+                                Khung giờ: <b>{row.timeSlot}</b> • Tỷ lệ ngày có swap: {(row.hitRate * 100).toFixed(0)}%
+                              </div>
+                              <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2 }}>
+                                {row.activeDays}/{row.totalDays} ngày có phát sinh • TB/ngày hoạt động: {row.avgPerActiveDay}
+                              </div>
+                            </div>
+                            <div
+                              style={{
+                                minWidth: 40,
+                                textAlign: 'right',
+                                fontWeight: 700,
+                                fontSize: 12,
+                                color: '#0f172a',
+                              }}
+                            >
+                              {row.totalSwaps} lần
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -1245,78 +1895,15 @@ export default function AdminDashboard({ user, onLoginClick }) {
                     </div>
                   )}
                 </div>
-
-                {/* AI Suggestion (demo) */}
-                <div style={{ marginTop: 28, background: '#f7fafc', borderRadius: 12, padding: 18 }}>
-                  <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 10 }}>AI Gợi ý nâng cấp hạ tầng</div>
-                  <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap' }}>
-                    <div
-                      style={{
-                        flex: 1,
-                        minWidth: 260,
-                        background: '#e6f2fd',
-                        borderRadius: 10,
-                        padding: 16,
-                        marginBottom: 8,
-                      }}
-                    >
-                      <div style={{ fontWeight: 600, color: '#1976d2', marginBottom: 6 }}>
-                        Trạm Nguyễn Huệ - Mở rộng khuyến nghị
-                      </div>
-                      <div style={{ color: '#444', fontSize: 15, marginBottom: 6 }}>
-                        Nhu cầu tăng 45% trong giờ cao điểm. Đề xuất tăng thêm 5 pin để giảm thời gian chờ.
-                      </div>
-                      <span
-                        style={{
-                          background: '#d1fae5',
-                          color: '#059669',
-                          borderRadius: 6,
-                          padding: '2px 10px',
-                          fontSize: 13,
-                          fontWeight: 600,
-                        }}
-                      >
-                        Ưu tiên cao
-                      </span>
-                    </div>
-                    <div
-                      style={{
-                        flex: 1,
-                        minWidth: 260,
-                        background: '#fef9c3',
-                        borderRadius: 10,
-                        padding: 16,
-                        marginBottom: 8,
-                      }}
-                    >
-                      <div style={{ fontWeight: 600, color: '#b45309', marginBottom: 6 }}>Khu vực Q7 - Mở trạm mới</div>
-                      <div style={{ color: '#444', fontSize: 15, marginBottom: 6 }}>
-                        Phát hiện 300+ yêu cầu tìm kiếm từ khu vực Q7. ROI dự kiến 18 tháng.
-                      </div>
-                      <span
-                        style={{
-                          background: '#fef08a',
-                          color: '#b45309',
-                          borderRadius: 6,
-                          padding: '2px 10px',
-                          fontSize: 13,
-                          fontWeight: 600,
-                        }}
-                      >
-                        Ưu tiên trung bình
-                      </span>
-                    </div>
-                  </div>
-                </div>
               </>
             )}
 
             {activeTab === 'station' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-                {/* Bảng điều phối chờ duyệt */}
+                {/* Bảng điều phối chờ duyệt (đã có modal chọn trạm + AI) */}
                 <AdminDispatchPanel />
 
-                {/* NEW: Bảng trạm & trụ sạc */}
+                {/* Bảng trạm & trụ sạc */}
                 <StationManagerPanel />
               </div>
             )}
@@ -1327,28 +1914,12 @@ export default function AdminDashboard({ user, onLoginClick }) {
               </div>
             )}
 
-            {activeTab === 'analytics' && (
-              <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap' }}>
-                <div
-                  style={{
-                    flex: 2,
-                    minWidth: 320,
-                    background: '#fff',
-                    borderRadius: 12,
-                    padding: 18,
-                    boxShadow: '0 1px 4px rgba(33,150,243,0.04)',
-                  }}
-                >
-                  <div style={{ fontWeight: 600, marginBottom: 8 }}>Báo cáo & thống kê</div>
-                  <ul style={{ color: '#444', fontSize: 15, marginBottom: 10, paddingLeft: 18 }}>
-                    <li>Doanh thu, số lượt đổi pin</li>
-                    <li>Báo cáo tần suất đổi pin, giờ cao điểm</li>
-                    <li>AI gợi ý dự báo nhu cầu sử dụng trạm đổi pin để nâng cấp hạ tầng</li>
-                  </ul>
-                  <div style={{ color: '#bdbdbd', fontSize: 15 }}>Tính năng đang phát triển...</div>
-                </div>
+            {activeTab === 'upgrade' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+                <UpgradeSuggestionPanel />
               </div>
             )}
+
           </div>
         </div>
       </div>

@@ -4,7 +4,7 @@ import {
   Routes,
   Route,
   useLocation,
-  Navigate,            // 👈 thêm Navigate để redirect
+  Navigate,
 } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 
@@ -18,7 +18,7 @@ import Battery from './pages/Battery Electric/Battery';
 import BatteryPin from './pages/Battery Electric/BatteryPin';
 import Polices from './pages/Polices/polices';
 import ForgotPass from './components/Login/ForgotPass';
-import ResetPass from './components/Login/ResetPass'; 
+import ResetPass from './components/Login/ResetPass';
 import AdminDashboard from './pages/Dashboard/Admin/admin';
 import StaffDashboard from './pages/Dashboard/Staff/staff';
 import DriverDashboard from './pages/Dashboard/Driver/findSation/driver.jsx';
@@ -27,10 +27,12 @@ import UserInfo from './pages/User/UserInfo';
 import TransactionHistory from './pages/User/TransactionHistory';
 import Booking from './pages/Dashboard/Driver/Booking/booking.jsx';
 import BookingHistory from './pages/Dashboard/Driver/Booking/BookingHistory.jsx';
-import NewsDetail from './pages/Home/NewsDetail.jsx';
+
+// ✅ Thêm import ViewComment
+import ViewComment from './pages/Dashboard/Staff/Comment/ViewComment.jsx';
 
 function App() {
-  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false); 
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [user, setUser] = useState(() => {
     const storedUser = localStorage.getItem('user');
     return storedUser ? JSON.parse(storedUser) : null;
@@ -45,9 +47,9 @@ function App() {
 
   return (
     <Router>
-      <AppContent 
-        user={user} 
-        isLoginModalOpen={isLoginModalOpen} 
+      <AppContent
+        user={user}
+        isLoginModalOpen={isLoginModalOpen}
         onOpenModal={handleOpenModal}
         onCloseModal={handleCloseModal}
         onLoginSuccess={handleLoginSuccess}
@@ -62,12 +64,10 @@ function AppContent({ user, isLoginModalOpen, onOpenModal, onCloseModal, onLogin
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Only auto-redirect drivers to their dashboard when they're at the root
-    // (prevents forced redirect when they intentionally navigate to other pages
-    // like /vehicle-link or /dashboard/driver/booking)
+    // Auto-redirect driver về dashboard khi ở trang gốc
     if (
       user?.role?.toLowerCase() === 'driver' &&
-      (location.pathname === '/' || location.pathname === '' )
+      (location.pathname === '/' || location.pathname === '')
     ) {
       navigate('/dashboard/driver');
     }
@@ -76,16 +76,24 @@ function AppContent({ user, isLoginModalOpen, onOpenModal, onCloseModal, onLogin
   return (
     <>
       <Header onLoginClick={onOpenModal} user={user} />
-      <main> 
+
+      <main>
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/battery" element={<Battery />} /> 
+          <Route path="/battery" element={<Battery />} />
           <Route path="/battery-pin" element={<BatteryPin />} />
           <Route path="/polices" element={<Polices onLoginClick={onOpenModal} user={user} />} />
 
           <Route path="/dashboard/admin" element={<AdminDashboard user={user} onLoginClick={onOpenModal} />} />
           <Route path="/dashboard/staff" element={<StaffDashboard user={user} onLoginClick={onOpenModal} />} />
-          {/* ✅ Alias: nếu truy cập /manager/dashboard thì chuyển về /dashboard/staff */}
+
+          {/* ✅ Thêm route riêng cho trang xem nhận xét */}
+          <Route
+            path="/dashboard/staff/comment"
+            element={<ViewComment />}
+          />
+
+          {/* Alias cho manager */}
           <Route path="/manager/dashboard" element={<Navigate to="/dashboard/staff" replace />} />
 
           <Route path="/dashboard/driver" element={<DriverDashboard />} />
@@ -96,9 +104,6 @@ function AppContent({ user, isLoginModalOpen, onOpenModal, onCloseModal, onLogin
           <Route path="/reset-pass" element={<ResetPass />} />
           <Route path="/user/info" element={<UserInfo />} />
           <Route path="/user/transactions" element={<TransactionHistory />} />
-
-          {/* Route cho trang chi tiết tin tức */}
-          <Route path="/news/:id" element={<NewsDetail />} />
 
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />

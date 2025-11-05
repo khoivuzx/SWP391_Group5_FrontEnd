@@ -163,6 +163,10 @@
   color:#071019;
   padding:8px 14px;
   border-radius:10px;
+  /*This part make the login button on the header suitable for all language*/
+  width: 160px;
+  text-align: center;
+  
   text-decoration:none;
   font-weight:700;
   box-shadow: 0 6px 18px rgba(52,211,153,0.12);
@@ -349,4 +353,33 @@
   .user-menu-name {
     font-size: 0.95rem;
   }
+}
+
+/* Language switcher (EN / VI) */
+.language-switcher {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-right: 8px;
+}
+.language-switcher .lang-btn {
+  background: transparent;
+  border: 1px solid rgba(22, 91, 160, 0.08);
+  color: #165ba0;
+  padding: 6px 8px;
+  border-radius: 6px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.12s ease;
+}
+.language-switcher .lang-btn:hover { transform: translateY(-1px); opacity: 0.95; }
+.language-switcher .lang-btn.active {
+  background: #165ba0;
+  color: #fff;
+  box-shadow: 0 6px 18px rgba(22, 91, 160, 0.12);
+}
+
+@media (max-width:880px){
+  .language-switcher { margin-right: 4px; }
+  .language-switcher .lang-btn { padding: 6px 6px; }
 }

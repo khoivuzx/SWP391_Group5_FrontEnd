@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react";
+import { useTranslation } from 'react-i18next';
 import { FaUserCircle } from "react-icons/fa";
 import logo from "../../assets/react.svg";
 import "./Header.css";
@@ -6,20 +7,22 @@ import { useNavigate, Link, useLocation } from "react-router-dom";
 
 /* ---------------- Brand ---------------- */
 function Brand() {
+  const { t } = useTranslation();
   return (
     <a className="brand" href="/" aria-label="home">
       <img src={logo} alt="Logo" className="brand-logo" />
-      <span className="brand-title">GogoRo Battery Swapping</span>
+      <span className="brand-title">{t('header.brandTitle')}</span>
     </a>
   );
 }
 
 /* ---------------- Battery dropdown ---------------- */
 function BatteryDropdown({ show, onEnter, onLeave, isActive }) {
+  const { t } = useTranslation();
   return (
     <div className="nav-dropdown" onMouseEnter={onEnter} onMouseLeave={onLeave}>
       <span className={`nav-link dropdown-trigger ${isActive ? "active" : ""}`}>
-        Pin và Trạm đổi pin
+        {t('header.batteryAndStations')}
         <svg className="dropdown-arrow" viewBox="0 0 20 20" fill="currentColor">
           <path
             fillRule="evenodd"
@@ -34,13 +37,13 @@ function BatteryDropdown({ show, onEnter, onLeave, isActive }) {
             to="/battery"
             className={`dropdown-item ${isActive === "/battery" ? "active" : ""}`}
           >
-            Trạm đổi pin
+            {t('header.batteryStations')}
           </Link>
           <Link
             to="/battery-pin"
             className={`dropdown-item ${isActive === "/battery-pin" ? "active" : ""}`}
           >
-            Công nghệ pin
+            {t('header.batteryTech')}
           </Link>
         </div>
       )}
@@ -56,6 +59,7 @@ function Navigation({
   setShowBatteryDropdown,
   user,
 }) {
+  const { t } = useTranslation();
   const role = user?.role?.toLowerCase() || "";
 
   // Staff/Admin/Driver: không có tab nào
@@ -71,13 +75,13 @@ function Navigation({
           to="/dashboard/Staff/Comment"
           className={`nav-link ${isActive("/dashboard/Staff/Comment") ? "active" : ""}`}
         >
-          Xem Nhận Xét
+          {t('header.comments')}
         </Link>
         <Link
           to="/dashboard/staff?tab=dispatch"
           className={`nav-link ${isActive("/dashboard/staff") ? "active" : ""}`}
         >
-          Điều phối pin
+          {t('header.dispatch')}
         </Link>
       </nav>
     );
@@ -87,7 +91,7 @@ function Navigation({
   return (
     <nav className="main-nav" aria-label="Primary">
       <Link to="/" className={`nav-link ${isActive("/") ? "active" : ""}`}>
-        Trang Chủ
+        {t('header.home')}
       </Link>
 
       <BatteryDropdown
@@ -101,7 +105,7 @@ function Navigation({
         to="/polices"
         className={`nav-link ${isActive("/polices") ? "active" : ""}`}
       >
-        Gói dịch vụ
+        {t('header.services')}
       </Link>
     </nav>
   );
@@ -116,6 +120,8 @@ export default function Header({ onLoginClick, user }) {
   const userMenuRef = useRef();
   const location = useLocation();
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
+  const [currentLang, setCurrentLang] = useState(i18n?.language || 'en');
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -146,6 +152,15 @@ export default function Header({ onLoginClick, user }) {
     return () => document.removeEventListener("mousedown", handleClick);
   }, [showUserMenu]);
 
+  // Keep local state in sync when i18n language changes
+  useEffect(() => {
+    const onLang = (lng) => setCurrentLang(lng);
+    i18n && i18n.on && i18n.on('languageChanged', onLang);
+    return () => {
+      i18n && i18n.off && i18n.off('languageChanged', onLang);
+    };
+  }, [i18n]);
+
   return (
     <header
       className={`site-header ${scrolled ? "scrolled" : hovered ? "hovered" : ""}`}
@@ -164,10 +179,29 @@ export default function Header({ onLoginClick, user }) {
         />
 
         <div className="actions">
+          {/* Language switcher: only show for guest (no role) or driver. Hide for staff/admin and others */}
+          {(role === '' || role === 'driver') && (
+            <div className="language-switcher">
+              <button
+                aria-label="Switch to English"
+                className={`lang-btn ${currentLang && currentLang.startsWith('en') ? 'active' : ''}`}
+                onClick={() => i18n.changeLanguage('en')}
+              >
+                EN
+              </button>
+              <button
+                aria-label="Switch to Vietnamese"
+                className={`lang-btn ${currentLang && currentLang.startsWith('vi') ? 'active' : ''}`}
+                onClick={() => i18n.changeLanguage('vi')}
+              >
+                VI
+              </button>
+            </div>
+          )}
           {/* Driver có "Liên kết xe" + User menu */}
-          {role === "driver" && (
+            {role === "driver" && (
             <Link to="/vehicle-link" className="cta vehicle-link">
-              Liên kết xe
+              {t('header.vehicleLink')}
             </Link>
           )}
 
@@ -190,7 +224,7 @@ export default function Header({ onLoginClick, user }) {
                       navigate("/user/info");
                     }}
                   >
-                    Tài khoản
+                    {t('header.userInfo')}
                   </button>
                   <button
                     className="user-menu-btn logout"
@@ -199,7 +233,7 @@ export default function Header({ onLoginClick, user }) {
                       handleLogout();
                     }}
                   >
-                    Đăng xuất
+                    {t('header.logout')}
                   </button>
                 </div>
               )}
@@ -213,7 +247,7 @@ export default function Header({ onLoginClick, user }) {
                 onLoginClick();
               }}
             >
-              Đăng Nhập
+              {t('header.login')}
             </a>
           )}
         </div>

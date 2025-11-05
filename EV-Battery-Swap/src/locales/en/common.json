@@ -19,6 +19,8 @@
   },
   "header": {
     "login": "Login",
+    "brandTitle": "GogoRo Battery Swapping",
+    "comments": "View comments",
     "home": "Home",
     "findStations": "Find Stations",
     "services": "Services",

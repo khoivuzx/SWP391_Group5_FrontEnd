@@ -110,7 +110,7 @@ export default function TransactionHistory() {
   // Gọi API swap history
   const fetchSwaps = async () => {
     if (!jwt) {
-      setError("Vui lòng đăng nhập lại.");
+      setError(t('transaction.errors.notLoggedIn'));
       return;
     }
     setLoading(true);
@@ -148,7 +148,7 @@ export default function TransactionHistory() {
       setCommentedMap(map);
     } catch (e) {
       console.error("❌ Fetch swaps error:", e);
-      setError(e.message || "Có lỗi xảy ra khi tải dữ liệu.");
+      setError(e.message || t('transaction.errors.fetchFailed'));
       setSwapItems([]);
     } finally {
       setLoading(false);
@@ -158,7 +158,7 @@ export default function TransactionHistory() {
   // Gọi API package history
   const fetchPackageHistory = async () => {
     if (!jwt) {
-      setError("Vui lòng đăng nhập lại.");
+      setError(t('transaction.errors.notLoggedIn'));
       return;
     }
     setLoading(true);
@@ -185,7 +185,7 @@ export default function TransactionHistory() {
       setPackageItems(arr.map(normalizePackage));
     } catch (e) {
       console.error("❌ Fetch package history error:", e);
-      setError(e.message || "Có lỗi xảy ra khi tải dữ liệu gói pin.");
+      setError(e.message || t('transaction.errors.fetchPackageFailed'));
       setPackageItems([]);
     } finally {
       setLoading(false);
@@ -286,11 +286,11 @@ export default function TransactionHistory() {
     <div className="th-page">
       <div className="th-card">
         <div className="th-header">
-          <h1 className="th-title">{t('transaction.title')}</h1>
+          <h1 className="th-title">{t('transaction.title', { defaultValue: 'Payment & Swap history' })}</h1>
 
           <form className="th-filters" onSubmit={onFilter}>
             <div className="th-field">
-              <label>{t('transaction.filters.from')}</label>
+              <label>{t('transaction.filters.from', { defaultValue: 'From' })}</label>
               <input
                 type="date"
                 value={from}
@@ -298,7 +298,7 @@ export default function TransactionHistory() {
               />
             </div>
             <div className="th-field">
-              <label>{t('transaction.filters.to')}</label>
+              <label>{t('transaction.filters.to', { defaultValue: 'To' })}</label>
               <input
                 type="date"
                 value={to}
@@ -306,7 +306,7 @@ export default function TransactionHistory() {
               />
             </div>
             <button className="th-btn th-btn-primary" type="submit">
-              {t('transaction.filters.filter')}
+              {t('transaction.filters.filter', { defaultValue: 'Filter' })}
             </button>
           </form>
         </div>
@@ -317,13 +317,13 @@ export default function TransactionHistory() {
             className={`th-tab ${activeTab === "swap" ? "active" : ""}`}
             onClick={() => setActiveTab("swap")}
           >
-            {t('transaction.tabs.swap')}
+            {t('transaction.tabs.swap', { defaultValue: 'Swap (Pin)' })}
           </button>
           <button
             className={`th-tab ${activeTab === "package" ? "active" : ""}`}
             onClick={() => setActiveTab("package")}
           >
-            {t('transaction.tabs.package')}
+            {t('transaction.tabs.package', { defaultValue: 'Package history' })}
           </button>
         </div>
 
@@ -333,21 +333,21 @@ export default function TransactionHistory() {
         {/* Bảng Đổi pin */}
         {!loading && activeTab === "swap" && (
           <>
-            {swapItems.length === 0 ? (
-              <Empty text={t('transaction.empty.swap')} />
+                {swapItems.length === 0 ? (
+              <Empty text={t('transaction.empty.swap', { defaultValue: 'No swap history found.' })} />
             ) : (
               <div className="th-table-wrap">
                 <table className="th-table">
                   <thead>
                     <tr>
-                      <th>{t('transaction.table.id')}</th>
-                      <th>{t('transaction.table.station')}</th>
-                      <th>{t('transaction.table.kiosk')}</th>
-                      <th>{t('transaction.table.soh')}</th>
-                      <th>{t('transaction.table.fee')}</th>
-                      <th>{t('transaction.table.desc')}</th>
-                      <th>{t('transaction.table.time')}</th>
-                      <th style={{ width: 140 }}>{t('transaction.table.comment')}</th>
+                      <th>{t('transaction.table.id', { defaultValue: 'ID' })}</th>
+                      <th>{t('transaction.table.station', { defaultValue: 'Station' })}</th>
+                      <th>{t('transaction.table.kiosk', { defaultValue: 'Kiosk' })}</th>
+                      <th>{t('transaction.table.soh', { defaultValue: 'SoH old → new' })}</th>
+                      <th>{t('transaction.table.fee', { defaultValue: 'Fee' })}</th>
+                      <th>{t('transaction.table.desc', { defaultValue: 'Description' })}</th>
+                      <th>{t('transaction.table.time', { defaultValue: 'Time' })}</th>
+                      <th style={{ width: 140 }}>{t('transaction.table.comment', { defaultValue: 'Comments' })}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -369,14 +369,14 @@ export default function TransactionHistory() {
                           <td>
                             {already ? (
                                 <span className="th-badge th-badge-success">
-                                {t('transaction.labels.commented')}
+                                {t('transaction.labels.commented', { defaultValue: 'Commented' })}
                               </span>
                             ) : allow ? (
                               <button
                                 className="th-btn th-btn-secondary"
                                 onClick={() => openComment(r)}
                               >
-                                {t('transaction.labels.comment')}
+                                  {t('transaction.labels.comment', { defaultValue: 'Comment' })}
                               </button>
                             ) : (
                               <span>—</span>
@@ -396,7 +396,7 @@ export default function TransactionHistory() {
         {!loading && activeTab === "package" && (
           <>
             {packageItems.length === 0 ? (
-              <Empty text={t('transaction.empty.package')} />
+              <Empty text={t('transaction.empty.package', { defaultValue: 'No package purchase/rental history found.' })} />
             ) : (
               <div className="th-table-wrap">
                 <table className="th-table">

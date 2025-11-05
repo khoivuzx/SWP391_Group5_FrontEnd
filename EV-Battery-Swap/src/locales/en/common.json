@@ -18,19 +18,19 @@
     "pleaseSelectStation": "Please select a station first to find the path."
   },
   "header": {
-    "login": "Login",
+    "login": "Đăng Nhập",
     "brandTitle": "GogoRo Battery Swapping",
-    "comments": "View comments",
-    "home": "Home",
-    "findStations": "Find Stations",
-    "services": "Services",
-    "dispatch": "Dispatch",
-    "batteryAndStations": "Battery & Stations",
-    "batteryStations": "Battery Stations",
-    "batteryTech": "Battery Technology",
-    "vehicleLink": "Vehicle Link",
-    "userInfo": "User Info",
-    "logout": "Logout"
+    "comments": "Xem Nhận Xét",
+    "home": "Trang Chủ",
+    "findStations": "Tìm trạm",
+    "services": "Gói dịch vụ",
+    "dispatch": "Điều phối pin",
+    "batteryAndStations": "Pin và Trạm đổi pin",
+    "batteryStations": "Trạm đổi pin",
+    "batteryTech": "Công nghệ pin",
+    "vehicleLink": "Liên kết xe",
+    "userInfo": "Tài khoản",
+    "logout": "Đăng xuất"
   }
   ,
   "locationPermission": {
@@ -253,6 +253,11 @@
         "from": "From",
         "to": "To",
         "filter": "Filter"
+      },
+      "errors": {
+        "notLoggedIn": "Please log in again.",
+        "fetchFailed": "Failed to load transactions.",
+        "fetchPackageFailed": "Failed to load package history."
       },
       "tabs": {
         "swap": "Swap (Pin)",

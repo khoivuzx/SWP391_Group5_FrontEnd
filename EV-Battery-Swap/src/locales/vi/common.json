@@ -19,8 +19,8 @@
   },
   "header": {
     "login": "Đăng Nhập",
-    "brandTitle": "GogoRo Đổi Pin",
-    "comments": "Xem nhận xét",
+    "brandTitle": "GogoRo Battery Swapping",
+    "comments": "Xem Nhận Xét",
     "home": "Trang Chủ",
     "findStations": "Tìm trạm",
     "services": "Gói dịch vụ",
@@ -29,7 +29,7 @@
     "batteryStations": "Trạm đổi pin",
     "batteryTech": "Công nghệ pin",
     "vehicleLink": "Liên kết xe",
-    "userInfo": "Thông tin người dùng",
+    "userInfo": "Tài khoản",
     "logout": "Đăng xuất"
   }
   ,
@@ -253,6 +253,11 @@
         "from": "Từ ngày",
         "to": "Đến ngày",
         "filter": "Lọc"
+      },
+      "errors": {
+        "notLoggedIn": "Vui lòng đăng nhập lại.",
+        "fetchFailed": "Có lỗi xảy ra khi tải dữ liệu.",
+        "fetchPackageFailed": "Có lỗi xảy ra khi tải dữ liệu gói pin."
       },
       "tabs": {
         "swap": "Đổi pin (Swap)",

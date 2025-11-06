@@ -27,6 +27,9 @@ export default function MapboxMap({
   const [internalError, setInternalError] = useState(null);
   const mapContainer = useRef(null);
   const map = useRef(null);
+  const resizeObserverRef = useRef(null);
+  const resizeTimersRef = useRef([]);
+  const visibilityObserverRef = useRef(null);
   const popupRefs = useRef({});
   const batteryCacheRef = useRef({});
   const mapManagerRef = useRef(null);
@@ -64,8 +67,78 @@ export default function MapboxMap({
         // ignore if GeolocateControl unavailable
       }
       try { mapManagerRef.current = createMapManager(map.current); } catch { mapManagerRef.current = null; }
+      // ensure Mapbox resizes when container becomes visible/changes size
+      try {
+        // call resize on map load
+        map.current.on('load', () => {
+          try { map.current.resize(); } catch (e) {}
+        });
+
+        // schedule multiple delayed resize attempts to handle rapid mount/unmount
+        const scheduleResizeAttempts = () => {
+          try {
+            // clear previous timers
+            (resizeTimersRef.current || []).forEach(id => clearTimeout(id));
+            resizeTimersRef.current = [];
+            const delays = [50, 150, 300, 600, 1000];
+            for (const d of delays) {
+              const id = setTimeout(() => { try { map.current && map.current.resize(); } catch (e) {} }, d);
+              resizeTimersRef.current.push(id);
+            }
+          } catch (e) {}
+        };
+
+        scheduleResizeAttempts();
+
+        // observe container resizing (works when switching tabs or CSS changes)
+        if (typeof ResizeObserver !== 'undefined' && mapContainer.current) {
+          resizeObserverRef.current = new ResizeObserver(() => { try { map.current && map.current.resize(); } catch (e) {} });
+          try { resizeObserverRef.current.observe(mapContainer.current); } catch (e) {}
+        }
+
+        // observe visibility via IntersectionObserver: when container becomes visible, schedule resizes
+        if (typeof IntersectionObserver !== 'undefined' && mapContainer.current) {
+          visibilityObserverRef.current = new IntersectionObserver((entries) => {
+            try {
+              for (const ent of entries) {
+                if (ent.isIntersecting) scheduleResizeAttempts();
+              }
+            } catch (e) {}
+          }, { threshold: [0, 0.1, 0.5, 1] });
+          try { visibilityObserverRef.current.observe(mapContainer.current); } catch (e) {}
+        }
+
+        // window resize & document visibility fallback
+        const onWinResize = () => { try { map.current && map.current.resize(); } catch (e) {} };
+        window.addEventListener('resize', onWinResize);
+        map.__onWinResize = onWinResize;
+        const onVisChange = () => { try { if (document.visibilityState === 'visible') scheduleResizeAttempts(); } catch (e) {} };
+        document.addEventListener('visibilitychange', onVisChange);
+        map.__onVisChange = onVisChange;
+      } catch (e) {}
     }
-    return () => { if (map.current) { map.current.remove(); map.current = null; } };
+    return () => {
+      // cleanup resize timers/observer
+      try {
+        (resizeTimersRef.current || []).forEach(id => clearTimeout(id));
+        resizeTimersRef.current = [];
+      } catch (e) {}
+      try {
+        if (resizeObserverRef.current && mapContainer.current) resizeObserverRef.current.unobserve(mapContainer.current);
+        resizeObserverRef.current && resizeObserverRef.current.disconnect();
+        resizeObserverRef.current = null;
+      } catch (e) {}
+      try {
+        if (visibilityObserverRef.current && mapContainer.current) visibilityObserverRef.current.unobserve(mapContainer.current);
+        visibilityObserverRef.current && visibilityObserverRef.current.disconnect();
+        visibilityObserverRef.current = null;
+      } catch (e) {}
+      try {
+        if (map && map.__onWinResize) window.removeEventListener('resize', map.__onWinResize);
+        if (map && map.__onVisChange) document.removeEventListener('visibilitychange', map.__onVisChange);
+      } catch (e) {}
+      try { if (map.current) { map.current.remove(); map.current = null; } } catch (e) { map.current = null; }
+    };
   }, [token]);
 
   useEffect(() => {
@@ -146,69 +219,98 @@ export default function MapboxMap({
     const layerId = 'stations-layer';
     const geojson = { type: 'FeatureCollection', features };
       const addGeoAndLayer = () => {
-        if (map.current.getSource(sourceId)) { try { map.current.getSource(sourceId).setData(geojson); } catch {} return; }
+        // defensive: bail out if map no longer exists
+        if (!map.current) return;
+        try {
+          if (map.current.getSource && map.current.getSource(sourceId)) { try { map.current.getSource(sourceId).setData(geojson); } catch {} return; }
+        } catch (e) { /* ignore */ }
 
-        map.current.addSource(sourceId, { type: 'geojson', data: geojson });
+        try { if (!map.current) return; map.current.addSource(sourceId, { type: 'geojson', data: geojson }); } catch (e) { /* ignore */ }
 
         const imgEl = new Image(); imgEl.crossOrigin = 'anonymous'; imgEl.src = reactLogo;
         imgEl.onload = () => {
-          try { if (!map.current.hasImage('gogoro-marker')) map.current.addImage('gogoro-marker', imgEl); } catch {}
+          if (!map.current) return;
+          try { if (map.current.hasImage && !map.current.hasImage('gogoro-marker')) map.current.addImage('gogoro-marker', imgEl); } catch {}
           try {
+            if (!map.current) return;
             const hasImg = map.current.hasImage && map.current.hasImage('gogoro-marker');
             if (hasImg) {
-              map.current.addLayer({ id: layerId, type: 'symbol', source: sourceId, layout: { 'icon-image': 'gogoro-marker', 'icon-size': 1.2, 'icon-allow-overlap': true, 'icon-ignore-placement': true } });
+              try { map.current.addLayer({ id: layerId, type: 'symbol', source: sourceId, layout: { 'icon-image': 'gogoro-marker', 'icon-size': 1.2, 'icon-allow-overlap': true, 'icon-ignore-placement': true } }); } catch (e) { try { map.current.addLayer({ id: layerId, type: 'circle', source: sourceId, paint: { 'circle-radius': 14, 'circle-color': '#1976d2', 'circle-stroke-color': '#fff', 'circle-stroke-width': 2 } }); } catch {} }
             } else {
-              map.current.addLayer({ id: layerId, type: 'circle', source: sourceId, paint: { 'circle-radius': 14, 'circle-color': '#1976d2', 'circle-stroke-color': '#fff', 'circle-stroke-width': 2 } });
+              try { map.current.addLayer({ id: layerId, type: 'circle', source: sourceId, paint: { 'circle-radius': 14, 'circle-color': '#1976d2', 'circle-stroke-color': '#fff', 'circle-stroke-width': 2 } }); } catch {}
             }
-          } catch {
-            try { map.current.addLayer({ id: layerId, type: 'circle', source: sourceId, paint: { 'circle-radius': 14, 'circle-color': '#1976d2', 'circle-stroke-color': '#fff', 'circle-stroke-width': 2 } }); } catch {}
+          } catch (err) {
+            try { if (map.current) map.current.addLayer({ id: layerId, type: 'circle', source: sourceId, paint: { 'circle-radius': 14, 'circle-color': '#1976d2', 'circle-stroke-color': '#fff', 'circle-stroke-width': 2 } }); } catch {}
           }
 
-          try { map.current.on('mouseenter', layerId, () => { map.current.getCanvas().style.cursor = 'pointer'; }); } catch {}
-          try { map.current.on('mouseleave', layerId, () => { map.current.getCanvas().style.cursor = ''; }); } catch {}
-          try { map.current.on('click', layerId, (e) => {
-            const feat = e.features && e.features[0]; if (!feat) return;
-            const name = feat.properties && feat.properties.name; if (!name) return;
-            const popupObj = popupRefs.current && popupRefs.current[name];
-            try { if (openPopupRef.current && openPopupRef.current !== (popupObj && popupObj.popup)) { openPopupRef.current.remove(); } } catch {}
-            if (popupObj) {
+          try {
+            if (!map.current) return;
+            map.current.on('mouseenter', layerId, () => { try { if (map.current && map.current.getCanvas) map.current.getCanvas().style.cursor = 'pointer'; } catch {} });
+          } catch {}
+          try {
+            if (!map.current) return;
+            map.current.on('mouseleave', layerId, () => { try { if (map.current && map.current.getCanvas) map.current.getCanvas().style.cursor = ''; } catch {} });
+          } catch {}
+          try {
+            if (!map.current) return;
+            map.current.on('click', layerId, (e) => {
               try {
-                const sx = window.scrollX || window.pageXOffset; const sy = window.scrollY || window.pageYOffset;
-                popupObj.popup.addTo(map.current); openPopupRef.current = popupObj.popup;
-                try { const el = popupObj.popup.getElement(); if (el?.blur) el.blur(); } catch {}
-                try { window.scrollTo(sx, sy); } catch {}
-                try { setTimeout(() => { try { window.scrollTo(sx, sy); } catch {} }, 50); } catch {}
-                try { setTimeout(() => { try { window.scrollTo(sx, sy); } catch {} }, 300); } catch {}
-              } catch {}
-              try { map.current.once('click', () => { try { popupObj.popup.remove(); } catch {}; if (openPopupRef.current === popupObj.popup) openPopupRef.current = null; }); } catch {}
-              try { setSelectedStation && setSelectedStation(name); } catch {}
-              try { popupObj.loadBattery && popupObj.loadBattery(); } catch {}
-            }
-          }); } catch {}
+                const feat = e.features && e.features[0]; if (!feat) return;
+                const name = feat.properties && feat.properties.name; if (!name) return;
+                const popupObj = popupRefs.current && popupRefs.current[name];
+                try { if (openPopupRef.current && openPopupRef.current !== (popupObj && popupObj.popup)) { openPopupRef.current.remove(); } } catch {}
+                if (popupObj) {
+                  try {
+                    const sx = window.scrollX || window.pageXOffset; const sy = window.scrollY || window.pageYOffset;
+                    popupObj.popup.addTo(map.current); openPopupRef.current = popupObj.popup;
+                    try { const el = popupObj.popup.getElement(); if (el?.blur) el.blur(); } catch {}
+                    try { window.scrollTo(sx, sy); } catch {}
+                    try { setTimeout(() => { try { window.scrollTo(sx, sy); } catch {} }, 50); } catch {}
+                    try { setTimeout(() => { try { window.scrollTo(sx, sy); } catch {} }, 300); } catch {}
+                  } catch {}
+                  try { if (map.current) map.current.once('click', () => { try { popupObj.popup.remove(); } catch {}; if (openPopupRef.current === popupObj.popup) openPopupRef.current = null; }); } catch {}
+                  try { setSelectedStation && setSelectedStation(name); } catch {}
+                  try { popupObj.loadBattery && popupObj.loadBattery(); } catch {}
+                }
+              } catch (e) {}
+            });
+          } catch {}
         };
         imgEl.onerror = () => {
-          try { map.current.addLayer({ id: layerId, type: 'circle', source: sourceId, paint: { 'circle-radius': 14, 'circle-color': '#1976d2', 'circle-stroke-color': '#fff', 'circle-stroke-width': 2 } }); } catch {}
-          try { map.current.on('mouseenter', layerId, () => { map.current.getCanvas().style.cursor = 'pointer'; }); } catch {}
-          try { map.current.on('mouseleave', layerId, () => { map.current.getCanvas().style.cursor = ''; }); } catch {}
-          try { map.current.on('click', layerId, (e) => {
-            const feat = e.features && e.features[0]; if (!feat) return;
-            const name = feat.properties && feat.properties.name; if (!name) return;
-            const popupObj = popupRefs.current && popupRefs.current[name];
-            try { if (openPopupRef.current && openPopupRef.current !== (popupObj && popupObj.popup)) { openPopupRef.current.remove(); } } catch {}
-            if (popupObj) {
+          if (!map.current) return;
+          try { if (map.current) map.current.addLayer({ id: layerId, type: 'circle', source: sourceId, paint: { 'circle-radius': 14, 'circle-color': '#1976d2', 'circle-stroke-color': '#fff', 'circle-stroke-width': 2 } }); } catch {}
+          try {
+            if (!map.current) return;
+            map.current.on('mouseenter', layerId, () => { try { if (map.current && map.current.getCanvas) map.current.getCanvas().style.cursor = 'pointer'; } catch {} });
+          } catch {}
+          try {
+            if (!map.current) return;
+            map.current.on('mouseleave', layerId, () => { try { if (map.current && map.current.getCanvas) map.current.getCanvas().style.cursor = ''; } catch {} });
+          } catch {}
+          try {
+            if (!map.current) return;
+            map.current.on('click', layerId, (e) => {
               try {
-                const sx = window.scrollX || window.pageXOffset; const sy = window.scrollY || window.pageYOffset;
-                popupObj.popup.addTo(map.current); openPopupRef.current = popupObj.popup;
-                try { const el = popupObj.popup.getElement(); if (el?.blur) el.blur(); } catch {}
-                try { window.scrollTo(sx, sy); } catch {}
-                try { setTimeout(() => { try { window.scrollTo(sx, sy); } catch {} }, 50); } catch {}
-                try { setTimeout(() => { try { window.scrollTo(sx, sy); } catch {} }, 300); } catch {}
-              } catch {}
-              try { map.current.once('click', () => { try { popupObj.popup.remove(); } catch {}; if (openPopupRef.current === popupObj.popup) openPopupRef.current = null; }); } catch {}
-              try { setSelectedStation && setSelectedStation(name); } catch {}
-              try { popupObj.loadBattery && popupObj.loadBattery(); } catch {}
-            }
-          }); } catch {}
+                const feat = e.features && e.features[0]; if (!feat) return;
+                const name = feat.properties && feat.properties.name; if (!name) return;
+                const popupObj = popupRefs.current && popupRefs.current[name];
+                try { if (openPopupRef.current && openPopupRef.current !== (popupObj && popupObj.popup)) { openPopupRef.current.remove(); } } catch {}
+                if (popupObj) {
+                  try {
+                    const sx = window.scrollX || window.pageXOffset; const sy = window.scrollY || window.pageYOffset;
+                    popupObj.popup.addTo(map.current); openPopupRef.current = popupObj.popup;
+                    try { const el = popupObj.popup.getElement(); if (el?.blur) el.blur(); } catch {}
+                    try { window.scrollTo(sx, sy); } catch {}
+                    try { setTimeout(() => { try { window.scrollTo(sx, sy); } catch {} }, 50); } catch {}
+                    try { setTimeout(() => { try { window.scrollTo(sx, sy); } catch {} }, 300); } catch {}
+                  } catch {}
+                  try { if (map.current) map.current.once('click', () => { try { popupObj.popup.remove(); } catch {}; if (openPopupRef.current === popupObj.popup) openPopupRef.current = null; }); } catch {}
+                  try { setSelectedStation && setSelectedStation(name); } catch {}
+                  try { popupObj.loadBattery && popupObj.loadBattery(); } catch {}
+                }
+              } catch (e) {}
+            });
+          } catch {}
         };
       };
 

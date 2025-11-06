@@ -303,6 +303,14 @@
     }
   }
   ,
+  "driver": {
+    "tabs": {
+      "find": "Tìm trạm",
+      "booked": "Lịch đã đặt",
+      "service": "Gói dịch vụ",
+      "history": "Lịch sử"
+    }
+  },
   "policies": {
     "header": {
       "title": "Làm cho trải nghiệm của bạn nhiều hơn",

@@ -3,6 +3,22 @@
 	box-sizing: border-box;
 }
 
+/* Shared responsive map sizing variables and helper class
+	 - --map-height: controls the preferred map area height (defaults to 85vh)
+	 - --map-min-height: minimum height for map cards
+	 Use the variables in page-level containers (driver/home) so both pages match.
+*/
+:root {
+	--map-height: 85vh;
+	--map-min-height: 420px;
+}
+
+.app-map-frame {
+	width: 100%;
+	height: var(--map-height);
+	min-height: var(--map-min-height);
+}
+
 /* Popup header/title */
 .popup-title {
 	display: block;

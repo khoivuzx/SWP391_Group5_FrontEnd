@@ -1,5 +1,6 @@
 import React from 'react';
 import './TabBar.css';
+import { useTranslation } from 'react-i18next';
 
 /**
  * TabBar component
@@ -9,6 +10,7 @@ import './TabBar.css';
  */
 // TabBar hỗ trợ badge: mỗi tab có thể có { label, value, badge }
 export default function TabBar({ tabs, active, onChange }) {
+  const { t } = useTranslation();
   return (
     <div className="tabbar-wrap">
       {tabs.map(tab => (
@@ -17,7 +19,7 @@ export default function TabBar({ tabs, active, onChange }) {
           className={`tabbar-tab${active === tab.value ? ' active' : ''}`}
           onClick={() => onChange(tab.value)}
         >
-          {tab.label}
+          {tab.labelKey ? t(tab.labelKey, { defaultValue: tab.label || tab.labelKey }) : (tab.label || tab.value)}
           {tab.badge ? <span className="tabbar-badge">{tab.badge}</span> : null}
         </button>
       ))}

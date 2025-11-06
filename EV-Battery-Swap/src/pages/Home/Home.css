@@ -304,7 +304,9 @@
 
 .home-content-row {
 	display: flex;
-	height: 85vh;
+	/* use shared variable so Home and Driver map areas are consistent */
+	height: var(--map-height);
+ 	min-height: var(--map-min-height);
 	gap: 16px;
 	padding: 24px;
 }

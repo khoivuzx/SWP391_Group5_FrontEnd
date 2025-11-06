@@ -416,6 +416,14 @@
     }
   }
   ,
+  "driver": {
+    "tabs": {
+      "find": "Find stations",
+      "booked": "Booked",
+      "service": "Service packages",
+      "history": "History"
+    }
+  },
   "footer": {
     "smartVehicles": {
       "title": "Smart Vehicles",

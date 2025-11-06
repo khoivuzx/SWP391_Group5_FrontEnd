@@ -77,7 +77,10 @@ export default function BookingModal({
           throw new Error(
             (data && data.error) ||
             (data && data.message) ||
-            `Tải danh sách xe thất bại (${res.status})`
+            t('booking.errors.loadVehiclesHttp', {
+              status: res.status,
+              defaultValue: `Tải danh sách xe thất bại (${res.status})`,
+            })
           );
         }
 
@@ -91,7 +94,7 @@ export default function BookingModal({
         setVehicles(normalized);
         if (normalized.length === 1) setVehicleId(String(normalized[0].id));
       } catch (err) {
-        setVehError(err?.message || 'Không thể tải danh sách xe.');
+        setVehError(err?.message || t('booking.errors.loadVehicles', { defaultValue: 'Không thể tải danh sách xe.' }));
       } finally {
         setVehLoading(false);
       }
@@ -102,7 +105,7 @@ export default function BookingModal({
   const vehicleOptions = useMemo(() => {
     return vehicles.map(v => ({
       id: v.id,
-      label: `${v.modelName || 'Model ?'} — ${v.licensePlate || 'Biển số ?'}`,
+      label: `${v.modelName || t('booking.unknownModel', { defaultValue: 'Model ?' })} — ${v.licensePlate || t('booking.unknownPlate', { defaultValue: 'Biển số ?' })}`,
     }));
   }, [vehicles]);
 
@@ -133,7 +136,7 @@ export default function BookingModal({
     const vehicleIdFinal = parseInt(vehicleId, 10);
     if (!vehicleIdFinal || Number.isNaN(vehicleIdFinal)) {
       setLoading(false);
-      setError('Vehicle ID không hợp lệ.');
+      setError(t('booking.errors.invalidVehicleId', { defaultValue: 'Vehicle ID không hợp lệ.' }));
       return;
     }
 
@@ -181,7 +184,7 @@ export default function BookingModal({
       setSuccess(true);
       setResult(data);
     } catch (err) {
-      setError(err?.message || 'Lỗi đặt lịch.');
+      setError(err?.message || t('booking.errors.bookingFailed', { defaultValue: 'Lỗi đặt lịch.' }));
     } finally {
       setLoading(false);
     }
@@ -210,16 +213,16 @@ export default function BookingModal({
       style={styles.backdrop}
       role="dialog"
       aria-modal="true"
-      aria-label={t('booking.ariaLabel')}
+      aria-label={t('booking.ariaLabel', { defaultValue: 'Booking dialog' })}
     >
       <div className="booking-modal__content" style={styles.modal}>
         <div style={styles.header}>
-          <div style={{ fontWeight: 700, fontSize: 18 }}>{t('booking.title')}</div>
-          <button onClick={onClose} style={styles.closeBtn} aria-label="Đóng">×</button>
+          <div style={{ fontWeight: 700, fontSize: 18 }}>{t('booking.title', { defaultValue: 'Book a battery swap' })}</div>
+          <button onClick={onClose} style={styles.closeBtn} aria-label={t('booking.close', { defaultValue: 'Đóng' })}>×</button>
         </div>
 
         <div style={{ marginTop: 4, fontSize: 13, color: '#64748b' }}>
-          {t('booking.stationPrefix')} <b style={{ color: '#0f172a' }}>{stationName || '-'}</b>
+          {t('booking.stationPrefix', { defaultValue: 'Trạm:' })} <b style={{ color: '#0f172a' }}>{stationName || '-'}</b>
         </div>
 
         {success ? (
@@ -247,7 +250,7 @@ export default function BookingModal({
           <form onSubmit={handleSubmit} style={{ marginTop: 16, display: 'grid', gap: 12 }}>
             {error && (
               <div style={styles.error}>
-                {error}
+                  {error}
                 {needPackage && (
                   <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
                     <button
@@ -271,7 +274,7 @@ export default function BookingModal({
                 onChange={(e) => setVehicleId(e.target.value)}
                 style={styles.input}
               >
-                <option value="">{t('booking.selectVehiclePlaceholder')}</option>
+                <option value="">{t('booking.selectVehiclePlaceholder', { defaultValue: 'Chọn xe của bạn' })}</option>
                 {vehicleOptions.map(v => (
                   <option key={v.id} value={String(v.id)}>
                     {v.label}
@@ -283,7 +286,7 @@ export default function BookingModal({
             {/* Gợi ý liên kết xe (không cho nhập ID thủ công) */}
             {!vehLoading && vehicles.length === 0 && (
               <div style={styles.info}>
-                {t('booking.noVehicleLinked')}
+                {t('booking.noVehicleLinked', { defaultValue: 'Bạn chưa liên kết xe nào.' })}
                 {typeof onRequireLinkVehicle === 'function' && (
                   <button
                     type="button"
@@ -293,14 +296,14 @@ export default function BookingModal({
                       onRequireLinkVehicle();
                     }}
                   >
-                    {t('booking.linkVehicle')}
+                    {t('booking.linkVehicle', { defaultValue: 'Liên kết xe' })}
                   </button>
                 )}
               </div>
             )}
 
               <label style={styles.label}>
-              {t('booking.labels.date')}:
+              {t('booking.labels.date', { defaultValue: 'Ngày' })}:
               <input
                 required
                 type="date"
@@ -311,7 +314,7 @@ export default function BookingModal({
             </label>
 
             <label style={styles.label}>
-              {t('booking.labels.time')}:
+              {t('booking.labels.time', { defaultValue: 'Giờ' })}:
               <input
                 required
                 type="time"
@@ -322,9 +325,9 @@ export default function BookingModal({
             </label>
 
             <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 8 }}>
-              <button type="button" onClick={onClose} style={styles.ghostBtn}>{t('booking.cancel')}</button>
+              <button type="button" onClick={onClose} style={styles.ghostBtn}>{t('booking.cancel', { defaultValue: 'Huỷ' })}</button>
               <button disabled={!canSubmit} type="submit" style={styles.primaryBtn}>
-                {loading ? t('booking.placing') : t('booking.place')}
+                {loading ? t('booking.placing', { defaultValue: 'Đang đặt...' }) : t('booking.place', { defaultValue: 'Đặt lịch' })}
               </button>
             </div>
           </form>

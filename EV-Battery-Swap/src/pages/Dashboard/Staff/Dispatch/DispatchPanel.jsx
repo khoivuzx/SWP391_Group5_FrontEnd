@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import "./DispatchPanel.css";
 import API_BASE_URL from "../../../../config";
 
 export default function DispatchPanel({ user }) {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [requests, setRequests] = useState([]);
@@ -63,9 +65,9 @@ export default function DispatchPanel({ user }) {
 
     try {
       // Validate cơ bản phía FE
-      if (!form.batteryName) throw new Error("Vui lòng chọn loại pin.");
+      if (!form.batteryName) throw new Error(t('manager.dispatch.form.selectBatteryError'));
       const total = Number(form.qtyGood || 0) + Number(form.qtyAverage || 0) + Number(form.qtyBad || 0);
-      if (total === 0) throw new Error("Tổng số lượng phải > 0.");
+      if (total === 0) throw new Error(t('manager.dispatch.form.quantityError'));
 
       const token = localStorage.getItem("authToken") || "";
       const res = await fetch(`${API_BASE_URL}/webAPI/api/secure/dispatchRequest`, {
@@ -88,7 +90,7 @@ export default function DispatchPanel({ user }) {
 
       setResult({
         type: "success",
-        message: `Gửi yêu cầu thành công (Mã #${data.requestId || "?"})`,
+        message: `${t('manager.dispatch.result.successPrefix')}${data.requestId || "?"}${t('manager.dispatch.result.successSuffix')}`,
       });
 
       // Reset form (không reset loại pin để thao tác nhanh)
@@ -128,13 +130,17 @@ export default function DispatchPanel({ user }) {
         throw new Error(data.message || `Xác nhận thất bại (HTTP ${res.status})`);
       }
 
-      const moved = `Đã chuyển Good:${data.movedGood ?? 0} / Avg:${data.movedAverage ?? data.movedAvg ?? 0} / Weak:${data.movedBad ?? 0}`;
-      const warn = data.warning ? ` — Cảnh báo: ${data.warning}` : "";
-      setResult({ type: "success", message: `Xác nhận thành công. ${moved}${warn}` });
+      const moved = t('manager.dispatch.confirmSuccess', {
+        good: data.movedGood ?? 0,
+        avg: data.movedAverage ?? data.movedAvg ?? 0,
+        bad: data.movedBad ?? 0
+      });
+      const warn = data.warning ? t('manager.dispatch.confirmWarning', { warning: data.warning }) : "";
+      setResult({ type: "success", message: `${moved}${warn}` });
 
       await loadRequests();
     } catch (err) {
-      setResult({ type: "error", message: err.message || "Xác nhận thất bại." });
+      setResult({ type: "error", message: err.message || t('manager.dispatch.confirmError') });
     } finally {
       setConfirmingId(null);
     }
@@ -153,15 +159,15 @@ export default function DispatchPanel({ user }) {
   const renderStatus = (status) => {
     const key = String(status || "pending").toLowerCase();
     const map = {
-      pending: "Đang chờ",
-      preparing: "Đang chuẩn bị",
-      approved: "Đã duyệt",
-      rejected: "Từ chối",
-      complete: "Hoàn tất",
-      completed: "Hoàn tất",
-      cancelled: "Đã hủy",
+      pending: t('manager.dispatch.list.statusPending'),
+      preparing: t('manager.dispatch.list.statusPreparing'),
+      approved: t('manager.dispatch.list.statusApproved'),
+      rejected: t('manager.dispatch.list.statusRejected'),
+      complete: t('manager.dispatch.list.statusComplete'),
+      completed: t('manager.dispatch.list.statusCompleted'),
+      cancelled: t('manager.dispatch.list.statusCancelled'),
     };
-    return map[key] || status || "Không rõ";
+    return map[key] || status || t('manager.dispatch.list.statusUnknown');
   };
 
   const canConfirm = (row) =>
@@ -170,17 +176,15 @@ export default function DispatchPanel({ user }) {
   /* ======= JSX ======= */
   return (
     <div className="dispatch-panel">
-      <h2 className="dispatch-title">📦 Điều phối pin</h2>
-      <p className="dispatch-desc">
-        Quản lý gửi yêu cầu điều phối pin về cho <b>Admin</b> phê duyệt.
-      </p>
+      <h2 className="dispatch-title">{t('manager.dispatch.title')}</h2>
+      <p className="dispatch-desc" dangerouslySetInnerHTML={{ __html: t('manager.dispatch.desc') }} />
 
       {/* Banner: nhắc không cần nhập tên trạm */}
       <div className="info-banner" role="status" aria-live="polite">
         <span className="info-dot" aria-hidden>ℹ️</span>
         <div>
-          <div><b>Gợi ý:</b> Bạn không cần chọn trạm.</div>
-          <div>Hệ thống sẽ tự gắn yêu cầu với <b>trạm của Manager đang đăng nhập</b>.</div>
+          <div><b>{t('manager.dispatch.infoBanner.title')}</b> {t('manager.dispatch.infoBanner.line1')}</div>
+          <div dangerouslySetInnerHTML={{ __html: t('manager.dispatch.infoBanner.line2') }} />
         </div>
       </div>
 
@@ -188,26 +192,26 @@ export default function DispatchPanel({ user }) {
       <form className="dispatch-form" onSubmit={handleSubmit}>
         <div className="form-grid">
           <div className="form-group">
-            <label>Loại pin</label>
+            <label>{t('manager.dispatch.form.batteryType')}</label>
             <select
               name="batteryName"
               value={form.batteryName}
               onChange={onChange}
               required
             >
-              <option value="">-- Chọn loại pin --</option>
+              <option value="">{t('manager.dispatch.form.selectBattery')}</option>
               {/* Giá trị nên khớp với tên trong bảng Battery_Type (Model) để DAO map chính xác */}
-              <option value="Lithium-ion">Lithium-ion</option>
-              <option value="LFP">LFP</option>
+              <option value="Lithium-ion">{t('manager.dispatch.form.lithium')}</option>
+              <option value="LFP">{t('manager.dispatch.form.lfp')}</option>
             </select>
-            <small className="hint">Tên hiển thị phải trùng “Model”/tên loại mà BE đang map.</small>
+            <small className="hint">{t('manager.dispatch.form.batteryHint')}</small>
           </div>
 
           <div className="form-group soh-col">
-            <label>Số lượng theo SoH</label>
+            <label>{t('manager.dispatch.form.quantityLabel')}</label>
             <div className="soh-row">
               <div>
-                <span>Good:</span>
+                <span>{t('manager.dispatch.form.good')}</span>
                 <input
                   type="number"
                   name="qtyGood"
@@ -219,7 +223,7 @@ export default function DispatchPanel({ user }) {
                 />
               </div>
               <div>
-                <span>Average:</span>
+                <span>{t('manager.dispatch.form.average')}</span>
                 <input
                   type="number"
                   name="qtyAverage"
@@ -231,7 +235,7 @@ export default function DispatchPanel({ user }) {
                 />
               </div>
               <div>
-                <span>Weak:</span>
+                <span>{t('manager.dispatch.form.weak')}</span>
                 <input
                   type="number"
                   name="qtyBad"
@@ -243,14 +247,12 @@ export default function DispatchPanel({ user }) {
                 />
               </div>
             </div>
-            <small className="hint">
-              Tổng số lượng phải &gt; 0. Hệ thống sẽ kiểm tra thêm ở máy chủ.
-            </small>
+            <small className="hint">{t('manager.dispatch.form.quantityHint')}</small>
           </div>
         </div>
 
         <button type="submit" className="dispatch-btn" disabled={loading}>
-          {loading ? "Đang gửi..." : "Gửi yêu cầu"}
+          {loading ? t('manager.dispatch.form.sending') : t('manager.dispatch.form.sendButton')}
         </button>
       </form>
 
@@ -261,27 +263,27 @@ export default function DispatchPanel({ user }) {
       )}
 
       {/* ==== DANH SÁCH ==== */}
-      <h3 className="dispatch-subtitle">📋 Yêu cầu đã gửi</h3>
+      <h3 className="dispatch-subtitle">{t('manager.dispatch.list.title')}</h3>
 
       <div className="table-wrapper">
         <table className="req-table">
           <thead>
             <tr>
-              <th>ID</th>
-              <th>Trạm gửi</th>
-              <th>Trạm nhận</th>
-              <th>Loại pin</th>
-              <th>Số lượng<br /><small>(Good/Avg/Weak • Tổng)</small></th>
-              <th>Thời gian Request</th>
-              <th>Tình trạng</th>
-              <th>Thao tác</th>
+              <th>{t('manager.dispatch.list.table.id')}</th>
+              <th>{t('manager.dispatch.list.table.requestStation')}</th>
+              <th>{t('manager.dispatch.list.table.respondStation')}</th>
+              <th>{t('manager.dispatch.list.table.batteryType')}</th>
+              <th>{t('manager.dispatch.list.table.quantity')}<br /><small>{t('manager.dispatch.list.table.quantitySub')}</small></th>
+              <th>{t('manager.dispatch.list.table.requestTime')}</th>
+              <th>{t('manager.dispatch.list.table.status')}</th>
+              <th>{t('manager.dispatch.list.table.actions')}</th>
             </tr>
           </thead>
           <tbody>
             {requests.length === 0 && (
               <tr>
                 <td colSpan="8" className="empty-cell">
-                  Chưa có yêu cầu nào.
+                  {t('manager.dispatch.list.empty')}
                 </td>
               </tr>
             )}
@@ -314,17 +316,17 @@ export default function DispatchPanel({ user }) {
                       onClick={() => handleConfirm(r.requestId)}
                       disabled={!canConfirm(r) || confirmingId === r.requestId}
                       className="btn-confirm"
-                      title="Xác nhận đã nhận pin"
+                      title={t('manager.dispatch.list.table.confirmTitle')}
                     >
-                      {confirmingId === r.requestId ? "Đang xác nhận…" : "Xác nhận"}
+                      {confirmingId === r.requestId ? t('manager.dispatch.list.table.confirming') : t('manager.dispatch.list.table.confirm')}
                     </button>
                     <button
                       type="button"
                       className="btn-outline"
                       onClick={loadRequests}
-                      title="Tải lại"
+                      title={t('manager.dispatch.list.table.refreshTitle')}
                     >
-                      ↻
+                      {t('manager.dispatch.list.table.refresh')}
                     </button>
                   </div>
                 </td>

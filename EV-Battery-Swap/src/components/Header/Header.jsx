@@ -179,8 +179,8 @@ export default function Header({ onLoginClick, user }) {
         />
 
         <div className="actions">
-          {/* Language switcher: only show for guest (no role) or driver. Hide for staff/admin and others */}
-          {(role === '' || role === 'driver') && (
+          {/* Language switcher: show for guest, driver, staff, admin, manager */}
+          {(role === '' || role === 'driver' || role === 'staff' || role === 'admin' || role === 'manager') && (
             <div className="language-switcher">
               <button
                 aria-label="Switch to English"

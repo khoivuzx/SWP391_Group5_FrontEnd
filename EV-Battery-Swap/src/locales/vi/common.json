@@ -311,6 +311,282 @@
       "history": "Lịch sử"
     }
   },
+  "staff": {
+    "title": "Dashboard Nhân viên Trạm",
+    "subtitle": "Quản lý tồn kho pin và Check In",
+    "kpi": {
+      "readyForDriver": "Chuẩn Driver (sẵn sàng đổi):",
+      "liion": "Li-ion:",
+      "lfp": "LFP:",
+      "total": "Tổng:"
+    },
+    "summary": {
+      "full": "Pin đầy",
+      "fullSub": "Sẵn sàng sử dụng",
+      "charging": "Đang sạc",
+      "chargingSub": "Đang nạp điện / Weak",
+      "maintenance": "Bảo dưỡng",
+      "maintenanceSub": "Damaged",
+      "reserved": "Đặt trước",
+      "reservedSub": "Reserved/Reversed"
+    },
+    "tabs": {
+      "inventory": "Tồn kho pin",
+      "checkin": "Check In",
+      "create": "Tạo Booking"
+    },
+    "inventory": {
+      "title": "Tình trạng trụ",
+      "desc": "Nhấn vào ảnh trụ ở trên để xem sơ đồ ô.",
+      "loading": "Đang tải dữ liệu…",
+      "error": "Lỗi:"
+    },
+    "checkin": {
+      "title": "Check In",
+      "desc": "Nhập Booking ID của khách để tiến hành Check In.",
+      "placeholder": "Nhập Booking ID",
+      "button": "Check In",
+      "processing": "Đang xử lý…",
+      "success": "Check In thành công",
+      "error": "Lỗi kết nối"
+    },
+    "createBooking": {
+      "title": "Tạo Booking",
+      "desc": "Nhập <b>Email</b> khách hàng, chọn <b>Trạm</b> & <b>Xe</b> để tạo booking.",
+      "emailLabel": "Email khách hàng",
+      "emailPlaceholder": "vd: khach@example.com",
+      "stationLabel": "Chọn trạm",
+      "vehicleLabel": "Chọn xe",
+      "noVehicles": "Chưa có xe — hãy \"Lấy xe\"",
+      "getVehicles": "Lấy xe",
+      "loadingVehicles": "Đang tải…",
+      "loadingStations": "Đang tải trạm…",
+      "noStations": "Không có dữ liệu trạm",
+      "createButton": "Tạo Booking",
+      "creating": "Đang tạo…",
+      "hint": "Hệ thống sẽ tự giữ pin phù hợp tại trạm trong 1 giờ.",
+      "success": "Tạo booking thành công",
+      "error": "Tạo booking thất bại",
+      "missingInfo": "Thiếu thông tin",
+      "missingInfoDesc": "Vui lòng nhập Email, chọn Trạm và chọn Xe trước khi tạo booking."
+    },
+    "station": {
+      "liion": "Trụ Li-ion",
+      "lfp": "Trụ LFP"
+    },
+    "slot": {
+      "empty": "Ô trống",
+      "noPin": "Hiện tại chưa có pin trong ô này.",
+      "location": "Vị trí:",
+      "addPin": "➕ Thêm pin",
+      "close": "Đóng",
+      "placeholder": "Ô này là placeholder (API không trả slot). Không thể gán pin.",
+      "serial": "Serial:",
+      "status": "Trạng thái:",
+      "health": "Sức khỏe:",
+      "code": "Mã slot:",
+      "lastCharge": "Sạc lần cuối:",
+      "removePin": "🧲 Gỡ pin",
+      "selectBattery": "Chọn pin để gắn vào",
+      "noAvailableBattery": "Không có pin khả dụng.",
+      "batteryType": "Loại pin",
+      "attach": "Gắn"
+    },
+    "message": {
+      "success": "Thành công",
+      "error": "Lỗi",
+      "assignSuccess": "✅ Gắn pin thành công!",
+      "assignFailed": "❌ Gắn pin thất bại:",
+      "removeSuccess": "✅ Đã gỡ pin khỏi ô.",
+      "removeFailed": "❌ Không thể gỡ pin:",
+      "loadPinFailed": "Không tải được danh sách pin khả dụng:",
+      "vehiclesLoaded": "Đã tải danh sách xe",
+      "vehiclesFound": "Tìm thấy {{count}} xe. Hãy chọn 1 xe để tạo booking.",
+      "noVehicles": "Không có xe nào cho email này.",
+      "close": "Đóng"
+    }
+  },
+  "admin": {
+    "title": "Hệ thống quản lí",
+    "subtitle": "Tổng quan hệ thống, báo cáo và phân tích dữ liệu",
+    "summary": {
+      "revenue": {
+        "title": "Tổng doanh thu tháng này",
+        "sub": "+12% so với tháng trước"
+      },
+      "stations": {
+        "title": "Tổng số trạm",
+        "sub": "3 hoạt động, 1 bảo trì"
+      },
+      "customers": {
+        "title": "Khách hàng",
+        "sub": "+85 người dùng mới"
+      },
+      "swaps": {
+        "title": "Lượt đổi pin",
+        "sub": "Trung bình 87/ngày"
+      }
+    },
+    "tabs": {
+      "overview": "Tổng quan",
+      "station": "Quản lý trạm",
+      "user": "Pin",
+      "analytics": "Phân tích"
+    },
+    "overview": {
+      "swapChart": {
+        "title": "Doanh thu & Lượt đổi pin",
+        "desc": "Tổng lượt đổi pin theo trạm (tháng hiện tại)",
+        "yLabel": "Lượt đổi",
+        "loading": "Đang tải dữ liệu…",
+        "noData": "Chưa có dữ liệu thống kê.",
+        "error": "Lỗi:"
+      },
+      "peakHours": {
+        "title": "Giờ cao điểm",
+        "desc": "Phân bổ lượt đổi pin theo giờ trong ngày"
+      },
+      "revenueStats": {
+        "title": "📊 Thống kê doanh thu tháng hiện tại",
+        "desc": "So sánh doanh thu đổi pin theo trạm và doanh thu thuê gói pin",
+        "swapRevenue": "Doanh thu đổi pin theo trạm",
+        "packageRevenue": "Doanh thu thuê gói pin",
+        "yLabel": "Doanh thu (₫)",
+        "loading": "Đang tải dữ liệu…",
+        "error": "Lỗi:",
+        "totalRevenue": "Tổng doanh thu tháng:",
+        "swaps": "Đổi pin:",
+        "packages": "Thuê gói:"
+      },
+      "aiSuggestion": {
+        "title": "AI Gợi ý nâng cấp hạ tầng",
+        "card1": {
+          "title": "Trạm Nguyễn Huệ - Mở rộng khuyến nghị",
+          "desc": "Nhu cầu tăng 45% trong giờ cao điểm. Đề xuất tăng thêm 5 pin để giảm thời gian chờ.",
+          "badge": "Ưu tiên cao"
+        },
+        "card2": {
+          "title": "Khu vực Q7 - Mở trạm mới",
+          "desc": "Phát hiện 300+ yêu cầu tìm kiếm từ khu vực Q7. ROI dự kiến 18 tháng.",
+          "badge": "Ưu tiên trung bình"
+        }
+      }
+    },
+    "dispatch": {
+      "title": "📦 Xem điều phối pin (yêu cầu đang chờ)",
+      "refresh": "Làm mới",
+      "loading": "Đang tải danh sách…",
+      "error": "Lỗi:",
+      "noRequests": "Không có yêu cầu nào đang chờ.",
+      "table": {
+        "id": "#",
+        "requestStation": "Trạm yêu cầu",
+        "batteryType": "Loại pin",
+        "good": "Tốt",
+        "average": "Trung bình",
+        "bad": "Xấu",
+        "status": "Trạng thái",
+        "time": "Thời gian",
+        "actions": "Hành động",
+        "approve": "Chấp nhận",
+        "cancel": "Hủy"
+      },
+      "promptStation": "Nhập tên trạm xuất pin (stationRespondName):",
+      "approved": "Đã chuyển yêu cầu sang PREPARING.",
+      "cancelled": "Đã hủy yêu cầu.",
+      "failed": "Xử lý thất bại.",
+      "notLoggedIn": "Bạn chưa đăng nhập Admin."
+    },
+    "stationManager": {
+      "title": "🏢 Danh sách trạm & trụ sạc",
+      "refresh": "Làm mới",
+      "loading": "Đang tải danh sách…",
+      "error": "Lỗi:",
+      "noStations": "Chưa có trạm nào trong hệ thống.",
+      "stationCount": "Trạm:",
+      "chargingCount": "Trụ sạc:",
+      "edit": "Sửa",
+      "show": "Hiện",
+      "hide": "Ẩn",
+      "chargingStations": "trụ sạc",
+      "noCharging": "Trạm này chưa có trụ sạc.",
+      "table": {
+        "id": "#CS",
+        "name": "Tên trụ",
+        "capacity": "Sức chứa",
+        "slotType": "Loại slot",
+        "power": "Công suất"
+      },
+      "editModal": {
+        "title": "Sửa trạm #{{id}}",
+        "syncMode": "Xoá các trụ **không có** trong danh sách (syncMode = delete-missing)",
+        "stationName": "Tên trạm",
+        "address": "Địa chỉ",
+        "chargingStations": "Trụ sạc",
+        "powerPlaceholder": "vd: 7.5 hoặc 11",
+        "removeRow": "Xoá hàng",
+        "addCharging": "+ Thêm trụ sạc",
+        "cancel": "Hủy",
+        "save": "Lưu cập nhật",
+        "saving": "Đang lưu…",
+        "success": "Cập nhật trạm & trụ sạc thành công.",
+        "failed": "Cập nhật thất bại."
+      }
+    },
+    "packages": {
+      "title": "🔋 Danh sách gói pin (active)",
+      "refresh": "Làm mới",
+      "loading": "Đang tải danh sách…",
+      "error": "Lỗi:",
+      "noPackages": "Không có gói nào.",
+      "table": {
+        "id": "#ID",
+        "name": "Tên gói",
+        "desc": "Mô tả",
+        "price": "Giá (₫)",
+        "requiredSoH": "Required SoH",
+        "min": "Min",
+        "max": "Max",
+        "status": "Trạng thái",
+        "actions": "Hành động",
+        "edit": "Sửa",
+        "delete": "Xóa"
+      },
+      "editModal": {
+        "title": "Sửa gói #{{id}}",
+        "name": "Tên gói",
+        "price": "Giá (₫)",
+        "requiredSoH": "Required SoH (%)",
+        "minSoH": "Min SoH (%)",
+        "maxSoH": "Max SoH (%)",
+        "status": "Trạng thái",
+        "active": "active",
+        "inactive": "inactive",
+        "description": "Mô tả",
+        "cancel": "Hủy",
+        "save": "Lưu",
+        "success": "Cập nhật gói pin thành công.",
+        "failed": "Cập nhật thất bại.",
+        "validation": {
+          "nameRequired": "Tên gói không được trống.",
+          "priceInvalid": "Giá phải >= 0.",
+          "sohInvalid": "Khoảng SoH không hợp lệ (0 ≤ min ≤ max ≤ 100)."
+        }
+      },
+      "deleteConfirm": "Xóa (soft delete) gói #{{id}}?",
+      "deleteSuccess": "Đã xóa (set Status=inactive).",
+      "deleteFailed": "Xóa thất bại."
+    },
+    "analytics": {
+      "title": "Báo cáo & thống kê",
+      "features": [
+        "Doanh thu, số lượt đổi pin",
+        "Báo cáo tần suất đổi pin, giờ cao điểm",
+        "AI gợi ý dự báo nhu cầu sử dụng trạm đổi pin để nâng cấp hạ tầng"
+      ],
+      "developing": "Tính năng đang phát triển..."
+    }
+  },
   "policies": {
     "header": {
       "title": "Làm cho trải nghiệm của bạn nhiều hơn",
@@ -448,5 +724,67 @@
       "faq": "Câu hỏi thường gặp"
     },
     "copyrightPrefix": "© {{year}} MyBrand."
+  },
+  "manager": {
+    "dispatch": {
+      "title": "📦 Điều phối pin",
+      "desc": "Quản lý gửi yêu cầu điều phối pin về cho <b>Admin</b> phê duyệt.",
+      "infoBanner": {
+        "title": "Gợi ý:",
+        "line1": "Bạn không cần chọn trạm.",
+        "line2": "Hệ thống sẽ tự gắn yêu cầu với <b>trạm của Manager đang đăng nhập</b>."
+      },
+      "form": {
+        "batteryType": "Loại pin",
+        "selectBattery": "-- Chọn loại pin --",
+        "lithium": "Lithium-ion",
+        "lfp": "LFP",
+        "batteryHint": "Tên hiển thị phải trùng \"Model\"/tên loại mà BE đang map.",
+        "quantityLabel": "Số lượng theo SoH",
+        "good": "Good:",
+        "average": "Average:",
+        "weak": "Weak:",
+        "quantityHint": "Tổng số lượng phải > 0. Hệ thống sẽ kiểm tra thêm ở máy chủ.",
+        "sendButton": "Gửi yêu cầu",
+        "sending": "Đang gửi...",
+        "selectBatteryError": "Vui lòng chọn loại pin.",
+        "quantityError": "Tổng số lượng phải > 0."
+      },
+      "result": {
+        "successPrefix": "Gửi yêu cầu thành công (Mã #",
+        "successSuffix": ")"
+      },
+      "list": {
+        "title": "📋 Yêu cầu đã gửi",
+        "table": {
+          "id": "ID",
+          "requestStation": "Trạm gửi",
+          "respondStation": "Trạm nhận",
+          "batteryType": "Loại pin",
+          "quantity": "Số lượng",
+          "quantitySub": "(Good/Avg/Weak • Tổng)",
+          "requestTime": "Thời gian Request",
+          "status": "Tình trạng",
+          "actions": "Thao tác",
+          "confirm": "Xác nhận",
+          "confirming": "Đang xác nhận…",
+          "refresh": "↻",
+          "confirmTitle": "Xác nhận đã nhận pin",
+          "refreshTitle": "Tải lại"
+        },
+        "empty": "Chưa có yêu cầu nào.",
+        "statusPending": "Đang chờ",
+        "statusPreparing": "Đang chuẩn bị",
+        "statusApproved": "Đã duyệt",
+        "statusRejected": "Từ chối",
+        "statusComplete": "Hoàn tất",
+        "statusCompleted": "Hoàn tất",
+        "statusCancelled": "Đã hủy",
+        "statusUnknown": "Không rõ"
+      },
+      "confirmSuccess": "Xác nhận thành công. Đã chuyển Good:{{good}} / Avg:{{avg}} / Weak:{{bad}}",
+      "confirmWarning": " — Cảnh báo: {{warning}}",
+      "confirmError": "Xác nhận thất bại."
+    }
   }
 }

@@ -424,6 +424,282 @@
       "history": "History"
     }
   },
+  "staff": {
+    "title": "Station Staff Dashboard",
+    "subtitle": "Battery inventory management and Check-In",
+    "kpi": {
+      "readyForDriver": "Driver Ready (ready to swap):",
+      "liion": "Li-ion:",
+      "lfp": "LFP:",
+      "total": "Total:"
+    },
+    "summary": {
+      "full": "Full batteries",
+      "fullSub": "Ready to use",
+      "charging": "Charging",
+      "chargingSub": "Charging / Weak",
+      "maintenance": "Maintenance",
+      "maintenanceSub": "Damaged",
+      "reserved": "Reserved",
+      "reservedSub": "Reserved/Reversed"
+    },
+    "tabs": {
+      "inventory": "Battery inventory",
+      "checkin": "Check In",
+      "create": "Create Booking"
+    },
+    "inventory": {
+      "title": "Station status",
+      "desc": "Click on the station images above to view the slot diagram.",
+      "loading": "Loading data…",
+      "error": "Error:"
+    },
+    "checkin": {
+      "title": "Check In",
+      "desc": "Enter the customer's Booking ID to proceed with Check-In.",
+      "placeholder": "Enter Booking ID",
+      "button": "Check In",
+      "processing": "Processing…",
+      "success": "Check-in successful",
+      "error": "Connection error"
+    },
+    "createBooking": {
+      "title": "Create Booking",
+      "desc": "Enter customer <b>Email</b>, select <b>Station</b> & <b>Vehicle</b> to create booking.",
+      "emailLabel": "Customer email",
+      "emailPlaceholder": "e.g. customer@example.com",
+      "stationLabel": "Select station",
+      "vehicleLabel": "Select vehicle",
+      "noVehicles": "No vehicles — please \"Get Vehicles\"",
+      "getVehicles": "Get Vehicles",
+      "loadingVehicles": "Loading…",
+      "loadingStations": "Loading stations…",
+      "noStations": "No station data",
+      "createButton": "Create Booking",
+      "creating": "Creating…",
+      "hint": "The system will automatically reserve a suitable battery at the station for 1 hour.",
+      "success": "Booking created successfully",
+      "error": "Booking creation failed",
+      "missingInfo": "Missing information",
+      "missingInfoDesc": "Please enter Email, select Station and Vehicle before creating booking."
+    },
+    "station": {
+      "liion": "Li-ion Station",
+      "lfp": "LFP Station"
+    },
+    "slot": {
+      "empty": "Empty slot",
+      "noPin": "Currently no battery in this slot.",
+      "location": "Location:",
+      "addPin": "➕ Add battery",
+      "close": "Close",
+      "placeholder": "This slot is placeholder (API doesn't return slot). Cannot assign battery.",
+      "serial": "Serial:",
+      "status": "Status:",
+      "health": "Health:",
+      "code": "Slot code:",
+      "lastCharge": "Last charged:",
+      "removePin": "🧲 Remove battery",
+      "selectBattery": "Select battery to attach to",
+      "noAvailableBattery": "No batteries available.",
+      "batteryType": "Battery type",
+      "attach": "Attach"
+    },
+    "message": {
+      "success": "Success",
+      "error": "Error",
+      "assignSuccess": "✅ Battery assigned successfully!",
+      "assignFailed": "❌ Battery assignment failed:",
+      "removeSuccess": "✅ Battery removed from slot.",
+      "removeFailed": "❌ Cannot remove battery:",
+      "loadPinFailed": "Cannot load available battery list:",
+      "vehiclesLoaded": "Vehicle list loaded",
+      "vehiclesFound": "Found {{count}} vehicles. Please select 1 vehicle to create booking.",
+      "noVehicles": "No vehicles for this email.",
+      "close": "Close"
+    }
+  },
+  "admin": {
+    "title": "System Management",
+    "subtitle": "System overview, reporting and data analysis",
+    "summary": {
+      "revenue": {
+        "title": "Total revenue this month",
+        "sub": "+12% from last month"
+      },
+      "stations": {
+        "title": "Total stations",
+        "sub": "3 active, 1 maintenance"
+      },
+      "customers": {
+        "title": "Customers",
+        "sub": "+85 new users"
+      },
+      "swaps": {
+        "title": "Battery swaps",
+        "sub": "Average 87/day"
+      }
+    },
+    "tabs": {
+      "overview": "Overview",
+      "station": "Station management",
+      "user": "Batteries",
+      "analytics": "Analytics"
+    },
+    "overview": {
+      "swapChart": {
+        "title": "Revenue & Battery swaps",
+        "desc": "Total battery swaps by station (current month)",
+        "yLabel": "Swaps",
+        "loading": "Loading data…",
+        "noData": "No statistics available yet.",
+        "error": "Error:"
+      },
+      "peakHours": {
+        "title": "Peak hours",
+        "desc": "Battery swap distribution by hour of day"
+      },
+      "revenueStats": {
+        "title": "📊 Monthly revenue statistics",
+        "desc": "Compare swap revenue by station and package rental revenue",
+        "swapRevenue": "Swap revenue by station",
+        "packageRevenue": "Package rental revenue",
+        "yLabel": "Revenue (₫)",
+        "loading": "Loading data…",
+        "error": "Error:",
+        "totalRevenue": "Total monthly revenue:",
+        "swaps": "Swaps:",
+        "packages": "Packages:"
+      },
+      "aiSuggestion": {
+        "title": "AI infrastructure upgrade suggestions",
+        "card1": {
+          "title": "Nguyen Hue Station - Expansion recommended",
+          "desc": "Demand increased 45% during peak hours. Recommend adding 5 more batteries to reduce wait time.",
+          "badge": "High priority"
+        },
+        "card2": {
+          "title": "District 7 - New station",
+          "desc": "Detected 300+ search requests from District 7 area. Expected ROI 18 months.",
+          "badge": "Medium priority"
+        }
+      }
+    },
+    "dispatch": {
+      "title": "📦 View battery dispatch (pending requests)",
+      "refresh": "Refresh",
+      "loading": "Loading list…",
+      "error": "Error:",
+      "noRequests": "No pending requests.",
+      "table": {
+        "id": "#",
+        "requestStation": "Requesting station",
+        "batteryType": "Battery type",
+        "good": "Good",
+        "average": "Average",
+        "bad": "Bad",
+        "status": "Status",
+        "time": "Time",
+        "actions": "Actions",
+        "approve": "Approve",
+        "cancel": "Cancel"
+      },
+      "promptStation": "Enter responding station name (stationRespondName):",
+      "approved": "Request moved to PREPARING.",
+      "cancelled": "Request cancelled.",
+      "failed": "Processing failed.",
+      "notLoggedIn": "You are not logged in as Admin."
+    },
+    "stationManager": {
+      "title": "🏢 Station & charging station list",
+      "refresh": "Refresh",
+      "loading": "Loading list…",
+      "error": "Error:",
+      "noStations": "No stations in the system yet.",
+      "stationCount": "Stations:",
+      "chargingCount": "Charging stations:",
+      "edit": "Edit",
+      "show": "Show",
+      "hide": "Hide",
+      "chargingStations": "charging stations",
+      "noCharging": "This station has no charging stations yet.",
+      "table": {
+        "id": "#CS",
+        "name": "Station name",
+        "capacity": "Capacity",
+        "slotType": "Slot type",
+        "power": "Power"
+      },
+      "editModal": {
+        "title": "Edit station #{{id}}",
+        "syncMode": "Delete stations **not** in the list (syncMode = delete-missing)",
+        "stationName": "Station name",
+        "address": "Address",
+        "chargingStations": "Charging stations",
+        "powerPlaceholder": "e.g. 7.5 or 11",
+        "removeRow": "Remove row",
+        "addCharging": "+ Add charging station",
+        "cancel": "Cancel",
+        "save": "Save update",
+        "saving": "Saving…",
+        "success": "Station & charging stations updated successfully.",
+        "failed": "Update failed."
+      }
+    },
+    "packages": {
+      "title": "🔋 Battery package list (active)",
+      "refresh": "Refresh",
+      "loading": "Loading list…",
+      "error": "Error:",
+      "noPackages": "No packages.",
+      "table": {
+        "id": "#ID",
+        "name": "Package name",
+        "desc": "Description",
+        "price": "Price (₫)",
+        "requiredSoH": "Required SoH",
+        "min": "Min",
+        "max": "Max",
+        "status": "Status",
+        "actions": "Actions",
+        "edit": "Edit",
+        "delete": "Delete"
+      },
+      "editModal": {
+        "title": "Edit package #{{id}}",
+        "name": "Package name",
+        "price": "Price (₫)",
+        "requiredSoH": "Required SoH (%)",
+        "minSoH": "Min SoH (%)",
+        "maxSoH": "Max SoH (%)",
+        "status": "Status",
+        "active": "active",
+        "inactive": "inactive",
+        "description": "Description",
+        "cancel": "Cancel",
+        "save": "Save",
+        "success": "Package updated successfully.",
+        "failed": "Update failed.",
+        "validation": {
+          "nameRequired": "Package name cannot be empty.",
+          "priceInvalid": "Price must be >= 0.",
+          "sohInvalid": "SoH range invalid (0 ≤ min ≤ max ≤ 100)."
+        }
+      },
+      "deleteConfirm": "Delete (soft delete) package #{{id}}?",
+      "deleteSuccess": "Deleted (set Status=inactive).",
+      "deleteFailed": "Delete failed."
+    },
+    "analytics": {
+      "title": "Reports & statistics",
+      "features": [
+        "Revenue, number of battery swaps",
+        "Swap frequency reports, peak hours",
+        "AI suggestions predict battery station usage demand for infrastructure upgrades"
+      ],
+      "developing": "Feature under development..."
+    }
+  },
   "footer": {
     "smartVehicles": {
       "title": "Smart Vehicles",
@@ -444,5 +720,67 @@
       "faq": "FAQ"
     },
     "copyrightPrefix": "© {{year}} MyBrand."
+  },
+  "manager": {
+    "dispatch": {
+      "title": "📦 Battery Dispatch",
+      "desc": "Manager sends battery dispatch request to <b>Admin</b> for approval.",
+      "infoBanner": {
+        "title": "Tip:",
+        "line1": "You don't need to select a station.",
+        "line2": "The system will automatically assign the request to the <b>logged-in Manager's station</b>."
+      },
+      "form": {
+        "batteryType": "Battery type",
+        "selectBattery": "-- Select battery type --",
+        "lithium": "Lithium-ion",
+        "lfp": "LFP",
+        "batteryHint": "Display name must match the \"Model\" name that BE is mapping.",
+        "quantityLabel": "Quantity by SoH",
+        "good": "Good:",
+        "average": "Average:",
+        "weak": "Weak:",
+        "quantityHint": "Total quantity must be > 0. The system will do additional checks on the server.",
+        "sendButton": "Send request",
+        "sending": "Sending...",
+        "selectBatteryError": "Please select a battery type.",
+        "quantityError": "Total quantity must be > 0."
+      },
+      "result": {
+        "successPrefix": "Request sent successfully (Code #",
+        "successSuffix": ")"
+      },
+      "list": {
+        "title": "📋 Sent requests",
+        "table": {
+          "id": "ID",
+          "requestStation": "Requesting station",
+          "respondStation": "Responding station",
+          "batteryType": "Battery type",
+          "quantity": "Quantity",
+          "quantitySub": "(Good/Avg/Weak • Total)",
+          "requestTime": "Request time",
+          "status": "Status",
+          "actions": "Actions",
+          "confirm": "Confirm",
+          "confirming": "Confirming…",
+          "refresh": "↻",
+          "confirmTitle": "Confirm received batteries",
+          "refreshTitle": "Reload"
+        },
+        "empty": "No requests yet.",
+        "statusPending": "Pending",
+        "statusPreparing": "Preparing",
+        "statusApproved": "Approved",
+        "statusRejected": "Rejected",
+        "statusComplete": "Complete",
+        "statusCompleted": "Complete",
+        "statusCancelled": "Cancelled",
+        "statusUnknown": "Unknown"
+      },
+      "confirmSuccess": "Confirmation successful. Moved Good:{{good}} / Avg:{{avg}} / Weak:{{bad}}",
+      "confirmWarning": " — Warning: {{warning}}",
+      "confirmError": "Confirmation failed."
+    }
   }
 }

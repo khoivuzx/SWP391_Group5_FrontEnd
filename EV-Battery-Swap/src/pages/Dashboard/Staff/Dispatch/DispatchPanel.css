@@ -1,96 +1,121 @@
 /* ===== Layout tổng ===== */
 .dispatch-panel {
-  max-width: 960px;
-  margin: 40px auto;
-  background: #ffffff;
-  padding: 32px;
-  border-radius: 16px;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
-  font-family: 'Inter', sans-serif;
+  max-width: 1200px;
+  margin: 60px auto 40px;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  padding: 40px;
+  border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
   color: #1f2937;
+  border: 1px solid rgba(226, 232, 240, 0.6);
 }
 
 .dispatch-title {
-  font-size: 1.8rem;
-  font-weight: 700;
-  color: #0f172a;
-  margin-bottom: 8px;
+  font-size: 2rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 12px;
+  letter-spacing: -0.5px;
 }
 
 .dispatch-desc {
   color: #64748b;
-  margin-bottom: 16px;
+  margin-bottom: 24px;
+  font-size: 1rem;
+  line-height: 1.6;
 }
 
 /* ===== Info banner ===== */
 .info-banner {
   display: flex;
-  gap: 10px;
+  gap: 14px;
   align-items: flex-start;
-  padding: 12px 14px;
-  border-radius: 12px;
-  background: #eef2ff;       /* indigo-50 */
-  border: 1px solid #e5e7eb; /* neutral-200 */
+  padding: 16px 20px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+  border: 2px solid #c7d2fe;
   color: #1e293b;
-  margin-bottom: 24px;
+  margin-bottom: 28px;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.1);
 }
 .info-banner .info-dot {
-  font-size: 18px;
+  font-size: 22px;
   line-height: 1;
+  filter: drop-shadow(0 2px 4px rgba(99, 102, 241, 0.2));
 }
 
 /* ===== Form ===== */
 .dispatch-form {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 24px;
+  background: white;
+  padding: 28px;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+  border: 1px solid #e2e8f0;
 }
 
 .form-grid {
   display: grid;
-  grid-template-columns: 1fr 1.4fr;
-  gap: 20px;
+  grid-template-columns: 1fr 1.5fr;
+  gap: 24px;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .form-group label {
-  font-weight: 600;
-  font-size: 0.9rem;
-  color: #334155;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #0f172a;
+  letter-spacing: -0.2px;
 }
 
 input,
 select,
 textarea {
-  padding: 10px 12px;
-  border-radius: 10px;
-  border: 1.5px solid #cbd5e1;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 2px solid #e2e8f0;
   font-size: 0.95rem;
-  transition: 0.2s border, 0.2s box-shadow;
+  transition: all 0.2s ease;
   outline: none;
   background: #fff;
+  font-family: inherit;
 }
 
 input:focus,
 select:focus,
 textarea:focus {
   border-color: #0ea5e9;
-  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.18);
+  box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.12);
+  background: #f8fafc;
+}
+
+input:hover,
+select:hover,
+textarea:hover {
+  border-color: #cbd5e1;
 }
 
 textarea {
   resize: vertical;
-  min-height: 70px;
+  min-height: 80px;
 }
 
 .hint {
   color: #64748b;
-  font-size: 12px;
+  font-size: 13px;
+  line-height: 1.5;
+  margin-top: 4px;
 }
 
 /* ===== SoH Row ===== */
@@ -101,72 +126,112 @@ textarea {
 .soh-row {
   display: flex;
   justify-content: space-between;
-  gap: 12px;
-  background: #f8fafc;
-  padding: 10px;
-  border: 1px dashed #e2e8f0;
-  border-radius: 12px;
+  gap: 16px;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  padding: 16px;
+  border: 2px dashed #cbd5e1;
+  border-radius: 14px;
 }
 
 .soh-row div {
   flex: 1;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+  padding: 8px;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .soh-row span {
-  width: 78px;
+  font-weight: 700;
+  color: #0f172a;
+  font-size: 0.85rem;
+  letter-spacing: 0.3px;
+}
+
+.soh-row input {
+  text-align: center;
   font-weight: 600;
-  color: #334155;
+  font-size: 1.1rem;
 }
 
 /* ===== Buttons ===== */
 .dispatch-btn {
   align-self: flex-start;
-  background: #0ea5e9;
+  background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
   color: white;
   font-weight: 700;
+  font-size: 1rem;
   border: none;
-  padding: 10px 20px;
-  border-radius: 10px;
-  transition: 0.2s transform, 0.2s background;
+  padding: 14px 32px;
+  border-radius: 12px;
+  transition: all 0.3s ease;
   cursor: pointer;
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.25);
+  letter-spacing: 0.3px;
 }
 .dispatch-btn:hover:not(:disabled) {
-  background: #0284c7;
-  transform: translateY(-1px);
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(14, 165, 233, 0.35);
+}
+.dispatch-btn:active:not(:disabled) {
+  transform: translateY(0);
 }
 .dispatch-btn:disabled {
-  background: #bae6fd;
+  background: linear-gradient(135deg, #bae6fd 0%, #7dd3fc 100%);
   cursor: not-allowed;
+  box-shadow: none;
+  opacity: 0.7;
 }
 
 /* Kết quả */
 .dispatch-result {
-  margin-top: 16px;
-  padding: 12px 16px;
-  border-radius: 10px;
+  margin-top: 20px;
+  padding: 16px 20px;
+  border-radius: 14px;
   font-weight: 600;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
-.dispatch-result.success { background: #dcfce7; color: #166534; }
-.dispatch-result.error   { background: #fee2e2; color: #991b1b; }
+.dispatch-result.success { 
+  background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%); 
+  color: #15803d;
+  border: 2px solid #86efac;
+}
+.dispatch-result.error { 
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); 
+  color: #991b1b;
+  border: 2px solid #fca5a5;
+}
 
 /* ===== Tiêu đề danh sách ===== */
 .dispatch-subtitle {
-  margin-top: 28px;
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: #0f172a;
+  margin-top: 40px;
+  font-size: 1.5rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #0f172a 0%, #334155 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -0.3px;
+  margin-bottom: 16px;
 }
 
 /* ===== Bảng danh sách yêu cầu ===== */
 .table-wrapper {
-  margin-top: 12px;
+  margin-top: 16px;
   overflow-x: auto;
-  border-radius: 12px;
+  border-radius: 16px;
   background: #ffffff;
-  border: 1px solid #e2e8f0;
+  border: 2px solid #e2e8f0;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
 }
 
 .req-table {
@@ -177,109 +242,189 @@ textarea {
 
 .req-table thead th {
   text-align: left;
-  background: #f8fafc;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
   color: #0f172a;
   font-weight: 800;
-  padding: 12px 14px;
-  border-bottom: 1px solid #e2e8f0;
-  font-size: 0.92rem;
+  padding: 16px 18px;
+  border-bottom: 2px solid #cbd5e1;
+  font-size: 0.9rem;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  font-size: 0.8rem;
 }
 
 .req-table thead th small {
   color: #94a3b8;
   font-weight: 600;
+  text-transform: none;
+  font-size: 0.75rem;
 }
 
 .req-table tbody td {
-  padding: 12px 14px;
-  border-bottom: 1px solid #eef2f7;
+  padding: 16px 18px;
+  border-bottom: 1px solid #f1f5f9;
   color: #334155;
-  vertical-align: top;
+  vertical-align: middle;
   font-size: 0.9rem;
+  background: white;
+}
+
+.req-table tbody tr {
+  transition: all 0.2s ease;
 }
 
 .req-table tbody tr:hover {
-  background: #f9fbff;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  transform: scale(1.005);
+  box-shadow: 0 2px 8px rgba(14, 165, 233, 0.1);
 }
 
 .id-cell {
   font-weight: 800;
   color: #0ea5e9;
   white-space: nowrap;
+  font-size: 1rem;
 }
 
 .empty-cell {
   text-align: center;
   color: #94a3b8;
-  padding: 20px 0;
+  padding: 40px 0;
   font-style: italic;
+  font-size: 1rem;
 }
 
 /* ===== Badge trạng thái ===== */
 .status-badge {
   display: inline-block;
-  padding: 5px 10px;
-  border-radius: 999px;
-  font-size: 0.78rem;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.8rem;
   font-weight: 800;
   color: #fff;
-  text-transform: capitalize;
-  border: 1px solid transparent;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border: 2px solid transparent;
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  transition: all 0.2s ease;
 }
 
-.status-badge.pending   { background: #fbbf24; }
-.status-badge.approved  { background: #22c55e; }
-.status-badge.rejected  { background: #ef4444; }
-.status-badge.complete  { background: #3b82f6; }
-.status-badge.completed { background: #2563eb; }
-.status-badge.cancelled { background: #9ca3af; }
+.status-badge:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.status-badge.pending   { 
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  border-color: #fcd34d;
+}
+.status-badge.approved  { 
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  border-color: #4ade80;
+}
+.status-badge.rejected  { 
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  border-color: #f87171;
+}
+.status-badge.complete  { 
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  border-color: #60a5fa;
+}
+.status-badge.completed { 
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  border-color: #3b82f6;
+}
+.status-badge.cancelled { 
+  background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%);
+  border-color: #d1d5db;
+}
 
 /* 🟡 Đang chuẩn bị (preparing) – nền vàng nhạt */
 .status-badge.preparing{
-  background:#FEF3C7;        /* amber-100 */
-  color:#92400E;             /* amber-900 */
-  border-color:#F59E0B;      /* amber-500 */
+  background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+  color: #92400E;
+  border-color: #FCD34D;
+  box-shadow: 0 2px 6px rgba(245, 158, 11, 0.25);
 }
 
 /* ===== Action buttons in table ===== */
 .btn-confirm {
-  background: #16a34a;
+  background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
   color: #fff;
-  padding: 8px 12px;
-  border-radius: 10px;
-  border: 1px solid transparent;
+  padding: 10px 20px;
+  border-radius: 12px;
+  border: 2px solid transparent;
   font-weight: 700;
+  font-size: 0.85rem;
   cursor: pointer;
-  transition: 0.2s transform, 0.2s background;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(22, 163, 74, 0.25);
+  letter-spacing: 0.3px;
 }
 .btn-confirm:hover:not(:disabled) {
-  background: #15803d;
-  transform: translateY(-1px);
+  background: linear-gradient(135deg, #15803d 0%, #166534 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.35);
+  border-color: #86efac;
+}
+.btn-confirm:active:not(:disabled) {
+  transform: translateY(0);
 }
 .btn-confirm:disabled {
-  background: #bbf7d0;
+  background: linear-gradient(135deg, #bbf7d0 0%, #86efac 100%);
   cursor: not-allowed;
+  box-shadow: none;
+  opacity: 0.6;
 }
 
 .btn-outline {
-  background: #fff;
+  background: white;
   color: #0f172a;
-  padding: 8px 10px;
-  border-radius: 10px;
-  border: 1px solid #e2e8f0;
+  padding: 10px 16px;
+  border-radius: 12px;
+  border: 2px solid #e2e8f0;
   font-weight: 700;
+  font-size: 0.85rem;
   cursor: pointer;
-  transition: 0.2s transform, 0.2s background;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 .btn-outline:hover {
-  background: #f1f5f9;
-  transform: translateY(-1px);
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  transform: translateY(-2px);
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+.btn-outline:active {
+  transform: translateY(0);
 }
 
 /* ===== Responsive ===== */
 @media (max-width: 768px) {
-  .dispatch-panel { padding: 20px; }
-  .form-grid { grid-template-columns: 1fr; }
-  .soh-col { grid-column: span 1; }
-  .req-table { min-width: 700px; }
+  .dispatch-panel { 
+    padding: 24px;
+    margin: 40px 16px;
+  }
+  .dispatch-title {
+    font-size: 1.6rem;
+  }
+  .form-grid { 
+    grid-template-columns: 1fr;
+  }
+  .soh-col { 
+    grid-column: span 1;
+  }
+  .soh-row {
+    flex-direction: column;
+  }
+  .req-table { 
+    min-width: 700px;
+  }
+  .dispatch-btn {
+    width: 100%;
+    text-align: center;
+  }
 }

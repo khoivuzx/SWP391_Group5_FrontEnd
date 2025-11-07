@@ -289,10 +289,7 @@ select.input{
 
 /* Nút Đóng của modal trụ chỉ hiện khi KHÔNG có overlay con */
 .station-modal-footer{ visibility: visible; }
-.station-modal-backdrop:has(.station-popup-backdrop),
-.station-modal-backdrop:has(.modal-backdrop){
-  /* khi popup slot hoặc selector pin mở thì ẩn footer của modal trụ */
-}
+/* khi popup slot hoặc selector pin mở thì ẩn footer của modal trụ */
 .station-modal-backdrop:has(.station-popup-backdrop) .station-modal-footer,
 .station-modal-backdrop:has(.modal-backdrop) .station-modal-footer{
   visibility: hidden;

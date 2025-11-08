@@ -1,14 +1,18 @@
 // src/pages/Dashboard/Staff/staff.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import { useSearchParams, Navigate } from "react-router-dom";
-import { useTranslation } from "react-i18next";
 import "./staff.css";
 import API_BASE_URL from "../../../config";
 import DispatchPanel from "./Dispatch/DispatchPanel";
 
+const tabs = [
+  { label: "Tồn kho pin", value: "inventory" },
+  { label: "Check In", value: "checkin" },
+  { label: "Tạo Booking", value: "create" },
+];
+
 /* ========= MessageBox ========= */
 function MessageBox({ open, title, children, onClose, tone = "info" }) {
-  const { t } = useTranslation();
   if (!open) return null;
   const ICON = { success: "✅", error: "⚠️", info: "ℹ️" }[tone] || "ℹ️";
   return (
@@ -20,7 +24,7 @@ function MessageBox({ open, title, children, onClose, tone = "info" }) {
         </div>
         <div className="msgbox-body">{children}</div>
         <div className="msgbox-actions">
-          <button className="detail-btn" onClick={onClose}>{t('staff.message.close')}</button>
+          <button className="detail-btn" onClick={onClose}>Đóng</button>
         </div>
       </div>
     </div>
@@ -29,7 +33,6 @@ function MessageBox({ open, title, children, onClose, tone = "info" }) {
 
 /* ========= MOCKUP TRỤ (có Gán pin + Gỡ pin) ========= */
 function PinStationMockup({ slots, title, onReload }) {
-  const { t } = useTranslation();
   const [selectedIndex, setSelectedIndex] = useState(null);
   const [avail, setAvail] = useState([]);
   const [showSelect, setShowSelect] = useState(false);
@@ -55,15 +58,16 @@ function PinStationMockup({ slots, title, onReload }) {
   const selected = selectedIndex != null ? gridSlots[selectedIndex] : null;
 
   function colorOf(s) {
-    if (!s || s.__placeholder || !s.batteryId) return "#e5e7eb"; // Empty/placeholder
-    const st = String(s.state || "").toLowerCase();
-    const cd = String(s.condition || "").toLowerCase();
-    if (cd === "damage" || cd === "damaged") return "#000000";   // Damaged
-    if (cd === "weak" || cd === "charging" || st === "charging") return "#ef4444"; // Weak/Charging
-    if (st === "reserved" || st === "reversed") return "#fbbf24"; // Reserved
-    if (st === "occupied" && cd === "good") return "#22c55e";     // Ready
-    return "#d1d5db";
-  }
+  if (!s || s.__placeholder || !s.batteryId) return "#e5e7eb"; // Empty/placeholder
+  const st = String(s.state || "").toLowerCase();
+  const cd = String(s.condition || "").toLowerCase(); // ✅ sửa: bỏ chữ 'a' thừa
+  if (cd === "damage" || cd === "damaged") return "#000000";   // Damaged
+  if (cd === "weak" || cd === "charging" || st === "charging") return "#ef4444"; // Weak/Charging
+  if (st === "reserved" || st === "reversed") return "#fbbf24"; // Reserved
+  if (st === "occupied" && cd === "good") return "#22c55e";     // Ready
+  return "#d1d5db";
+}
+
 
   // ====== Lấy danh sách pin có sẵn, chuẩn hoá và hiển thị loại pin ======
   async function openAddBattery() {
@@ -89,7 +93,6 @@ function PinStationMockup({ slots, title, onReload }) {
         const resistance = x.resistance ?? x.Resistance ?? null;
         const typeId = x.typeId ?? x.Type_ID ?? null;
 
-        // cố gắng lấy nhãn loại pin từ nhiều key phổ biến (backend có thể trả khác nhau)
         const typeRaw =
           x.batteryType ??
           x.BatteryType ??
@@ -99,7 +102,6 @@ function PinStationMockup({ slots, title, onReload }) {
           x.model ??
           null;
 
-        // fallback từ typeId nếu không có nhãn
         const typeLabel = String(
           typeRaw || (typeId === 1 ? "Lithium" : typeId === 2 ? "LFP" : "—")
         ).trim();
@@ -110,7 +112,7 @@ function PinStationMockup({ slots, title, onReload }) {
       setAvail(normalized);
       setShowSelect(true);
     } catch (e) {
-      setMsg({ open: true, title: t('staff.message.error'), body: t('staff.message.loadPinFailed') + " " + (e?.message || e), tone: 'error' });
+      alert("Không tải được danh sách pin khả dụng: " + (e?.message || e));
     }
   }
 
@@ -133,12 +135,12 @@ function PinStationMockup({ slots, title, onReload }) {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok || data.success === false) throw new Error(data.error || `HTTP ${res.status}`);
-      setMsg({ open: true, title: t('staff.message.success'), body: t('staff.message.assignSuccess'), tone: 'success' });
+      alert("✅ Gắn pin thành công!");
       setShowSelect(false);
       setSelectedIndex(null);
       onReload && onReload();
     } catch (e) {
-      setMsg({ open: true, title: t('staff.message.error'), body: t('staff.message.assignFailed') + " " + (e?.message || e), tone: 'error' });
+      alert("❌ Gắn pin thất bại: " + (e?.message || e));
     }
   }
 
@@ -158,11 +160,11 @@ function PinStationMockup({ slots, title, onReload }) {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.message || `HTTP ${res.status}`);
-      setMsg({ open: true, title: t('staff.message.success'), body: t('staff.message.removeSuccess'), tone: 'success' });
+      alert("✅ Đã gỡ pin khỏi ô.");
       setSelectedIndex(null);
       onReload && onReload();
     } catch (e) {
-      setMsg({ open: true, title: t('staff.message.error'), body: t('staff.message.removeFailed') + " " + (e?.message || e), tone: 'error' });
+      alert("❌ Không thể gỡ pin: " + (e?.message || e));
     }
   }
 
@@ -181,7 +183,6 @@ function PinStationMockup({ slots, title, onReload }) {
     const tId = Number(selected.batteryTypeId ?? selected.Type_ID ?? selected.typeId ?? 0);
     if (tId === 1) return "Lithium";
     if (tId === 2) return "LFP";
-    // fallback dùng suy luận chemistry
     const bc = String(selected.batteryChemistry || "").toLowerCase();
     if (bc.includes("lfp")) return "LFP";
     if (bc.includes("lithium") || bc === "li") return "Lithium";
@@ -254,27 +255,27 @@ function PinStationMockup({ slots, title, onReload }) {
           >
             {!selected.batteryId ? (
               <>
-                <strong>{selected.code || `Slot #${selected.slotId || "-"}`}</strong> — <em>{t('staff.slot.empty')}</em>
-                <p>{t('staff.slot.noPin')}</p>
-                <div>{t('staff.slot.location')} <b>{selected.chargingStationName || "-"}</b></div>
+                <strong>{selected.code || `Slot #${selected.slotId || "-"}`}</strong> — <em>Ô trống</em>
+                <p>Hiện tại chưa có pin trong ô này.</p>
+                <div>Vị trí: <b>{selected.chargingStationName || "-"}</b></div>
                 <div style={{ marginTop: 8, display: "flex", gap: 8 }}>
                   {selected.slotId && !selected.__placeholder ? (
-                    <button className="detail-btn" onClick={openAddBattery}>{t('staff.slot.addPin')}</button>
+                    <button className="detail-btn" onClick={openAddBattery}>➕ Thêm pin</button>
                   ) : null}
-                  <button className="btn-secondary" onClick={() => setSelectedIndex(null)}>{t('staff.slot.close')}</button>
+                  <button className="btn-secondary" onClick={() => setSelectedIndex(null)}>Đóng</button>
                 </div>
                 {selected.__placeholder && (
-                  <small className="hint">{t('staff.slot.placeholder')}</small>
+                  <small className="hint">Ô này là placeholder (API không trả slot). Không thể gán pin.</small>
                 )}
               </>
             ) : (
               <>
                 <strong>{selected.serial || selected.code || `Slot #${selected.slotId}`}</strong> — {selected.chargingSlotType || "—"}
-                <div>{t('staff.slot.status')} <b>{selected.state || "-"}</b></div>
-                <div>{t('staff.slot.health')} <b>{Number(selected.soh || 0)}%</b></div>
-                <div>{t('staff.slot.location')} <b>{selected.chargingStationName || "-"}</b></div>
-                <div>{t('staff.slot.code')} <b>{selected.code || "-"}</b></div>
-                <div>{t('staff.slot.lastCharge')} <b>{selected.lastUpdate || "-"}</b></div>
+                <div>Trạng thái: <b>{selected.state || "-"}</b></div>
+                <div>Sức khỏe: <b>{Number(selected.soh || 0)}%</b></div>
+                <div>Vị trí: <b>{selected.chargingStationName || "-"}</b></div>
+                <div>Mã slot: <b>{selected.code || "-"}</b></div>
+                <div>Sạc lần cuối: <b>{selected.lastUpdate || "-"}</b></div>
                 {/* 🔋 Loại pin */}
                 <div>Loại pin: <b>{selectedTypeLabel}</b></div>
                 <div style={{ marginTop: 8, display: "flex", gap: 8 }}>
@@ -286,11 +287,11 @@ function PinStationMockup({ slots, title, onReload }) {
                       String(selected.door || "").toLowerCase() !== "closed" ||
                       !selected.batteryId
                     }
-                    title={t('staff.slot.removePin')}
+                    title="Gỡ pin khỏi ô này"
                   >
-                    {t('staff.slot.removePin')}
+                    🧲 Gỡ pin
                   </button>
-                  <button className="btn-secondary" onClick={() => setSelectedIndex(null)}>{t('staff.slot.close')}</button>
+                  <button className="btn-secondary" onClick={() => setSelectedIndex(null)}>Đóng</button>
                 </div>
               </>
             )}
@@ -326,10 +327,10 @@ function PinStationMockup({ slots, title, onReload }) {
               boxShadow: "0 24px 80px rgba(2,6,23,.25)",
             }}
           >
-            <h3>{t('staff.slot.selectBattery')} {selected?.code || `slot #${selected?.slotId}`}</h3>
+            <h3>Chọn pin để gắn vào {selected?.code || `slot #${selected?.slotId}`}</h3>
             <ul style={{ maxHeight: 280, overflowY: "auto", paddingRight: 4 }}>
               {avail.length === 0 ? (
-                <li>{t('staff.slot.noAvailableBattery')}</li>
+                <li>Không có pin khả dụng.</li>
               ) : (
                 avail.map((b) => (
                   <li
@@ -348,7 +349,7 @@ function PinStationMockup({ slots, title, onReload }) {
                       <b>{b.serial || `Battery #${b.id}`}</b>
                       {/* Badge loại pin */}
                       <span
-                        aria-label={t('staff.slot.batteryType')}
+                        aria-label="Loại pin"
                         style={{
                           fontSize: 12,
                           padding: "2px 8px",
@@ -363,13 +364,13 @@ function PinStationMockup({ slots, title, onReload }) {
                       <span>SoH {Number(b.soh ?? 0).toFixed(1)}%</span>
                       {b.resistance != null && <span>• R {Number(b.resistance).toFixed(3)} Ω</span>}
                     </span>
-                    <button className="detail-btn" onClick={() => assignBattery(b.id)}>{t('staff.slot.attach')}</button>
+                    <button className="detail-btn" onClick={() => assignBattery(b.id)}>Gắn</button>
                   </li>
                 ))
               )}
             </ul>
             <div style={{ textAlign: "right", marginTop: 8 }}>
-              <button className="btn-secondary" onClick={() => setShowSelect(false)}>{t('staff.slot.close')}</button>
+              <button className="btn-secondary" onClick={() => setShowSelect(false)}>Đóng</button>
             </div>
           </div>
         </div>
@@ -380,7 +381,6 @@ function PinStationMockup({ slots, title, onReload }) {
 
 /* ========= TRANG CHÍNH ========= */
 export default function StaffDashboard({ user }) {
-  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState("inventory");
   const [searchParams] = useSearchParams();
   const tab = searchParams.get("tab");
@@ -453,7 +453,6 @@ export default function StaffDashboard({ user }) {
           lastUpdate: firstDefined(x.Last_Update, x.last_Update, x.lastUpdate, ""),
           batteryTypeId: firstDefined(x.BatteryTypeId, x.batteryTypeId, x.Type_ID, x.type_ID, x.typeId, null),
           batteryChemistry: String(firstDefined(x.BatteryChemistry, x.batteryChemistry, x.Chemistry, "")).toLowerCase(),
-          // nếu backend có trả trực tiếp loại pin:
           batteryType: firstDefined(x.BatteryType, x.batteryType, x.TypeName, x.typeName, x.Model, x.model, null),
         };
       });
@@ -529,10 +528,8 @@ export default function StaffDashboard({ user }) {
     return "unknown";
   };
 
-  // ====== Helper chuẩn hoá chữ thường ======
   const norm = useMemo(() => (v) => String(v || "").trim().toLowerCase(), []);
 
-  // ====== MẢNG HIỂN THỊ CHO MODAL (ổn định theo batteryTypeId khi có pin) ======
   const lithiumDisplaySlots = useMemo(() => {
     return slots.filter(s => {
       const chem = inferChemFromSlot(s);
@@ -543,8 +540,8 @@ export default function StaffDashboard({ user }) {
         !!s.code &&
         ["occupied", "reserved", "reversed", "empty", "charging"].includes(norm(s.state)) &&
         (
-          (hasBattery && Number(s.batteryTypeId) === 1) || // pin thực Li-ion
-          (!hasBattery && chem === "li")                   // ô trống thuộc trụ Li-ion
+          (hasBattery && Number(s.batteryTypeId) === 1) ||
+          (!hasBattery && chem === "li")
         )
       );
     });
@@ -560,14 +557,13 @@ export default function StaffDashboard({ user }) {
         !!s.code &&
         ["occupied", "reserved", "reversed", "empty", "charging"].includes(norm(s.state)) &&
         (
-          (hasBattery && Number(s.batteryTypeId) === 2) || // pin thực LFP
-          (!hasBattery && chem === "lfp")                  // ô trống thuộc trụ LFP
+          (hasBattery && Number(s.batteryTypeId) === 2) ||
+          (!hasBattery && chem === "lfp")
         )
       );
     });
   }, [slots]);
 
-  // ====== BIẾN ĐẾM CHUẨN DRIVER ======
   const { liionReady, lfpReady, totalReady } = useMemo(() => {
     const eligible = slots.filter(s =>
       norm(s.state) === "occupied" &&
@@ -583,7 +579,6 @@ export default function StaffDashboard({ user }) {
     };
   }, [slots, norm]);
 
-  // ====== KPI ======
   const summary = useMemo(() => {
     let full = 0, charging = 0, maintenance = 0, reserved = 0;
     for (const s of slots) {
@@ -602,23 +597,16 @@ export default function StaffDashboard({ user }) {
   }, [slots]);
 
   const kpis = [
-    { icon: "🟢", label: t('staff.summary.full'), value: summary.full, sub: t('staff.summary.fullSub') },
-    { icon: "🔌", label: t('staff.summary.charging'), value: summary.charging, sub: t('staff.summary.chargingSub') },
-    { icon: "⚠️", label: t('staff.summary.maintenance'), value: summary.maintenance, sub: t('staff.summary.maintenanceSub') },
-    { icon: "🟡", label: t('staff.summary.reserved'), value: summary.reserved, sub: t('staff.summary.reservedSub') },
-  ];
-
-  const tabs = [
-    { value: "inventory", label: t('staff.tabs.inventory') },
-    { value: "checkin", label: t('staff.tabs.checkin') },
-    { value: "create", label: t('staff.tabs.create') },
+    { icon: "🟢", label: "Pin đầy", value: summary.full, sub: "Sẵn sàng sử dụng" },
+    { icon: "🔌", label: "Đang sạc", value: summary.charging, sub: "Đang nạp điện / Weak" },
+    { icon: "⚠️", label: "Bảo dưỡng", value: summary.maintenance, sub: "Damaged" },
+    { icon: "🟡", label: "Đặt trước", value: summary.reserved, sub: "Reserved/Reversed" },
   ];
 
   /* ===================== CHECK-IN (ONE-CLICK) ===================== */
   const [bookingId, setBookingId] = useState("");
   const [checkingIn, setCheckingIn] = useState(false);
 
-  // tiện hiển thị row trong popup
   const Row = ({ label, children }) => (
     <div style={{ display: "flex", gap: 8, margin: "4px 0" }}>
       <div style={{ minWidth: 160, color: "#475569" }}>{label}</div>
@@ -626,7 +614,6 @@ export default function StaffDashboard({ user }) {
     </div>
   );
 
-  // Nhấn 1 lần → GET info (Model/Plate/Slot/SoH) → POST xử lý → ghép dữ liệu bật popup
   const handleProcessCheckin = async () => {
     const id = bookingId.trim();
     if (!id) return;
@@ -654,7 +641,6 @@ export default function StaffDashboard({ user }) {
       } catch {
         pre = {};
       }
-      // console.debug("[FE] /api/checkin GET =", pre);
 
       // 2) POST xử lý check-in/thanh toán
       const postHeaders = {
@@ -678,7 +664,6 @@ export default function StaffDashboard({ user }) {
         return;
       }
 
-      // 3) Gộp dữ liệu cho popup (map chắc chắn Model & Plate từ BE)
       const bi = pre || {};
       const vehicle = bi.vehicle || {};
       const slot = bi.slot || {};
@@ -686,18 +671,8 @@ export default function StaffDashboard({ user }) {
       const display = {
         bookingId: bi.bookingId ?? data.bookingId ?? id,
         userName:  bi.bookerName ?? data.userName ?? data.customerName ?? "—",
-
-        // BE trả: vehicle.modelName, vehicle.licensePlate (đã có trong code BE bạn gửi)
-        vehicleModel:
-             vehicle.modelName
-          ?? data.vehicleModel
-          ?? "Xe",
-
-        licensePlate:
-             vehicle.licensePlate
-          ?? data.licensePlate
-          ?? "—",
-
+        vehicleModel: vehicle.modelName ?? data.vehicleModel ?? "Xe",
+        licensePlate: vehicle.licensePlate ?? data.licensePlate ?? "—",
         slotText: (slot.slotCode || slot.slotId) ? `${slot.slotCode || `#${slot.slotId}`}` : "—",
         kiosk: slot.chargingStationName || "—",
         slotType: slot.chargingSlotType || "—",
@@ -766,7 +741,6 @@ export default function StaffDashboard({ user }) {
         ),
       });
 
-      // 4) nếu miễn phí thì đã hoàn tất, reload tồn kho
       if (!data.paymentUrl) {
         loadSlots();
       }
@@ -779,6 +753,15 @@ export default function StaffDashboard({ user }) {
 
   /* ===================== /CHECK-IN ===================== */
 
+  /* ===================== TẠO BOOKING (CHỈ SỬA HIỂN THỊ XE) ===================== */
+
+  // Helper hiển thị: tạo nhãn "Mẫu xe — Biển số" cho dropdown (hiển thị UI)
+  const formatVehicleLabel = (v) => {
+    const model = v?.modelName || v?.brand || "Xe";
+    const plate = v?.licensePlate || v?.vin || "Biển số ?";
+    return `${model} — ${plate}`;
+  };
+
   return (
     <div className="staff-dashboard-wrap">
       {/* Panel ảnh 2 trụ */}
@@ -786,34 +769,34 @@ export default function StaffDashboard({ user }) {
         <div style={{ textAlign: "center" }}>
           <img
             src="/ping.jpg"
-            alt={t('staff.station.liion')}
+            alt="Trụ Li-ion"
             className="staff-right-image"
             onClick={() => setShowStationModal(true)}
             style={{ cursor: "pointer" }}
           />
-          <div style={{ marginTop: 8, fontWeight: 600 }}>{t('staff.station.liion')}</div>
+          <div style={{ marginTop: 8, fontWeight: 600 }}>Trụ Li-ion</div>
         </div>
 
         <div style={{ textAlign: "center" }}>
           <img
             src="/ping.jpg"
-            alt={t('staff.station.lfp')}
+            alt="Trụ LFP"
             className="staff-right-image"
             onClick={() => setShowStationModalLFP(true)}
             style={{ cursor: "pointer" }}
           />
-          <div style={{ marginTop: 8, fontWeight: 600 }}>{t('staff.station.lfp')}</div>
+          <div style={{ marginTop: 8, fontWeight: 600 }}>Trụ LFP</div>
         </div>
       </div>
 
       {/* Card dashboard */}
       <div className="staff-dashboard-card">
-        <h2 className="staff-dashboard-title">{t('staff.title')}</h2>
-        <div className="staff-dashboard-subtitle">{t('staff.subtitle')}</div>
+        <h2 className="staff-dashboard-title">Dashboard Nhân viên Trạm</h2>
+        <div className="staff-dashboard-subtitle">Quản lý tồn kho pin và Check In</div>
 
         {/* Hiển thị số đếm chuẩn Driver */}
         <div style={{ marginTop: 6, fontSize: 14, color: "#334155" }}>
-          <b>{t('staff.kpi.readyForDriver')}</b> {t('staff.kpi.liion')} {liionReady} • {t('staff.kpi.lfp')} {lfpReady} • {t('staff.kpi.total')} {totalReady}
+          <b>Chuẩn Driver (sẵn sàng đổi):</b> Li-ion: {liionReady} • LFP: {lfpReady} • Tổng: {totalReady}
         </div>
 
         {/* KPI */}
@@ -845,24 +828,26 @@ export default function StaffDashboard({ user }) {
         <div>
           {activeTab === "inventory" && (
             <div className="staff-inventory-section">
-              <div className="staff-inventory-title">{t('staff.inventory.title')}</div>
-              <div className="staff-inventory-desc">{t('staff.inventory.desc')}</div>
-              {err && <div style={{ color: "#ef4444", marginTop: 8 }}>{t('staff.inventory.error')} {err}</div>}
-              {loading && <div style={{ marginTop: 8 }}>{t('staff.inventory.loading')}</div>}
+              <div className="staff-inventory-title">Tình trạng trụ</div>
+              <div className="staff-inventory-desc">Nhấn vào ảnh trụ ở trên để xem sơ đồ ô.</div>
+              {err && <div style={{ color: "#ef4444", marginTop: 8 }}>{err}</div>}
+              {loading && <div style={{ marginTop: 8 }}>Đang tải dữ liệu…</div>}
             </div>
           )}
 
           {activeTab === "checkin" && (
             <div className="staff-transaction-section">
-              <div className="staff-transaction-title">{t('staff.checkin.title')}</div>
-              <div className="staff-transaction-desc" dangerouslySetInnerHTML={{ __html: t('staff.checkin.desc') }} />
+              <div className="staff-transaction-title">Check In</div>
+              <div className="staff-transaction-desc">
+                Nhập Booking ID → nhấn <b>Xử lý Check-in</b>. Popup sẽ hiển thị đầy đủ thông tin & thanh toán (nếu có).
+              </div>
 
               {/* Nhập Booking ID + nút Xử lý */}
               <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 8 }}>
                 <input
                   type="text"
                   inputMode="numeric"
-                  placeholder={t('staff.checkin.placeholder')}
+                  placeholder="Nhập Booking ID"
                   value={bookingId}
                   onChange={(e) => setBookingId(e.target.value)}
                   className="input"
@@ -873,9 +858,9 @@ export default function StaffDashboard({ user }) {
                   className="detail-btn"
                   onClick={handleProcessCheckin}
                   disabled={!bookingId.trim() || checkingIn}
-                  title={t('staff.checkin.button')}
+                  title="Tạo giao dịch (nếu cần thanh toán sẽ phát sinh VNPay)"
                 >
-                  {checkingIn ? t('staff.checkin.processing') : t('staff.checkin.button')}
+                  {checkingIn ? "Đang xử lý…" : "Xử lý Check-in"}
                 </button>
               </div>
             </div>
@@ -883,16 +868,18 @@ export default function StaffDashboard({ user }) {
 
           {activeTab === "create" && (
             <div className="staff-transaction-section">
-              <div className="staff-transaction-title">{t('staff.createBooking.title')}</div>
-              <div className="staff-transaction-desc" dangerouslySetInnerHTML={{ __html: t('staff.createBooking.desc') }} />
+              <div className="staff-transaction-title">Tạo Booking</div>
+              <div className="staff-transaction-desc">
+                Nhập <b>Email</b> khách hàng, chọn <b>Trạm</b> & <b>Xe</b> để tạo booking.
+              </div>
 
               {/* Email + lấy xe */}
               <div className="row">
-                <label className="lbl">{t('staff.createBooking.emailLabel')}</label>
+                <label className="lbl">Email khách hàng</label>
                 <div className="row-inline">
                   <input
                     type="email"
-                    placeholder={t('staff.createBooking.emailPlaceholder')}
+                    placeholder="vd: khach@example.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="input grow"
@@ -919,34 +906,41 @@ export default function StaffDashboard({ user }) {
                         const data = await res.json().catch(() => ({}));
                         if (!res.ok || data.error) throw new Error(data.error || `HTTP ${res.status}`);
                         const vs = Array.isArray(data.vehicles) ? data.vehicles : [];
-                        setVehicles(vs);
-                        setSelectedVehicle(vs.length > 0 ? String(vs[0].vehicleId) : "");
+
+                        // Chuẩn hoá nhãn hiển thị: "Model — Biển số"
+                        const vehiclesWithLabel = vs.map((x) => ({
+                          ...x,
+                          vehicleLabel: x.vehicleLabel || `${x?.modelName || x?.brand || "Xe"} — ${x?.licensePlate || x?.vin || "Biển số ?"}`,
+                        }));
+
+                        setVehicles(vehiclesWithLabel);
+                        setSelectedVehicle(vehiclesWithLabel.length > 0 ? String(vehiclesWithLabel[0].vehicleId) : "");
                         setCreatePopup({
-                          title: t('staff.message.vehiclesLoaded'),
-                          body: vs.length ? t('staff.message.vehiclesFound', { count: vs.length }) : t('staff.message.noVehicles'),
+                          title: "Đã tải danh sách xe",
+                          body: vehiclesWithLabel.length ? `Tìm thấy ${vehiclesWithLabel.length} xe. Hãy chọn 1 xe để tạo booking.` : "Không có xe nào cho email này.",
                         });
                       } catch (e) {
                         setVehicles([]);
                         setSelectedVehicle("");
-                        setCreatePopup({ title: t('staff.message.error'), body: e.message || t('staff.createBooking.error') });
+                        setCreatePopup({ title: "Lỗi", body: e.message || "Không tải được xe" });
                       } finally {
                         setLoadingVehicles(false);
                       }
                     }}
                     disabled={!email.trim() || loadingVehicles}
-                    title={t('staff.createBooking.getVehicles')}
+                    title="Tải xe theo email"
                   >
-                    {loadingVehicles ? t('staff.createBooking.loadingVehicles') : t('staff.createBooking.getVehicles')}
+                    {loadingVehicles ? "Đang tải…" : "Lấy xe"}
                   </button>
                 </div>
               </div>
 
               {/* Trạm */}
               <div className="row">
-                <label className="lbl">{t('staff.createBooking.stationLabel')}</label>
+                <label className="lbl">Chọn trạm</label>
                 <select className="input" value={selectedStation} onChange={(e) => setSelectedStation(e.target.value)}>
-                  {stationsLoading && <option>{t('staff.createBooking.loadingStations')}</option>}
-                  {!stationsLoading && stations.length === 0 && <option value="">{t('staff.createBooking.noStations')}</option>}
+                  {stationsLoading && <option>Đang tải trạm…</option>}
+                  {!stationsLoading && stations.length === 0 && <option value="">Không có dữ liệu trạm</option>}
                   {!stationsLoading && stations.map((s) => {
                     const key = s.Station_ID ?? s.station_ID ?? s.id;
                     const label = s.Name ?? s.station_Name ?? s.Station_Name ?? s.name ?? `Station #${key ?? ""}`;
@@ -959,11 +953,17 @@ export default function StaffDashboard({ user }) {
               {/* Xe */}
               <div className="row">
                 <label className="lbl">Chọn xe</label>
-                <select className="input" value={selectedVehicle} onChange={(e) => setSelectedVehicle(e.target.value)} disabled={vehicles.length === 0}>
+                <select
+                  className="input"
+                  value={selectedVehicle}
+                  onChange={(e) => setSelectedVehicle(e.target.value)}
+                  disabled={vehicles.length === 0}
+                >
                   {vehicles.length === 0 && <option value="">Chưa có xe — hãy “Lấy xe”</option>}
                   {vehicles.map((v) => (
                     <option key={v.vehicleId} value={v.vehicleId}>
-                      #{v.vehicleId} — {v.modelName || v.brand || "Xe"} ({v.batteryType || "—"})
+                      {v.vehicleLabel || `${v?.modelName || v?.brand || "Xe"} — ${v?.licensePlate || v?.vin || "Biển số ?"}`}
+                      {v.batteryType ? ` (${v.batteryType})` : ""}
                     </option>
                   ))}
                 </select>
@@ -995,7 +995,7 @@ export default function StaffDashboard({ user }) {
                         body: JSON.stringify({
                           email: mail,
                           stationName: selectedStation,
-                          vehicleId: Number(selectedVehicle),
+                          vehicleId: Number(selectedVehicle), // submit vẫn dùng vehicleId
                         }),
                       });
 
@@ -1006,18 +1006,22 @@ export default function StaffDashboard({ user }) {
 
                       if (!res.ok || data.error) throw new Error(data.error || `HTTP ${res.status}`);
 
+                      // Ưu tiên hiển thị xe theo "Mẫu — Biển số"
+                      const vehicleLine =
+                        data.vehicleLabel ||
+                        `${data.vehicleModelName || "Xe"}${data.licensePlate ? " — " + data.licensePlate : ""}`;
+
                       setCreatePopup({
                         title: "Tạo booking thành công",
                         body: (
                           <div>
                             <div>Booking ID: <b>{data.bookingId}</b></div>
                             <div>Trạng thái: <b>{data.status}</b></div>
-                            <div>Hết hạn: <b>{data.expiredTime}</b></div>
-                            {data.qrCode && (
-                              <div style={{ marginTop: 8 }}>
-                                <img alt="QR" src={`data:image/png;base64,${data.qrCode}`} style={{ maxWidth: 180 }} />
-                              </div>
+                            {vehicleLine && vehicleLine.trim() !== "Xe" && (
+                              <div>Xe / Biển số: <b>{vehicleLine}</b></div>
                             )}
+                            <div>Hết hạn: <b>{data.expiredTime}</b></div>
+                            {/* [ĐÃ GỠ QR] Không hiển thị ảnh QR nếu BE có trả về */}
                           </div>
                         ),
                       });

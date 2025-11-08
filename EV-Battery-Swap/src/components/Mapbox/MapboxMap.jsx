@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import mapboxgl from 'mapbox-gl';
 import API_BASE_URL from '../../config';
-import reactLogo from '../../assets/react.svg';
+import gogoroLogo from '../../assets/gogoro-battery-station.png';
 import { createMapManager } from '../../utils/mapManager';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../i18n';
@@ -227,20 +227,20 @@ export default function MapboxMap({
 
         try { if (!map.current) return; map.current.addSource(sourceId, { type: 'geojson', data: geojson }); } catch (e) { /* ignore */ }
 
-        const imgEl = new Image(); imgEl.crossOrigin = 'anonymous'; imgEl.src = reactLogo;
+  const imgEl = new Image(); imgEl.crossOrigin = 'anonymous'; imgEl.src = gogoroLogo;
         imgEl.onload = () => {
           if (!map.current) return;
-          try { if (map.current.hasImage && !map.current.hasImage('gogoro-marker')) map.current.addImage('gogoro-marker', imgEl); } catch {}
+          try { if (map.current.hasImage && !map.current.hasImage('gogoro-marker')) map.current.addImage('gogoro-marker', imgEl, { pixelRatio: window.devicePixelRatio || 1 }); } catch {}
           try {
             if (!map.current) return;
             const hasImg = map.current.hasImage && map.current.hasImage('gogoro-marker');
             if (hasImg) {
-              try { map.current.addLayer({ id: layerId, type: 'symbol', source: sourceId, layout: { 'icon-image': 'gogoro-marker', 'icon-size': 1.2, 'icon-allow-overlap': true, 'icon-ignore-placement': true } }); } catch (e) { try { map.current.addLayer({ id: layerId, type: 'circle', source: sourceId, paint: { 'circle-radius': 14, 'circle-color': '#1976d2', 'circle-stroke-color': '#fff', 'circle-stroke-width': 2 } }); } catch {} }
+              try { map.current.addLayer({ id: layerId, type: 'symbol', source: sourceId, layout: { 'icon-image': 'gogoro-marker', 'icon-size': 0.3, 'icon-allow-overlap': true, 'icon-ignore-placement': true } }); } catch (e) { try { map.current.addLayer({ id: layerId, type: 'circle', source: sourceId, paint: { 'circle-radius': 6, 'circle-color': '#1976d2', 'circle-stroke-color': '#fff', 'circle-stroke-width': 2 } }); } catch {} }
             } else {
-              try { map.current.addLayer({ id: layerId, type: 'circle', source: sourceId, paint: { 'circle-radius': 14, 'circle-color': '#1976d2', 'circle-stroke-color': '#fff', 'circle-stroke-width': 2 } }); } catch {}
+              try { map.current.addLayer({ id: layerId, type: 'circle', source: sourceId, paint: { 'circle-radius': 6, 'circle-color': '#1976d2', 'circle-stroke-color': '#fff', 'circle-stroke-width': 2 } }); } catch {}
             }
-          } catch (err) {
-            try { if (map.current) map.current.addLayer({ id: layerId, type: 'circle', source: sourceId, paint: { 'circle-radius': 14, 'circle-color': '#1976d2', 'circle-stroke-color': '#fff', 'circle-stroke-width': 2 } }); } catch {}
+            } catch (err) {
+            try { if (map.current) map.current.addLayer({ id: layerId, type: 'circle', source: sourceId, paint: { 'circle-radius': 6, 'circle-color': '#1976d2', 'circle-stroke-color': '#fff', 'circle-stroke-width': 2 } }); } catch {}
           }
 
           try {
@@ -278,7 +278,7 @@ export default function MapboxMap({
         };
         imgEl.onerror = () => {
           if (!map.current) return;
-          try { if (map.current) map.current.addLayer({ id: layerId, type: 'circle', source: sourceId, paint: { 'circle-radius': 14, 'circle-color': '#1976d2', 'circle-stroke-color': '#fff', 'circle-stroke-width': 2 } }); } catch {}
+          try { if (map.current) map.current.addLayer({ id: layerId, type: 'circle', source: sourceId, paint: { 'circle-radius': 6, 'circle-color': '#1976d2', 'circle-stroke-color': '#fff', 'circle-stroke-width': 2 } }); } catch {}
           try {
             if (!map.current) return;
             map.current.on('mouseenter', layerId, () => { try { if (map.current && map.current.getCanvas) map.current.getCanvas().style.cursor = 'pointer'; } catch {} });

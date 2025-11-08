@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './driver.css';
 import MapboxMap from '../../../../components/Mapbox/MapboxMap';
+import ErrorBoundary from '../../../../components/ErrorBoundary/ErrorBoundary';
 import SearchForm from '../../../../components/SearchForm/SearchForm';
 import useGeolocation from '../../../../hooks/useGeolocation';
 import LocationPermissionModal from '../../../../components/LocationPermissionModal/LocationPermissionModal';
@@ -174,10 +175,10 @@ export default function DriverDashboard() {
   };
 
   const tabList = [
-    { label: 'Tìm trạm', value: 'find' },
-    { label: 'Lịch đã đặt', value: 'booked' },
-    { label: 'Gói dịch vụ', value: 'service' },
-    { label: 'Lịch sử', value: 'history' },
+    { labelKey: 'driver.tabs.find', label: 'Tìm trạm', value: 'find' },
+    { labelKey: 'driver.tabs.booked', label: 'Lịch đã đặt', value: 'booked' },
+    { labelKey: 'driver.tabs.service', label: 'Gói dịch vụ', value: 'service' },
+    { labelKey: 'driver.tabs.history', label: 'Lịch sử', value: 'history' },
   ];
 
   return (
@@ -190,22 +191,22 @@ export default function DriverDashboard() {
       <div className="driver-main-wrap">
         <TabBar tabs={tabList} active={activeTab} onChange={setActiveTab} />
 
-        {activeTab === 'find' && (
-          <>
-            <h2 style={{ fontWeight: 700, fontSize: 28, marginBottom: 16 }}>Tìm trạm đổi pin</h2>
-            <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap', justifyContent: 'center', alignItems: 'flex-start', marginBottom: 32 }}>
-              <div style={{ flex: '1 1 420px', minWidth: 340, maxWidth: 440 }}>
-                <SearchForm
-                  stations={stations}
-                  selectedStation={selectedStation}
-                  setSelectedStation={setSelectedStation}
-                  onFindPath={handleFindPath}
-                  foundStations={foundStations}
-                  onFindBattery={handleFindBattery}
-                />
-              </div>
+        <div className="driver-find-panel" style={{ display: activeTab === 'find' ? 'block' : 'none' }}>
+          <h2 style={{ fontWeight: 700, fontSize: 28, marginBottom: 16 }}>{'Tìm trạm đổi pin'}</h2>
+          <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap', justifyContent: 'center', alignItems: 'flex-start', marginBottom: 32 }}>
+            <div style={{ flex: '3 1 420px', minWidth: 340 }}>
+              <SearchForm
+                stations={stations}
+                selectedStation={selectedStation}
+                setSelectedStation={setSelectedStation}
+                onFindPath={handleFindPath}
+                foundStations={foundStations}
+                onFindBattery={handleFindBattery}
+              />
+            </div>
 
-              <div className="driver-map-card" style={{ background: '#fff', borderRadius: 16, boxShadow: '0 2px 12px rgba(0,0,0,0.07)', overflow: 'hidden', height: 420, flex: '2 1 600px', minWidth: 340, maxWidth: 900 }}>
+            <div className="driver-map-card" style={{ background: '#fff', borderRadius: 16, boxShadow: '0 2px 12px rgba(0,0,0,0.07)', overflow: 'hidden', flex: '7 1 600px', minWidth: 340, maxWidth: 1200 }}>
+              <ErrorBoundary>
                 <MapboxMap
                   token={MAPBOX_TOKEN}
                   stations={stations}
@@ -225,12 +226,12 @@ export default function DriverDashboard() {
                     setBookingStationName(name);
                     setBookingOpen(true);
                   }}
-                  style={{ width: '100%', height: 420, borderRadius: 16 }}
+                  style={{ width: '100%', height: '100%', borderRadius: 16 }}
                 />
-              </div>
+              </ErrorBoundary>
             </div>
-          </>
-        )}
+          </div>
+        </div>
 
         {activeTab === 'booked' && (
           <div style={{padding:'32px 0'}}>

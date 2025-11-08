@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useTranslation } from 'react-i18next';
 import { FaUserCircle } from "react-icons/fa";
-import logo from "../../assets/react.svg";
+import logo from "../../assets/gogoro-battery-station.png";
 import "./Header.css";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 

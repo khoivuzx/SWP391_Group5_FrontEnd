@@ -89,7 +89,7 @@ import MapboxMap from '../../components/Mapbox/MapboxMap';
 import API_BASE_URL from '../../config';
 import useGeolocation from '../../hooks/useGeolocation';
 import LocationPermissionModal from '../../components/LocationPermissionModal/LocationPermissionModal';
-import RegisterModal from '../../components/Login/RegisterModal';
+import LoginModal from '../../components/Login/LoginModal';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
@@ -116,14 +116,18 @@ export default function Home() {
   };
 
   const handleBookStation = (station) => {
-    // If guest (no auth), open register modal with explanation
-    // For now we assume this page is guest-only; show register modal
-    setShowRegister(true);
-    setRegisterNote(`To book a battery at ${station.name} you need an account. Please register to continue.`);
+    // If guest (no auth), open login modal instead of register
+    // Save a redirect so after successful login the app returns here
+    try {
+      const redirect = window.location.hash && window.location.hash.length ? window.location.hash : window.location.pathname || '/';
+      localStorage.setItem('redirectAfterLogin', redirect);
+    } catch (e) {}
+    setShowLogin(true);
   };
 
   const [showRegister, setShowRegister] = useState(false);
   const [registerNote, setRegisterNote] = useState('');
+  const [showLogin, setShowLogin] = useState(false);
 
   // Helper: distance in meters between two [lng,lat] points (Haversine)
   function distanceMeters(a, b) {
@@ -394,13 +398,10 @@ const handleFindBattery = async (chemistry) => {
         onCancel={() => { if (prePermResolveRef.current) { prePermResolveRef.current(false); prePermResolveRef.current = null; } }}
         onConfirm={() => { if (prePermResolveRef.current) { prePermResolveRef.current(true); prePermResolveRef.current = null; } }}
       />
-      <RegisterModal
-        isOpen={showRegister}
-        onClose={() => setShowRegister(false)}
-        onSwitchToLogin={() => { setShowRegister(false); }}
-      >
-        <div style={{ padding: '12px 20px', background: '#fff', color: '#333' }}>{registerNote}</div>
-      </RegisterModal>
+      <LoginModal
+        isOpen={showLogin}
+        onClose={() => setShowLogin(false)}
+      />
     </>
   );
 }

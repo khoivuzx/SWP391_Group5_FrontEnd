@@ -281,6 +281,22 @@ export default function RegisterModal({ isOpen, onClose, onSwitchToLogin, onRegi
             </div>
           </form>
         )}
+        
+        <p className="signup-link" style={{ marginTop: 12 }}>
+          Đã có tài khoản?{' '}
+          <button
+            type="button"
+            className="register-link"
+            style={{ background: 'none', border: 'none', color: '#1976d2', textDecoration: 'underline', cursor: 'pointer', padding: 0, font: 'inherit' }}
+            onClick={() => {
+              // Prefer explicit switch callback, otherwise just close this modal
+              if (typeof onSwitchToLogin === 'function') onSwitchToLogin();
+              else if (typeof onClose === 'function') onClose();
+            }}
+          >
+            Đăng nhập
+          </button>
+        </p>
       </div>
     </div>
   );

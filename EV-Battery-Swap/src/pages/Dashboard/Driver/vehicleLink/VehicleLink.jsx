@@ -14,11 +14,12 @@ const GOGORO_MODELS = [
 // ===== Helpers =====
 const toNoMark = (s) => {
   if (!s) return "";
+  // CHỈ dùng khi submit/validate, KHÔNG dùng onChange
   return s
     .normalize("NFD")
     .replace(/\p{Diacritic}+/gu, "")
-    .replace(/\s{2,}/g, " ")
-    .trim();
+    .replace(/\s{2,}/g, " ") // gom cụm space nhưng vẫn cho phép space
+    .trim(); // bỏ space đầu/cuối khi SUBMIT
 };
 
 const normalizePlate = (raw) => {
@@ -30,9 +31,11 @@ const normalizePlate = (raw) => {
 
 const isVinOk = (vin) =>
   /^[A-HJ-NPR-Z0-9]{17}$/.test(String(vin || "").toUpperCase());
+
+// [SỬA] validate trên bản đã chuẩn hoá (plateNorm), không chặn người dùng gõ space trong input
 const isPlateOk = (plate) =>
   /^[0-9]{2}[A-Z]{1,2}[0-9]{1}-[0-9]{4,6}$/.test(
-    String(plate || "").toUpperCase()
+    String(normalizePlate(plate || "")) // validate theo bản chuẩn hoá
   );
 
 export default function VehicleLink() {
@@ -45,9 +48,9 @@ export default function VehicleLink() {
   // OCR results / options
   const [acceptedModels, setAcceptedModels] = useState(GOGORO_MODELS);
 
-  // Form fields
-  const [owner, setOwner] = useState(""); // luôn là KHÔNG DẤU để hiển thị
-  const [ownerNoMark, setOwnerNoMark] = useState(""); // để gửi backend
+  // Form fields (RAW hiển thị cho user)
+  // [SỬA] giữ "raw" khi người dùng gõ, không trim/normalize ngay trên onChange
+  const [owner, setOwner] = useState("");
   const [vin, setVin] = useState("");
   const [licensePlate, setLicensePlate] = useState("");
   const [model, setModel] = useState("");
@@ -72,7 +75,6 @@ export default function VehicleLink() {
     setFile(selected);
     setPreview(selected ? URL.createObjectURL(selected) : "");
     setOwner("");
-    setOwnerNoMark("");
     setVin("");
     setLicensePlate("");
     setModel("");
@@ -110,18 +112,17 @@ export default function VehicleLink() {
           : GOGORO_MODELS
       );
 
-      // ✅ Tên chủ xe: luôn hiển thị bản không dấu
-      const plainOwner = toNoMark(s?.ownerWithMarks || s?.owner || "");
-      setOwner(plainOwner.toUpperCase());
-      setOwnerNoMark(plainOwner);
+      // [SỬA] Hiển thị OWNER ở dạng "không dấu" nhưng KHÔNG trim space trong lúc gõ (chỉ từ OCR thì cho gọn)
+      const plainOwnerFromOCR = toNoMark(s?.ownerWithMarks || s?.owner || "");
+      setOwner(plainOwnerFromOCR.toUpperCase()); // hiển thị gợi ý (người dùng vẫn sửa thêm space được)
 
-      // VIN / plate
+      // VIN / plate (đổ gợi ý, vẫn cho user chỉnh)
       setVin(s?.vin || "");
-      setLicensePlate(normalizePlate(s?.licensePlate || ""));
+      setLicensePlate(normalizePlate(s?.licensePlate || "")); // gợi ý đã chuẩn hoá, user vẫn gõ lại được
 
       // Model
       const beModel = s?.model || "";
-      if (beModel && acceptedModels.includes(beModel)) {
+      if (beModel && (hints?.acceptedModels || GOGORO_MODELS).includes(beModel)) {
         setModel(beModel);
         setModelSupported(true);
       } else {
@@ -136,19 +137,21 @@ export default function VehicleLink() {
     }
   };
 
+  // [SỬA] Validate theo bản chuẩn hoá nhưng không ép người dùng mất space khi gõ
   const canSave = useMemo(() => {
-    if (!vin || !licensePlate || !model) return false;
-    return isVinOk(vin) && isPlateOk(licensePlate);
+    const vinUpper = (vin || "").toUpperCase();
+    const plateNorm = normalizePlate(licensePlate || "");
+    if (!vinUpper || !plateNorm || !model) return false;
+    return isVinOk(vinUpper) && isPlateOk(plateNorm);
   }, [vin, licensePlate, model]);
 
+  // [SỬA] Không normalize trên onChange nữa → cho gõ dấu cách tự nhiên
   const handleOwnerChange = (val) => {
-    const noMark = toNoMark(val);
-    setOwner(noMark.toUpperCase());
-    setOwnerNoMark(noMark);
+    setOwner(val); // giữ raw; sẽ no-mark khi submit
   };
 
   const handlePlateChange = (val) => {
-    setLicensePlate(normalizePlate(val));
+    setLicensePlate(val); // giữ raw; sẽ normalize khi validate/submit
   };
 
   const handleSave = async () => {
@@ -158,6 +161,11 @@ export default function VehicleLink() {
     }
     setSaving(true);
     try {
+      // [SỬA] Chuẩn hoá CHỈ khi submit
+      const ownerNoMark = toNoMark(owner || "") || null;
+      const vinUpper = (vin || "").toUpperCase().trim();
+      const plateNorm = normalizePlate(licensePlate || "");
+
       const res = await fetch(
         `${API_BASE_URL}/webAPI/api/secure/vehicleConfirm`,
         {
@@ -167,11 +175,11 @@ export default function VehicleLink() {
             Authorization: `Bearer ${jwt}`,
           },
           body: JSON.stringify({
-            vin: vin?.trim(),
-            licensePlate: licensePlate?.trim(),
-            owner: ownerNoMark?.trim() || null, // gửi không dấu
-            ownerNoMark: ownerNoMark?.trim() || null,
-            model: model?.trim(),
+            vin: vinUpper,                 // chuẩn hoá khi gửi
+            licensePlate: plateNorm,       // chuẩn hoá khi gửi
+            owner: ownerNoMark,            // gửi không dấu
+            ownerNoMark: ownerNoMark,      // giữ key cũ để tương thích
+            model: (model || "").trim(),
           }),
         }
       );
@@ -194,6 +202,10 @@ export default function VehicleLink() {
   };
 
   // ========== UI ==========
+  // [SỬA] Gợi ý/nhắc người dùng: hiển thị validate theo chuẩn hoá nhưng không sửa text họ đang gõ
+  const platePreview = useMemo(() => normalizePlate(licensePlate || ""), [licensePlate]);
+  const vinPreview = useMemo(() => (vin || "").toUpperCase(), [vin]);
+
   return (
     <div className="vehicle-link-center">
       <div className="vehicle-link-page">
@@ -227,12 +239,17 @@ export default function VehicleLink() {
             <h4>Thông tin xe (có thể chỉnh trước khi lưu)</h4>
 
             <div className="field">
-              <label>Tên chủ xe (KHÔNG DẤU):</label>
+              <label>Tên chủ xe (Gõ Không Dấu, In Hoa ):</label>
+              {/* [SỬA] không ép uppercase/trim khi gõ */}
               <input
                 value={owner}
                 onChange={(e) => handleOwnerChange(e.target.value)}
                 placeholder="VD: LA THI MY NGHI"
               />
+              {/* Gợi ý: khi lưu sẽ tự bỏ dấu & gom space thừa */}
+              <small className="hint">
+                Khi lưu hệ thống sẽ tự bỏ dấu và gom khoảng trắng thừa.
+              </small>
             </div>
 
             <div className="field">
@@ -245,17 +262,23 @@ export default function VehicleLink() {
               {!isVinOk(vin) && vin && (
                 <small className="warn">VIN chưa hợp lệ.</small>
               )}
+              {!!vin && (
+                <small className="hint">Xem trước khi chuẩn hoá: <b>{vinPreview}</b></small>
+              )}
             </div>
 
             <div className="field">
-              <label>Biển số (xxA1-12345):</label>
+              <label>Biển số (được phép gõ có/không dấu cách; hệ thống tự chuẩn hoá khi lưu):</label>
               <input
                 value={licensePlate}
                 onChange={(e) => handlePlateChange(e.target.value)}
-                placeholder="VD: 59X3-40351"
+                placeholder="VD: 59X3-40351 hoặc 59x340351"
               />
               {!isPlateOk(licensePlate) && licensePlate && (
-                <small className="warn">Biển số chưa đúng định dạng.</small>
+                <small className="warn">Biển số chưa đúng định dạng (sau chuẩn hoá).</small>
+              )}
+              {!!licensePlate && (
+                <small className="hint">Xem trước khi chuẩn hoá: <b>{platePreview}</b></small>
               )}
             </div>
 

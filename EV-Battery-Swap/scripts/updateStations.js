@@ -90,7 +90,28 @@ async function main() {
     }
   } catch (err) {
     console.error('Failed to load stations from API_URL:', err.message || err);
-    process.exit(4);
+    // Try a local fallback so we can still demonstrate the station payload
+    try {
+      const fallbackPath = path.resolve('./src/data/stations.json');
+      const txt = await fs.readFile(fallbackPath, 'utf8');
+      stations = JSON.parse(txt);
+      console.log('Loaded stations from local fallback file:', fallbackPath);
+    } catch (e) {
+      console.error('Local fallback failed:', e.message || e);
+      process.exit(4);
+    }
+  }
+  // Log raw stations payload as requested (trim if very large)
+  try {
+    const rawDump = typeof stations === 'string' ? stations : JSON.stringify(stations, null, 2);
+    const MAX = 20000;
+    if (rawDump.length > MAX) {
+      console.log('stations (truncated):', rawDump.slice(0, MAX) + '\n... (truncated)');
+    } else {
+      console.log('stations:', rawDump);
+    }
+  } catch (e) {
+    console.warn('Failed to stringify stations for logging:', e && e.message ? e.message : e);
   }
   // Accept either an array directly or an object with `data` array (e.g., { status:'success', data: [...] })
   if (!Array.isArray(stations)) {
@@ -177,14 +198,19 @@ async function main() {
 
   // Backup existing stations.json if present
   try {
-    const existing = await fs.readFile(OUT_FILE, 'utf8');
-    const backupDir = path.join(path.dirname(OUT_FILE), 'backups');
-    await fs.mkdir(backupDir, { recursive: true });
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    const backupPath = path.join(backupDir, `stations-${timestamp}.json`);
-    // write backup with explicit UTF-8 encoding (preserve existing content)
-    await fs.writeFile(backupPath, existing, 'utf8');
-    console.log('Backed up previous stations.json to', backupPath);
+    // If AUTO_RUN=1 is provided (used when running automatically from a web process), skip making backups
+    if (!process.env.AUTO_RUN) {
+      const existing = await fs.readFile(OUT_FILE, 'utf8');
+      const backupDir = path.join(path.dirname(OUT_FILE), 'backups');
+      await fs.mkdir(backupDir, { recursive: true });
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const backupPath = path.join(backupDir, `stations-${timestamp}.json`);
+      // write backup with explicit UTF-8 encoding (preserve existing content)
+      await fs.writeFile(backupPath, existing, 'utf8');
+      console.log('Backed up previous stations.json to', backupPath);
+    } else {
+      console.log('AUTO_RUN set — skipping backup of previous stations.json');
+    }
   } catch (err) {
     // ENOENT means file doesn't exist yet — ok to continue
     if (err.code && err.code !== 'ENOENT') {

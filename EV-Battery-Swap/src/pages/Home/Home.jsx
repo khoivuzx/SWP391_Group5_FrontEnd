@@ -88,6 +88,7 @@ import SearchForm from '../../components/SearchForm/SearchForm';
 import MapboxMap from '../../components/Mapbox/MapboxMap';
 import API_BASE_URL from '../../config';
 import useGeolocation from '../../hooks/useGeolocation';
+import useStations from '../../hooks/useStations';
 import LocationPermissionModal from '../../components/LocationPermissionModal/LocationPermissionModal';
 import LoginModal from '../../components/Login/LoginModal';
 import { Link, useNavigate } from 'react-router-dom';
@@ -102,17 +103,18 @@ export default function Home() {
   const [routeGeoJSON, setRouteGeoJSON] = useState(null);
   const [routeLoading, setRouteLoading] = useState(false);
   const [routeError, setRouteError] = useState("");
-  const [stations, setStations] = useState([]);
-  const [stationsLoading, setStationsLoading] = useState(true);
-  const [stationsError, setStationsError] = useState("");
+  const { stations, loading: stationsLoading, error: stationsError, refresh: refreshStations } = useStations();
   const [userLocation, setUserLocation] = useState(null);
   const [bookingMsg, setBookingMsg] = useState("");
 
   // onStationsLoaded will be called by MapboxMap when it loads stations.json internally
   const handleStationsLoaded = (data) => {
-    setStations(Array.isArray(data) ? data : (data.data || []));
-    setStationsLoading(false);
-    setStationsError("");
+    // If MapboxMap loads its internal copy, keep our local stations in sync
+    // but prefer the hook-provided stations when available
+    // (this callback is still useful when MapboxMap had to load the bundled file)
+    // No-op if stations from the hook are present
+    // eslint-disable-next-line no-unused-expressions
+    stations || (Array.isArray(data) ? data : (data.data || []));
   };
 
   const handleBookStation = (station) => {
